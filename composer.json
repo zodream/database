@@ -1,0 +1,23 @@
+{
+    "name": "zodream/database",
+    "description": "SQL Builder With PDO, ORM etc",
+    "keywords": ["sql", "orm", "zodream"],
+    "homepage": "https://github.com/zodream/database",
+    "license": "Unlicense",
+    "authors": [
+        {
+            "name" : "Jason Zou",
+            "email" : "zodream@fixmail.com",
+            "homepage" : "http://www.zodream.cn/",
+            "role" : "Developer"
+        }
+    ],
+    "require": {
+        "php": ">=5.6.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Zodream\\Database\\": "src/"
+        }
+    }
+}
