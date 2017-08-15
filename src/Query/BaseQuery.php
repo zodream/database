@@ -43,6 +43,16 @@ abstract class BaseQuery extends BaseSchema  {
     }
 
     /**
+     * Pass the query to a given callback.
+     *
+     * @param  \Closure  $callback
+     * @return $this
+     */
+    public function tap($callback) {
+        return $this->when(true, $callback);
+    }
+
+    /**
      * 条件语句
      * @param bool $condition
      * @param Closure $trueFunc
