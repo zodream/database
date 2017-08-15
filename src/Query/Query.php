@@ -387,6 +387,27 @@ class Query extends BaseQuery {
         return current($result);
     }
 
+    public function pluck($column) {
+        $data = $this->select($column)->all();
+        if (empty($data)) {
+            return [];
+        }
+        $args = [];
+        foreach ($data as $item) {
+            $args[] = current($item);
+        }
+        return $args;
+    }
+
+    /**
+     * 获取值
+     * @param string $column
+     * @return bool|int|string
+     */
+    public function value($column) {
+        return $this->select($column)->scalar();
+    }
+
     protected function getSelect() {
         return 'SELECT '.$this->getField();
     }
