@@ -118,6 +118,19 @@ abstract class BaseQuery extends BaseSchema  {
         return $this->addParam($params);
     }
 
+    public function whereNull($column, $boolean = 'and', $not = false) {
+        $type = $not ? 'Not Null' : 'Null';
+        $this->where[] = array(
+            sprintf('%s IS %s', $column, $type),
+            $boolean
+        );
+        return $this;
+    }
+
+    public function whereNotNull($column, $boolean = 'and') {
+        return $this->whereNull($column, $boolean, true);
+    }
+
     /**
      * OR WHERE
      * @param $condition
