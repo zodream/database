@@ -236,7 +236,7 @@ class Command extends ConfigObject {
 
     /**
      * 开始执行事务
-     * @return Database
+     * @return BaseEngine
      */
     public function beginTransaction() {
         $this->getEngine()->begin();
