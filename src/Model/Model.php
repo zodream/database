@@ -280,6 +280,21 @@ abstract class Model extends MagicObject {
         return $model;
     }
 
+    /**
+     * 查找或报错
+     * @param $param
+     * @param string $field
+     * @param array $parameters
+     * @return bool|Model
+     */
+    public static function findOrThrow($param, $field = '*', $parameters = array()) {
+        $model = static::find($param, $field, $parameters);
+        if (empty($model)) {
+            throw new \InvalidArgumentException($param);
+        }
+        return $model;
+    }
+
 	/**
 	 * 删除数据
 	 * DELETE QUERY
