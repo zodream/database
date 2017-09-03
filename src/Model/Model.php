@@ -5,7 +5,6 @@ namespace Zodream\Database\Model;
  *
  * @author Jason
  */
-use Zodream\Domain\Html\Page;
 use Zodream\Database\Model\Concerns\AutoModel;
 use Zodream\Database\Model\Concerns\HasAttributes;
 use Zodream\Database\Model\Concerns\HasRelation;
@@ -325,6 +324,11 @@ abstract class Model extends MagicObject {
 	}
 
 
+    /**
+     * @param $method
+     * @param $arguments
+     * @return Query|array
+     */
 	public static function __callStatic($method, $arguments) {
 		return call_user_func_array([
            	static::query(), $method], $arguments);
