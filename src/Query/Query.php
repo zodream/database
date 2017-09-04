@@ -107,7 +107,7 @@ class Query extends BaseQuery {
      * @return integer
      */
     public function count($column = '*') {
-        return $this->_selectFunction(__FUNCTION__, $column)->scalar();
+        return (int)$this->_selectFunction(__FUNCTION__, $column)->scalar();
     }
 
     /**
