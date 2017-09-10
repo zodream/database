@@ -9,8 +9,23 @@ namespace Zodream\Database\Query;
 use Zodream\Database\Schema\BaseSchema;
 use Zodream\Helpers\Arr;
 use Closure;
+use InvalidArgumentException;
 
 abstract class BaseQuery extends BaseSchema  {
+
+    /**
+     * The current query value bindings.
+     *
+     * @var array
+     */
+    public $bindings = [
+        'select' => [],
+        'join'   => [],
+        'where'  => [],
+        'having' => [],
+        'order'  => [],
+        'union'  => [],
+    ];
 
     protected $where = array();
 
@@ -38,8 +53,11 @@ abstract class BaseQuery extends BaseSchema  {
         if (empty($condition)) {
             return $this;
         }
-        $this->where = [$condition];
-        return $this->addParam($params);
+        $this->where = array_merge(
+            $this->where,
+            $this->addCondition($condition)
+        );
+        return $this->addBinding($params);
     }
 
     /**
@@ -68,20 +86,6 @@ abstract class BaseQuery extends BaseSchema  {
             $falseFunc($this);
         }
         return $this;
-    }
-
-    /**
-     * ADD WHERE
-     * @param $condition
-     * @param array $params
-     * @return static
-     */
-    public function whereMany($condition, $params = array()) {
-        $this->where = array_merge(
-            $this->where,
-            $this->addCondition($condition)
-        );
-        return $this->addParam($params);
     }
 
     protected function addCondition($condition) {
@@ -115,7 +119,15 @@ abstract class BaseQuery extends BaseSchema  {
             $condition,
             'AND'
         );
-        return $this->addParam($params);
+        return $this->addBinding($params);
+    }
+
+    public function whereColumn($first, $operator = null, $second = null, $boolean = 'and') {
+
+    }
+
+    public function orWhereColumn($first, $operator = null, $second = null) {
+        return $this->whereColumn($first, $operator, $second, 'or');
     }
 
     public function whereNull($column, $boolean = 'and', $not = false) {
@@ -125,6 +137,22 @@ abstract class BaseQuery extends BaseSchema  {
             $boolean
         );
         return $this;
+    }
+
+    public function whereIn($column, $values, $boolean = 'and', $not = false) {
+
+    }
+
+    public function orWhereIn($column, $values) {
+
+    }
+
+    public function whereNotIn($column, $values, $boolean = 'and') {
+        return $this->whereIn($column, $values, $boolean, true);
+    }
+
+    public function orWhereNotIn($column, $values) {
+        return $this->whereNotIn($column, $values, 'or');
     }
 
     public function whereNotNull($column, $boolean = 'and') {
@@ -157,21 +185,6 @@ abstract class BaseQuery extends BaseSchema  {
     public function offset($offset) {
         $this->offset = $offset;
         return $this;
-    }
-
-    /**
-     * @param $params
-     * @return static
-     */
-    abstract public function addParam($params);
-
-    /**
-     * HAS BUILD VALUE
-     * @param string $key
-     * @return bool
-     */
-    public function hasParam($key) {
-        return $this->has($key);
     }
 
     protected function getWhere() {
@@ -459,5 +472,80 @@ abstract class BaseQuery extends BaseSchema  {
             return null;
         }
         return ' OFFSET '.intval($this->offset);
+    }
+
+    /**
+     * Get the current query value bindings in a flattened array.
+     *
+     * @return array
+     */
+    public function getBindings() {
+        return $this->bindings;
+    }
+
+    /**
+     * Set the bindings on the query builder.
+     *
+     * @param  array   $bindings
+     * @param  string  $type
+     * @return $this
+     *
+     * @throws \InvalidArgumentException
+     */
+    public function setBindings(array $bindings, $type = 'where') {
+        if (! array_key_exists($type, $this->bindings)) {
+            throw new InvalidArgumentException("Invalid binding type: {$type}.");
+        }
+
+        $this->bindings[$type] = $bindings;
+
+        return $this;
+    }
+
+    /**
+     * Add a binding to the query.
+     *
+     * @param  mixed   $value
+     * @param  string  $type
+     * @return $this
+     *
+     * @throws \InvalidArgumentException
+     */
+    public function addBinding($value, $type = 'where') {
+        if (! array_key_exists($type, $this->bindings)) {
+            throw new InvalidArgumentException("Invalid binding type: {$type}.");
+        }
+
+        if (is_array($value)) {
+            $this->bindings[$type] = array_values(array_merge($this->bindings[$type], $value));
+        } else {
+            $this->bindings[$type][] = $value;
+        }
+
+        return $this;
+    }
+
+    /**
+     * Merge an array of bindings into our bindings.
+     *
+     * @param  BaseQuery  $query
+     * @return $this
+     */
+    public function mergeBindings(BaseQuery $query) {
+        $this->bindings = array_merge_recursive($this->bindings, $query->bindings);
+
+        return $this;
+    }
+
+    /**
+     * Remove all of the expressions from a list of bindings.
+     *
+     * @param  array  $bindings
+     * @return array
+     */
+    protected function cleanBindings(array $bindings) {
+        return array_values(array_filter($bindings, function ($binding) {
+            return ! $binding instanceof Expression;
+        }));
     }
 }

@@ -168,8 +168,6 @@ class Query extends BaseQuery {
         return $this;
     }
 
-
-
     public function join($type, $table, $on = '', $params = array()) {
         $this->join[] = array($type, $table, $on);
         return $this->addParam($params);
@@ -178,6 +176,10 @@ class Query extends BaseQuery {
     public function inner($table, $on = '', $params = array()) {
         $this->addJoin($table, $on, 'INNER');
         return $this->addParam($params);
+    }
+
+    public function leftJoin() {
+
     }
 
     public function addJoin($args, $on = '', $tag = 'left') {
@@ -213,11 +215,13 @@ class Query extends BaseQuery {
         return $this->addParam($params);
     }
 
-    public function group($columns) {
-        if (!is_array($columns)) {
-            $columns = func_get_args();
+    public function groupBy($groups) {
+        foreach (func_get_args() as $group) {
+            $this->group = array_merge(
+                (array) $this->group,
+                array_wrap($group)
+            );
         }
-        $this->group = array_merge($this->group, $columns);
         return $this;
     }
 
@@ -233,40 +237,44 @@ class Query extends BaseQuery {
         return $this;
     }
 
-    public function having($condition, $params = array()) {
-        $this->having = [$condition];
-        return $this->addParam($params);
-    }
+    public function having($column, $operator = null, $value = null, $boolean = 'and')
+    {
+        $type = 'Basic';
 
-    public function havingMany($condition, $params = array()) {
-        $this->having = array_merge($this->having, $this->addCondition($condition));
-        return $this->addParam($params);
+        // Here we will make some assumptions about the operator. If only 2 values are
+        // passed to the method, we will assume that the operator is an equals sign
+        // and keep going. Otherwise, we'll require the operator to be passed in.
+        list($value, $operator) = $this->prepareValueAndOperator(
+            $value, $operator, func_num_args() == 2
+        );
+
+        // If the given operator is not found in the list of valid operators we will
+        // assume that the developer is just short-cutting the '=' operators and
+        // we will set the operators to '=' and set the values appropriately.
+        if ($this->invalidOperator($operator)) {
+            list($value, $operator) = [$operator, '='];
+        }
+
+        $this->havings[] = compact('type', 'column', 'operator', 'value', 'boolean');
+
+        if (! $value instanceof Expression) {
+            $this->addBinding($value, 'having');
+        }
+
+        return $this;
     }
 
     /**
-     * @param $condition
-     * @param array $params
-     * @return Query
+     * Add a "or having" clause to the query.
+     *
+     * @param  string  $column
+     * @param  string  $operator
+     * @param  string  $value
+     * @return \Illuminate\Database\Query\Builder|static
      */
-    public function andHaving($condition, $params = array()) {
-        $this->having[] = array(
-            $condition,
-            'AND'
-        );
-        return $this->addParam($params);
-    }
-
-    /**
-     * @param $condition
-     * @param array $params
-     * @return Query
-     */
-    public function orHaving($condition, $params = array()) {
-        $this->having[] = array(
-            $condition,
-            'OR'
-        );
-        return $this->addParam($params);
+    public function orHaving($column, $operator = null, $value = null)
+    {
+        return $this->having($column, $operator, $value, 'or');
     }
 
     /**
@@ -274,7 +282,7 @@ class Query extends BaseQuery {
      * @param array|string $args
      * @return Query
      */
-    public function order($args) {
+    public function orderBy($args) {
         if (!is_array($args)) {
             $args = func_get_args();
         }
@@ -307,19 +315,6 @@ class Query extends BaseQuery {
 
     public function union($sql, $all = false) {
         $this->union[] = ['query' => $sql, 'all' => $all];
-        return $this;
-    }
-
-
-
-    /**
-     * add build value
-     * @param string|array $key
-     * @param string $value
-     * @return Query
-     */
-    public function addParam($key, $value = null) {
-        $this->set($key, $value);
         return $this;
     }
 
