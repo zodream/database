@@ -270,7 +270,7 @@ class Query extends BaseQuery {
      * @param  string  $column
      * @param  string  $operator
      * @param  string  $value
-     * @return \Illuminate\Database\Query\Builder|static
+     * @return static
      */
     public function orHaving($column, $operator = null, $value = null)
     {

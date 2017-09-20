@@ -18,7 +18,7 @@ abstract class BaseQuery extends BaseSchema  {
      *
      * @var array
      */
-    public $bindings = [
+    protected $bindings = [
         'select' => [],
         'join'   => [],
         'where'  => [],
@@ -42,23 +42,6 @@ abstract class BaseQuery extends BaseSchema  {
         '~', '~*', '!~', '!~*', 'similar to',
         'not similar to'
     );
-
-    /**
-     * INIT WHERE AND SET WHERE
-     * @param $condition
-     * @param array $params
-     * @return static
-     */
-    public function where($condition, $params = array()) {
-        if (empty($condition)) {
-            return $this;
-        }
-        $this->where = array_merge(
-            $this->where,
-            $this->addCondition($condition)
-        );
-        return $this->addBinding($params);
-    }
 
     /**
      * Pass the query to a given callback.
@@ -86,91 +69,6 @@ abstract class BaseQuery extends BaseSchema  {
             $falseFunc($this);
         }
         return $this;
-    }
-
-    protected function addCondition($condition) {
-        if (!is_array($condition)) {
-            return array(
-                array(
-                    $condition,
-                    'AND'
-                )
-            );
-        }
-        $result = array();
-        foreach ($condition as $key => $item) {
-            if (!is_integer($key)) {
-                $item = (array)$item;
-                array_unshift($item, $key);
-            }
-            $result[] = $item;
-        }
-        return $result;
-    }
-
-    /**
-     * AND WHERE
-     * @param $condition
-     * @param array $params
-     * @return static
-     */
-    public function andWhere($condition, $params = array()) {
-        $this->where[] = array(
-            $condition,
-            'AND'
-        );
-        return $this->addBinding($params);
-    }
-
-    public function whereColumn($first, $operator = null, $second = null, $boolean = 'and') {
-
-    }
-
-    public function orWhereColumn($first, $operator = null, $second = null) {
-        return $this->whereColumn($first, $operator, $second, 'or');
-    }
-
-    public function whereNull($column, $boolean = 'and', $not = false) {
-        $type = $not ? 'Not Null' : 'Null';
-        $this->where[] = array(
-            sprintf('%s IS %s', $column, $type),
-            $boolean
-        );
-        return $this;
-    }
-
-    public function whereIn($column, $values, $boolean = 'and', $not = false) {
-
-    }
-
-    public function orWhereIn($column, $values) {
-
-    }
-
-    public function whereNotIn($column, $values, $boolean = 'and') {
-        return $this->whereIn($column, $values, $boolean, true);
-    }
-
-    public function orWhereNotIn($column, $values) {
-        return $this->whereNotIn($column, $values, 'or');
-    }
-
-    public function whereNotNull($column, $boolean = 'and') {
-        return $this->whereNull($column, $boolean, true);
-    }
-
-    /**
-     * OR WHERE
-     * @param $condition
-     * @param array $params
-     * @return static
-     */
-    public function orWhere($condition, $params = array()) {
-        $this->where[] = array(
-            $condition,
-            'OR'
-        );
-        return $this->addParam($params);
     }
 
     public function limit($limit, $length = null) {
@@ -480,7 +378,17 @@ abstract class BaseQuery extends BaseSchema  {
      * @return array
      */
     public function getBindings() {
-        return $this->bindings;
+        if (func_num_args() < 1) {
+            return $this->bindings;
+        }
+        $args = [];
+        foreach (func_get_args() as $item) {
+            if (!array_key_exists($item, $this->bindings)) {
+                continue;
+            }
+            $args = array_merge($args, $this->bindings[$item]);
+        }
+        return $args;
     }
 
     /**

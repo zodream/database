@@ -6,55 +6,10 @@ namespace Zodream\Database\Query;
  * Date: 2016/7/12
  * Time: 19:24
  */
+use Zodream\Helpers\Arr;
 use Zodream\Helpers\Str;
 
 class Record extends BaseQuery  {
-    
-    protected $parameters = [];
-
-    /**
-     * ADD PARAM
-     * @param $key
-     * @param null $value
-     * @return $this
-     */
-    public function addParam($key, $value = null) {
-        if (is_object($key)) {
-            $key = (array)$key;
-        }
-        if (is_array($key)) {
-            $this->parameters = array_merge($this->parameters, $key);
-            return $this;
-        }
-        if (empty($key)) {
-            return $this;
-        }
-        $this->parameters[$key] = $value;
-        return $this;
-    }
-
-    /**
-     * HAS PARAMETERS
-     * @param $key
-     * @return bool
-     */
-    public function hasParam($key) {
-        return array_key_exists($key, $this->parameters);
-    }
-
-    /**
-     * @param array|string $key 需要添加的集合
-     * @param string $value
-     * @return static
-     */
-    public function set($key, $value = null) {
-        if (is_null($key) && !is_null($value)) {
-            $this->_data[] = $value;
-            return $this;
-        }
-        parent::set($key, $value);
-        return $this;
-    }
 
     /**
      * SET TABLE
@@ -75,13 +30,16 @@ class Record extends BaseQuery  {
      * @return int 返回最后插入的ID,
      */
     public function insert() {
-        if (empty($this->_data)) {
+        if (!$this->hasAttribute()) {
             return $this->command()->insert(null, 'NULL'); // 获取自增值
         }
-        $addFields = implode('`,`', array_keys($this->_data));
+        if (Arr::isMultidimensional($this->get())) {
+            return $this->batchInsert(array_keys($this->current()), $this->get());
+        }
+        $addFields = implode('`,`', array_keys($this->get()));
         return $this->command()
-            ->insert("`{$addFields}`", Str::repeat('?', count($this->_data)),
-                array_values($this->_data));
+            ->insert("`{$addFields}`", Str::repeat('?', $this->count()),
+                array_values($this->get()));
     }
 
     /**
@@ -127,7 +85,7 @@ class Record extends BaseQuery  {
     public function update() {
         $data = [];
         $parameters = array();
-        foreach ($this->_data as $key => $value) {
+        foreach ($this->get() as $key => $value) {
             if (is_integer($key)) {
                 $data[] = $value;
                 continue;
@@ -136,7 +94,7 @@ class Record extends BaseQuery  {
             $parameters[] = $value;
         }
         return $this->command()
-            ->update(implode(',', $data), $this->getWhere().$this->getLimit(), $parameters);
+            ->update(implode(',', $data), $this->getWhere().$this->getLimit(), $this->getBindings('where'));
     }
 
     /**
@@ -146,7 +104,7 @@ class Record extends BaseQuery  {
      * @return int
      */
     public function updateBool($filed) {
-        $this->_data[] = "{$filed} = CASE WHEN {$filed} = 1 THEN 0 ELSE 1 END";
+        $this->__attributes[] = "{$filed} = CASE WHEN {$filed} = 1 THEN 0 ELSE 1 END";
         return $this->update();
     }
 
@@ -166,8 +124,7 @@ class Record extends BaseQuery  {
                 $sql[] = "`$key` = `$key` ".$item;
             }
         }
-        return $this->record()
-            ->set($sql)
+        return $this->set($sql)
             ->update();
     }
 
@@ -188,10 +145,10 @@ class Record extends BaseQuery  {
      * @return mixed
      */
     public function replace() {
-        $addFields = implode('`,`', array_keys($this->_data));
+        $addFields = implode('`,`', array_keys($this->get()));
         return $this->command()
-            ->insertOrReplace("`{$addFields}`", Str::repeat('?', count($this->_data)),
-                array_values($this->_data));
+            ->insertOrReplace("`{$addFields}`", Str::repeat('?', $this->count()),
+                array_values($this->get()));
     }
 
     /**
@@ -200,7 +157,7 @@ class Record extends BaseQuery  {
      */
     public function delete() {
         return $this->command()
-            ->delete($this->getWhere().$this->getLimit(), $this->parameters);
+            ->delete($this->getWhere().$this->getLimit(), $this->getBindings('where'));
     }
 
     /**
@@ -226,7 +183,7 @@ class Record extends BaseQuery  {
             foreach ($relations as $table => $relation) {
                 if (is_integer($table) && is_callable($relation)) {
                     call_user_func($relation, $item);
-                    return;
+                    continue;
                 }
                 $key = $table.'_id';
                 $record = (new static)->setTable($table);
