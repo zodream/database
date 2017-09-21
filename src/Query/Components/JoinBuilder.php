@@ -1,6 +1,8 @@
 <?php
 namespace Zodream\Database\Query\Components;
 
+use Zodream\Database\Query\Query;
+
 trait JoinBuilder {
     /**
      * Add a join clause to the query.
@@ -49,10 +51,9 @@ trait JoinBuilder {
      * @param  string  $operator
      * @param  string  $second
      * @param  string  $type
-     * @return \Illuminate\Database\Query\Builder|static
+     * @return Query|static
      */
-    public function joinWhere($table, $first, $operator, $second, $type = 'inner')
-    {
+    public function joinWhere($table, $first, $operator, $second, $type = 'inner') {
         return $this->join($table, $first, $operator, $second, $type, true);
     }
 
@@ -63,10 +64,9 @@ trait JoinBuilder {
      * @param  string  $first
      * @param  string  $operator
      * @param  string  $second
-     * @return \Illuminate\Database\Query\Builder|static
+     * @return Query|static
      */
-    public function leftJoin($table, $first, $operator = null, $second = null)
-    {
+    public function leftJoin($table, $first, $operator = null, $second = null) {
         return $this->join($table, $first, $operator, $second, 'left');
     }
 
@@ -77,10 +77,9 @@ trait JoinBuilder {
      * @param  string  $first
      * @param  string  $operator
      * @param  string  $second
-     * @return \Illuminate\Database\Query\Builder|static
+     * @return Query|static
      */
-    public function leftJoinWhere($table, $first, $operator, $second)
-    {
+    public function leftJoinWhere($table, $first, $operator, $second) {
         return $this->joinWhere($table, $first, $operator, $second, 'left');
     }
 
@@ -91,10 +90,9 @@ trait JoinBuilder {
      * @param  string  $first
      * @param  string  $operator
      * @param  string  $second
-     * @return \Illuminate\Database\Query\Builder|static
+     * @return Query|static
      */
-    public function rightJoin($table, $first, $operator = null, $second = null)
-    {
+    public function rightJoin($table, $first, $operator = null, $second = null) {
         return $this->join($table, $first, $operator, $second, 'right');
     }
 
@@ -105,10 +103,9 @@ trait JoinBuilder {
      * @param  string  $first
      * @param  string  $operator
      * @param  string  $second
-     * @return \Illuminate\Database\Query\Builder|static
+     * @return Query|static
      */
-    public function rightJoinWhere($table, $first, $operator, $second)
-    {
+    public function rightJoinWhere($table, $first, $operator, $second) {
         return $this->joinWhere($table, $first, $operator, $second, 'right');
     }
 
@@ -119,10 +116,9 @@ trait JoinBuilder {
      * @param  string  $first
      * @param  string  $operator
      * @param  string  $second
-     * @return \Illuminate\Database\Query\Builder|static
+     * @return Query|static
      */
-    public function crossJoin($table, $first = null, $operator = null, $second = null)
-    {
+    public function crossJoin($table, $first = null, $operator = null, $second = null) {
         if ($first) {
             return $this->join($table, $first, $operator, $second, 'cross');
         }
@@ -130,5 +126,24 @@ trait JoinBuilder {
         $this->joins[] = new JoinClause($this, 'cross', $table);
 
         return $this;
+    }
+
+
+    /**
+     * 支持多个相同的left [$table, $where, ...]
+     * @return string
+     */
+    protected function getJoin() {
+        if (empty($this->join)) {
+            return null;
+        }
+        $sql = '';
+        foreach ($this->join as $item) {
+            $sql .= " {$item[0]} {$item[1]}";
+            if (!empty($item[2])) {
+                $sql .= " ON {$item[2] }";
+            }
+        }
+        return $sql;
     }
 }

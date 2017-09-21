@@ -6,10 +6,9 @@ namespace Zodream\Database\Schema;
  * Date: 2016/6/25
  * Time: 9:38
  */
-use Zodream\Infrastructure\Base\MagicObject;
 use Zodream\Database\Command;
 
-abstract class BaseSchema extends MagicObject {
+abstract class BaseSchema {
 
     /**
      * @var Command

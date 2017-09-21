@@ -6,12 +6,15 @@ namespace Zodream\Database\Query;
  * Date: 2016/6/25
  * Time: 9:38
  */
+use Zodream\Database\Query\Components\WhereBuilder;
 use Zodream\Database\Schema\BaseSchema;
 use Zodream\Helpers\Arr;
 use Closure;
 use InvalidArgumentException;
 
 abstract class BaseQuery extends BaseSchema  {
+
+    use WhereBuilder;
 
     /**
      * The current query value bindings.
@@ -71,17 +74,24 @@ abstract class BaseQuery extends BaseSchema  {
         return $this;
     }
 
+    public function take($value) {
+        return $this->limit($value);
+    }
+
     public function limit($limit, $length = null) {
-        if (!empty($length)) {
-            $this->offset($limit);
-            $limit = $length;
+        if (is_string($limit) && strpos($limit, ',') !== false) {
+            list($limit, $length) = explode(',', $limit);
         }
-        $this->limit = $limit;
-        return $this;
+        if (empty($length)) {
+            $this->limit = $limit;
+            return $this;
+        }
+        $this->limit = $length;
+        return $this->offset($limit);
     }
 
     public function offset($offset) {
-        $this->offset = $offset;
+        $this->offset = intval($offset);
         return $this;
     }
 

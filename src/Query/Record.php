@@ -8,13 +8,18 @@ namespace Zodream\Database\Query;
  */
 use Zodream\Helpers\Arr;
 use Zodream\Helpers\Str;
+use Zodream\Infrastructure\Traits\Attributes;
 
 class Record extends BaseQuery  {
+
+    use Attributes;
+
+    protected $__attributes;
 
     /**
      * SET TABLE
      * @param $table
-     * @return $this
+     * @return Record
      */
     public function setTable($table) {
         $this->command()->setTable($table);
@@ -33,13 +38,13 @@ class Record extends BaseQuery  {
         if (!$this->hasAttribute()) {
             return $this->command()->insert(null, 'NULL'); // 获取自增值
         }
-        if (Arr::isMultidimensional($this->get())) {
-            return $this->batchInsert(array_keys($this->current()), $this->get());
+        if (Arr::isMultidimensional($this->__attributes)) {
+            return $this->batchInsert(array_keys(current($this->__attributes)), $this->__attributes);
         }
-        $addFields = implode('`,`', array_keys($this->get()));
+        $addFields = implode('`,`', array_keys($this->__attributes));
         return $this->command()
-            ->insert("`{$addFields}`", Str::repeat('?', $this->count()),
-                array_values($this->get()));
+            ->insert("`{$addFields}`", Str::repeat('?', $this->__attributes),
+                array_values($this->__attributes));
     }
 
     /**
@@ -145,10 +150,10 @@ class Record extends BaseQuery  {
      * @return mixed
      */
     public function replace() {
-        $addFields = implode('`,`', array_keys($this->get()));
+        $addFields = implode('`,`', array_keys($this->__attributes));
         return $this->command()
-            ->insertOrReplace("`{$addFields}`", Str::repeat('?', $this->count()),
-                array_values($this->get()));
+            ->insertOrReplace("`{$addFields}`", Str::repeat('?', $this->__attributes),
+                array_values($this->__attributes));
     }
 
     /**
@@ -186,6 +191,7 @@ class Record extends BaseQuery  {
                     continue;
                 }
                 $key = $table.'_id';
+                /** @var Record $record */
                 $record = (new static)->setTable($table);
                 if (is_callable($relation)) {
                     call_user_func($relation, $record, $item);

@@ -6,10 +6,13 @@ namespace Zodream\Database\Query;
  * Date: 2016/3/19
  * Time: 10:30
  */
+use Zodream\Database\Query\Components\JoinBuilder;
 use Zodream\Domain\Html\Page;
 use Zodream\Helpers\Arr;
 
 class Query extends BaseQuery {
+
+    use JoinBuilder;
 
     protected $select = array();
 
@@ -78,7 +81,6 @@ class Query extends BaseQuery {
      * @return static
      */
     public function select($field = '*') {
-        $this->select = [];
         if (!is_array($field)) {
             $field = func_get_args();
         }
@@ -168,19 +170,6 @@ class Query extends BaseQuery {
         return $this;
     }
 
-    public function join($type, $table, $on = '', $params = array()) {
-        $this->join[] = array($type, $table, $on);
-        return $this->addParam($params);
-    }
-
-    public function inner($table, $on = '', $params = array()) {
-        $this->addJoin($table, $on, 'INNER');
-        return $this->addParam($params);
-    }
-
-    public function leftJoin() {
-
-    }
 
     public function addJoin($args, $on = '', $tag = 'left') {
         if (is_array($on)) {
@@ -205,16 +194,6 @@ class Query extends BaseQuery {
         }
     }
 
-    public function left($table, $on = '', $params = array()) {
-        $this->addJoin($table, $on, 'LEFT');
-        return $this->addParam($params);
-    }
-
-    public function right($table, $on = '', $params = array()) {
-        $this->addJoin($table, $on, 'RIGHT');
-        return $this->addParam($params);
-    }
-
     public function groupBy($groups) {
         foreach (func_get_args() as $group) {
             $this->group = array_merge(
@@ -237,8 +216,7 @@ class Query extends BaseQuery {
         return $this;
     }
 
-    public function having($column, $operator = null, $value = null, $boolean = 'and')
-    {
+    public function having($column, $operator = null, $value = null, $boolean = 'and') {
         $type = 'Basic';
 
         // Here we will make some assumptions about the operator. If only 2 values are
@@ -272,8 +250,7 @@ class Query extends BaseQuery {
      * @param  string  $value
      * @return static
      */
-    public function orHaving($column, $operator = null, $value = null)
-    {
+    public function orHaving($column, $operator = null, $value = null) {
         return $this->having($column, $operator, $value, 'or');
     }
 
@@ -456,26 +433,6 @@ class Query extends BaseQuery {
             return null;
         }
         return ' Having'.$this->getCondition($this->having);
-    }
-
-
-
-    /**
-     * 支持多个相同的left [$table, $where, ...]
-     * @return string
-     */
-    protected function getJoin() {
-        if (empty($this->join)) {
-            return null;
-        }
-        $sql = '';
-        foreach ($this->join as $item) {
-            $sql .= " {$item[0]} {$item[1]}";
-            if (!empty($item[2])) {
-                $sql .= " ON {$item[2] }";
-            }
-        }
-        return $sql;
     }
 
     /**
