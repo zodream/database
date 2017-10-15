@@ -83,17 +83,8 @@ class Query extends BaseQuery {
      * @return int
      */
     public function update(array $args) {
-        $data = [];
-        foreach ($args as $key => $value) {
-            if (is_integer($key)) {
-                $data[] = $value;
-                continue;
-            }
-            $data[] = "`{$key}` = ?";
-            $this->addParam($value);
-        }
         return $this->command()
-            ->update(implode(',', $data), $this->getWhere().$this->getLimit(), $this->get());
+            ->update($this->compileUpdate($args), $this->getBindings());
     }
 
     /**
@@ -102,7 +93,7 @@ class Query extends BaseQuery {
      */
     public function delete() {
         return $this->command()
-            ->delete($this->getWhere().$this->getLimit(), $this->get());
+            ->delete($this->compileDelete(), $this->getBindings());
     }
 
     /***

@@ -154,7 +154,7 @@ class Command extends ConfigObject {
             return sprintf('`%s`%s', $table, $alias);
         }
         return sprintf('`%s`%s', $prefix.
-            Str::firstReplace($table, $prefix), $alias);;
+            Str::firstReplace($table, $prefix), $alias);
     }
 
     /**
@@ -200,7 +200,7 @@ class Command extends ConfigObject {
         if (!$this->allowCache) {
             return null;
         }
-        $cache = Factory::cache()->get('data/'.md5($this->currentName.$sql));
+        $cache = Factory::cache()->get($this->currentName.$sql);
         if (empty($cache)) {
             return null;
         }
@@ -211,7 +211,7 @@ class Command extends ConfigObject {
         if (!$this->allowCache || (defined('DEBUG') && DEBUG)) {
             return;
         }
-        Factory::cache()->set('data/'.md5($this->currentName.$sql), serialize($data), 3600);
+        Factory::cache()->set($this->currentName.$sql, serialize($data), 3600);
     }
 
     /**
@@ -251,6 +251,15 @@ class Command extends ConfigObject {
      * @return int
      */
     public function insert($columns, $tags, $parameters = array()) {
+        if (is_array($tags)) {
+            list($tags, $parameters) = [null, $tags];
+        }
+        if (is_null($tags)) {
+            if (stripos($columns, 'insert') !== false) {
+                return $this->getEngine()->update($columns, $parameters);
+            }
+            return $this->getEngine()->insert("INSERT INTO {$this->table} {$columns} VALUES (NULL)", $parameters);
+        }
         if (!empty($columns) && strpos($columns, '(') === false) {
             $columns = '('.$columns.')';
         }
@@ -305,8 +314,18 @@ class Command extends ConfigObject {
      * @param array $parameters
      * @return int
      */
-    public function update($columns, $where, $parameters = array()) {
-        if (strncasecmp(ltrim($where), 'where', 5) !== 0) {
+    public function update($columns, $where = null, $parameters = array()) {
+        if (is_array($where)) {
+            list($where, $parameters) = [null, $where];
+        }
+        if (is_null($where)) {
+            if (stripos($columns, 'update') !== false) {
+                return $this->getEngine()->update($columns, $parameters);
+            }
+            return $this->getEngine()->update("UPDATE {$this->table} SET {$columns}", $parameters);
+        }
+        $where = trim($where);
+        if (strncasecmp($where, 'where', 5) !== 0) {
             $where = 'WHERE '.$where;
         }
         return $this->getEngine()->update("UPDATE {$this->table} SET {$columns} {$where}", $parameters);
@@ -320,7 +339,13 @@ class Command extends ConfigObject {
      */
     public function delete($where = null, $parameters = array()) {
         $where = trim($where);
-        if (!empty($where) && strncasecmp($where, 'where', 5) !== 0) {
+        if (empty($where)) {
+            return $this->getEngine()->delete('DELETE FROM '.$this->table, $parameters);
+        }
+        if (stripos($where, 'delete') !== false) {
+            return $this->getEngine()->delete($where, $parameters);
+        }
+        if (strncasecmp($where, 'where', 5) !== 0) {
             $where = 'WHERE '.$where;
         }
         return $this->getEngine()->delete("DELETE FROM {$this->table} {$where}", $parameters);

@@ -14,7 +14,7 @@ class Record extends BaseQuery  {
 
     use Attributes;
 
-    protected $__attributes;
+    protected $__attributes = [];
 
     /**
      * SET TABLE
@@ -23,6 +23,7 @@ class Record extends BaseQuery  {
      */
     public function setTable($table) {
         $this->command()->setTable($table);
+        $this->from = $table;
         return $this;
     }
 
@@ -38,13 +39,9 @@ class Record extends BaseQuery  {
         if (!$this->hasAttribute()) {
             return $this->command()->insert(null, 'NULL'); // 获取自增值
         }
-        if (Arr::isMultidimensional($this->__attributes)) {
-            return $this->batchInsert(array_keys(current($this->__attributes)), $this->__attributes);
-        }
-        $addFields = implode('`,`', array_keys($this->__attributes));
         return $this->command()
-            ->insert("`{$addFields}`", Str::repeat('?', $this->__attributes),
-                array_values($this->__attributes));
+            ->insert($this->compileInsert($this->get()),
+                $this->getBindings());
     }
 
     /**
@@ -88,18 +85,8 @@ class Record extends BaseQuery  {
      * @return mixed
      */
     public function update() {
-        $data = [];
-        $parameters = array();
-        foreach ($this->get() as $key => $value) {
-            if (is_integer($key)) {
-                $data[] = $value;
-                continue;
-            }
-            $data[] = "`{$key}` = ?";
-            $parameters[] = $value;
-        }
         return $this->command()
-            ->update(implode(',', $data), $this->getWhere().$this->getLimit(), $this->getBindings('where'));
+            ->update($this->compileUpdate($this->get()), $this->getBindings());
     }
 
     /**
@@ -162,14 +149,7 @@ class Record extends BaseQuery  {
      */
     public function delete() {
         return $this->command()
-            ->delete($this->getWhere().$this->getLimit(), $this->getBindings('where'));
-    }
-
-    /**
-     * @return string
-     */
-    public function getSql() {
-        return '';
+            ->delete($this->compileDelete(), $this->getBindings());
     }
 
     /**

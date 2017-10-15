@@ -20,14 +20,14 @@ abstract class UserModel extends Model implements UserObject {
     }
     
     public function getIdentity() {
-        return $this->get(static::getIdentityName());
+        return $this->getAttribute(static::getIdentityName());
     }
 
     /**
      * @return string
      */
     public function getRememberToken() {
-        return $this->get(static::getRememberTokenName());
+        return $this->getAttribute(static::getRememberTokenName());
     }
 
     /**
@@ -35,7 +35,7 @@ abstract class UserModel extends Model implements UserObject {
      * @return static
      */
     public function setRememberToken($token) {
-        $this->set(static::getRememberTokenName(), $token);
+        $this->setAttribute(static::getRememberTokenName(), $token);
         $this->save();
         return $this;
     }

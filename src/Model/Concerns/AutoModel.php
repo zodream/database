@@ -52,7 +52,7 @@ trait AutoModel {
                 $this->$k = $item;
                 continue;
             }
-            $this->_data[$k] = $item;
+            $this->__attributes[$k] = $item;
         }
         return $this;
     }
@@ -64,7 +64,7 @@ trait AutoModel {
      */
     public function setOldData($data = null) {
         if (is_null($data)) {
-            $data = $this->_data;
+            $data = $this->getAttribute();
         }
         $this->isNewRecord = false;
         $this->_oldData = array_merge($this->_oldData, $data);

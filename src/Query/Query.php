@@ -7,6 +7,7 @@ namespace Zodream\Database\Query;
  * Time: 10:30
  */
 use Zodream\Database\Query\Components\JoinBuilder;
+use Zodream\Database\Query\Components\WhereBuilder;
 use Zodream\Domain\Html\Page;
 use Zodream\Helpers\Arr;
 
@@ -14,19 +15,17 @@ class Query extends BaseQuery {
 
     use JoinBuilder;
 
-    protected $select = array();
+    public $selects = array();
 
-    protected $from = array();
+    public $joins = array();
 
-    protected $join = array();
+    public $groups = array();
 
-    protected $group = array();
+    public $having = array();
 
-    protected $having = array();
+    public $orders = array();
 
-    protected $order = array();
-
-    protected $union = array();
+    public $unions = array();
 
     protected $sequence =  array(
         'select',
@@ -93,11 +92,11 @@ class Query extends BaseQuery {
         }
         foreach ($field as $key => $value) {
             if (!is_int($key)) {
-                $this->select[] = $value. ' AS '.$key;
+                $this->selects[] = $value. ' AS '.$key;
                 continue;
             }
             if (!is_null($value)) {
-                $this->select[] = $value;
+                $this->selects[] = $value;
             }
         }
         return $this;
@@ -154,50 +153,14 @@ class Query extends BaseQuery {
      * @return $this
      */
     private function _selectFunction($name, $column) {
-        $this->select[] = "{$name}({$column}) AS {$name}";
+        $this->selects[] = "{$name}({$column}) AS {$name}";
         return $this;
-    }
-
-    /**
-     * @param string|array $tables
-     * @return static
-     */
-    public function from($tables) {
-        if (!is_array($tables)) {
-            $tables = func_get_args();
-        }
-        $this->from = array_merge($this->from, $tables);
-        return $this;
-    }
-
-
-    public function addJoin($args, $on = '', $tag = 'left') {
-        if (is_array($on)) {
-            if (count($on) == 2) {
-                $on = $on[0].' = '.$on[1];
-            } else {
-                list($key, $value) = Arr::split($on);
-                $on = $key.' = '.$value;
-            }
-        }
-        $tag = strtoupper($tag);
-        if (!is_array($args)) {
-            $this->join[] = array( $tag.' JOIN', $this->addPrefix($args), $on);
-            return;
-        }
-        if ($args[0] instanceof Query) {
-            $this->join[] = array( $tag.' JOIN', '('.$args[0]->getSql().') '.$args[1], $on);
-            return;
-        }
-        for ($i = 1, $length = count($args); $i < $length; $i += 2) {
-            $this->join[] = array($tag.' JOIN ', $this->addPrefix($args[$i - 1]), $args[$i]);
-        }
     }
 
     public function groupBy($groups) {
         foreach (func_get_args() as $group) {
-            $this->group = array_merge(
-                (array) $this->group,
+            $this->groups = array_merge(
+                (array) $this->groups,
                 array_wrap($group)
             );
         }
@@ -233,7 +196,7 @@ class Query extends BaseQuery {
             list($value, $operator) = [$operator, '='];
         }
 
-        $this->havings[] = compact('type', 'column', 'operator', 'value', 'boolean');
+        $this->having[] = compact('type', 'column', 'operator', 'value', 'boolean');
 
         if (! $value instanceof Expression) {
             $this->addBinding($value, 'having');
@@ -269,46 +232,37 @@ class Query extends BaseQuery {
                 if (is_array($item)) {
                     //'asc' => ['a', 'b']
                     foreach ($item as $value) {
-                        $this->order[] = $value;
-                        $this->order[] = $key;
+                        $this->orders[] = $value;
+                        $this->orders[] = $key;
                     }
                     continue;
                 }
                 // 'a' => 'b'
-                $this->order[] = $key;
-                $this->order[] = $item;
+                $this->orders[] = $key;
+                $this->orders[] = $item;
                 continue;
             }
             if (is_array($item)) {
                 // ['a', 'asc']
-                $this->order[] = $item[0];
-                $this->order[] = $item[1];
+                $this->orders[] = $item[0];
+                $this->orders[] = $item[1];
                 continue;
             }
-            $this->order[] = $item;
+            $this->orders[] = $item;
         }
         return $this;
     }
 
+    public function order($args) {
+        return call_user_func_array([$this, 'orderBy'], func_get_args());
+    }
+
     public function union($sql, $all = false) {
-        $this->union[] = ['query' => $sql, 'all' => $all];
+        $this->unions[] = ['query' => $sql, 'all' => $all];
         return $this;
     }
 
-    /**
-     * @return string
-     */
-    public function getSql() {
-        return $this->getSelect().
-        $this->getFrom().
-        $this->getJoin().
-        $this->getWhere().
-        $this->getGroup().
-        $this->getHaving().
-        $this->getOrder().
-        $this->getLimit().
-        $this->getOffset();
-    }
+
 
     /**
      * @param bool $isArray
@@ -316,9 +270,9 @@ class Query extends BaseQuery {
      */
     public function all($isArray = true) {
         if ($isArray) {
-            return $this->command()->getArray($this->getSql(), $this->get());
+            return $this->command()->getArray($this->getSql(), $this->getBindings());
         }
-        return $this->command()->getObject($this->getSql(), $this->get());
+        return $this->command()->getObject($this->getSql(), $this->getBindings());
     }
 
     /**
@@ -328,10 +282,10 @@ class Query extends BaseQuery {
      * @return Page
      */
     public function page($size = 20, $key = 'page') {
-        $select = $this->select;
-        $this->select = [];
+        $select = $this->selects;
+        $this->selects = [];
         $page = new Page($this, $size, $key);
-        $this->select = $select;
+        $this->selects = $select;
         return $page->setPage($this->limit($page->getLimit())->all());
     }
 
@@ -380,104 +334,6 @@ class Query extends BaseQuery {
         return $this->select($column)->scalar();
     }
 
-    protected function getSelect() {
-        return 'SELECT '.$this->getField();
-    }
-
-    protected function getFrom() {
-        if (empty($this->from)) {
-            return null;
-        }
-        $result = array();
-        foreach ($this->from as $key => $item) {
-            if (is_integer($key)) {
-                $result[] = $this->addPrefix($item);
-                continue;
-            }
-            if ($item instanceof Query) {
-                $result[] = '('.$item->getSql().') ' .$key;
-                continue;
-            }
-            $result[] = $this->addPrefix($item).' ' .$key;
-        }
-        return ' FROM '.implode($result, ',');
-    }
-
-    /**
-     * @return string
-     */
-    protected function getUnion() {
-        if (empty($this->union)) {
-            return null;
-        }
-        $sql = ' ';
-        foreach ($this->union as $item) {
-            $sql .= 'UNION ';
-            if ($item['all']) {
-                $sql .= 'ALL ';
-            }
-            if ($item['query'] instanceof Query) {
-                $sql .= $item['query']->getSql();
-                continue;
-            }
-            if (is_array($item['query'])) {
-                $sql .= (new Query())->load($item['query'])->getSql();
-            }
-            $sql .= $item['query'];
-        }
-        return $sql;
-    }
-
-    protected function getHaving() {
-        if (empty($this->having)) {
-            return null;
-        }
-        return ' Having'.$this->getCondition($this->having);
-    }
-
-    /**
-     *
-     * 关键字 DISTINCT 唯一 AVG() COUNT() FIRST() LAST() MAX()  MIN() SUM() UCASE() 大写  LCASE()
-     * MID(column_name,start[,length]) 提取字符串 LEN() ROUND() 舍入 NOW() FORMAT() 格式化
-     * @return string
-     */
-    protected function getField() {
-        if (empty($this->select)) {
-            return '*';
-        }
-        $result = array();
-        foreach ((array)$this->select as $key => $item) {
-            if (is_integer($key)) {
-                $result[] = $item;
-            } else {
-                $result[] = "{$item} AS {$key}";
-            }
-        }
-        return implode($result, ',');
-    }
-
-    protected function getGroup() {
-        if (empty($this->group)) {
-            return null;
-        }
-        return ' GROUP BY '.implode(',', (array)$this->group);
-    }
-
-    protected function getOrder() {
-        if (empty($this->order)) {
-            return null;
-        }
-        $result = array();
-        for ($i = 0, $length = count($this->order); $i < $length; $i ++) {
-            $sql = $this->order[$i];
-            if ($i < $length - 1 && in_array(strtolower($this->order[$i + 1]), array('asc', 'desc')) ) {
-                $sql .= ' '.strtoupper($this->order[$i + 1]);
-                $i ++;
-            }
-            $result[] = $sql;
-        }
-        return ' ORDER BY '.implode($result, ',');
-    }
 
 
 }

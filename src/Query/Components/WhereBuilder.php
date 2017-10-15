@@ -1,10 +1,15 @@
 <?php
 namespace Zodream\Database\Query\Components;
 
+use Zodream\Database\Query\Expression;
+use Zodream\Database\Query\Query;
+use Zodream\Helpers\Str;
+use Closure;
+use Zodream\Infrastructure\Interfaces\ArrayAble;
+
 trait WhereBuilder {
 
     public function where($column, $operator = null, $value = null, $boolean = 'and') {
-
         if (is_array($column)) {
             return $this->addArrayOfWheres($column, $boolean);
         }
@@ -26,6 +31,19 @@ trait WhereBuilder {
         if (is_null($value)) {
             return $this->whereNull($column, $boolean, $operator != '=');
         }
+
+        if (Str::contains($column, '->') && is_bool($value)) {
+            $value = new Expression($value ? 'true' : 'false');
+        }
+        $type = 'Basic';
+        $this->wheres[] = compact(
+            'type', 'column', 'operator', 'value', 'boolean'
+        );
+        if (! $value instanceof Expression) {
+            $this->addBinding($value, 'where');
+        }
+
+        return $this;
     }
 
     protected function addArrayOfWheres($column, $boolean, $method = 'where') {
@@ -81,10 +99,9 @@ trait WhereBuilder {
      * @param  string|array  $first
      * @param  string|null  $operator
      * @param  string|null  $second
-     * @return \Illuminate\Database\Query\Builder|static
+     * @return Query|static
      */
-    public function orWhereColumn($first, $operator = null, $second = null)
-    {
+    public function orWhereColumn($first, $operator = null, $second = null) {
         return $this->whereColumn($first, $operator, $second, 'or');
     }
 
@@ -96,8 +113,7 @@ trait WhereBuilder {
      * @param  string  $boolean
      * @return $this
      */
-    public function whereRaw($sql, $bindings = [], $boolean = 'and')
-    {
+    public function whereRaw($sql, $bindings = [], $boolean = 'and') {
         $this->wheres[] = ['type' => 'raw', 'sql' => $sql, 'boolean' => $boolean];
 
         $this->addBinding((array) $bindings, 'where');
@@ -110,10 +126,9 @@ trait WhereBuilder {
      *
      * @param  string  $sql
      * @param  array   $bindings
-     * @return \Illuminate\Database\Query\Builder|static
+     * @return Query|static
      */
-    public function orWhereRaw($sql, array $bindings = [])
-    {
+    public function orWhereRaw($sql, array $bindings = []) {
         return $this->whereRaw($sql, $bindings, 'or');
     }
 
@@ -126,8 +141,7 @@ trait WhereBuilder {
      * @param  bool    $not
      * @return $this
      */
-    public function whereIn($column, $values, $boolean = 'and', $not = false)
-    {
+    public function whereIn($column, $values, $boolean = 'and', $not = false) {
         $type = $not ? 'NotIn' : 'In';
 
         // If the value is a query builder instance we will assume the developer wants to
@@ -149,7 +163,7 @@ trait WhereBuilder {
         // Next, if the value is Arrayable we need to cast it to its raw array form so we
         // have the underlying array value instead of an Arrayable object which is not
         // able to be added as a binding, etc. We will then add to the wheres array.
-        if ($values instanceof Arrayable) {
+        if ($values instanceof ArrayAble) {
             $values = $values->toArray();
         }
 
@@ -172,10 +186,9 @@ trait WhereBuilder {
      *
      * @param  string  $column
      * @param  mixed   $values
-     * @return \Illuminate\Database\Query\Builder|static
+     * @return Query|static
      */
-    public function orWhereIn($column, $values)
-    {
+    public function orWhereIn($column, $values) {
         return $this->whereIn($column, $values, 'or');
     }
 
@@ -185,10 +198,9 @@ trait WhereBuilder {
      * @param  string  $column
      * @param  mixed   $values
      * @param  string  $boolean
-     * @return \Illuminate\Database\Query\Builder|static
+     * @return Query|static
      */
-    public function whereNotIn($column, $values, $boolean = 'and')
-    {
+    public function whereNotIn($column, $values, $boolean = 'and') {
         return $this->whereIn($column, $values, $boolean, true);
     }
 
@@ -197,24 +209,22 @@ trait WhereBuilder {
      *
      * @param  string  $column
      * @param  mixed   $values
-     * @return \Illuminate\Database\Query\Builder|static
+     * @return Query|static
      */
-    public function orWhereNotIn($column, $values)
-    {
+    public function orWhereNotIn($column, $values) {
         return $this->whereNotIn($column, $values, 'or');
     }
 
     /**
      * Add a where in with a sub-select to the query.
      *
-     * @param  string   $column
-     * @param  \Closure $callback
-     * @param  string   $boolean
-     * @param  bool     $not
+     * @param  string $column
+     * @param Closure $callback
+     * @param  string $boolean
+     * @param  bool $not
      * @return $this
      */
-    protected function whereInSub($column, Closure $callback, $boolean, $not)
-    {
+    protected function whereInSub($column, Closure $callback, $boolean, $not) {
         $type = $not ? 'NotInSub' : 'InSub';
 
         // To create the exists sub-select, we will actually create a query and call the
@@ -224,7 +234,7 @@ trait WhereBuilder {
 
         $this->wheres[] = compact('type', 'column', 'query', 'boolean');
 
-        $this->addBinding($query->getBindings(), 'where');
+        $this->addBinding($this->getBindings(), 'where');
 
         return $this;
     }
@@ -233,13 +243,12 @@ trait WhereBuilder {
      * Add an external sub-select to the query.
      *
      * @param  string   $column
-     * @param  \Illuminate\Database\Query\Builder|static  $query
+     * @param  Query|static  $query
      * @param  string   $boolean
      * @param  bool     $not
      * @return $this
      */
-    protected function whereInExistingQuery($column, $query, $boolean, $not)
-    {
+    protected function whereInExistingQuery($column, $query, $boolean, $not) {
         $type = $not ? 'NotInSub' : 'InSub';
 
         $this->wheres[] = compact('type', 'column', 'query', 'boolean');
@@ -257,8 +266,7 @@ trait WhereBuilder {
      * @param  bool    $not
      * @return $this
      */
-    public function whereNull($column, $boolean = 'and', $not = false)
-    {
+    public function whereNull($column, $boolean = 'and', $not = false) {
         $type = $not ? 'NotNull' : 'Null';
 
         $this->wheres[] = compact('type', 'column', 'boolean');
@@ -270,10 +278,9 @@ trait WhereBuilder {
      * Add an "or where null" clause to the query.
      *
      * @param  string  $column
-     * @return \Illuminate\Database\Query\Builder|static
+     * @return Query|static
      */
-    public function orWhereNull($column)
-    {
+    public function orWhereNull($column) {
         return $this->whereNull($column, 'or');
     }
 
@@ -282,10 +289,9 @@ trait WhereBuilder {
      *
      * @param  string  $column
      * @param  string  $boolean
-     * @return \Illuminate\Database\Query\Builder|static
+     * @return Query|static
      */
-    public function whereNotNull($column, $boolean = 'and')
-    {
+    public function whereNotNull($column, $boolean = 'and') {
         return $this->whereNull($column, $boolean, true);
     }
 
@@ -298,8 +304,7 @@ trait WhereBuilder {
      * @param  bool  $not
      * @return $this
      */
-    public function whereBetween($column, array $values, $boolean = 'and', $not = false)
-    {
+    public function whereBetween($column, array $values, $boolean = 'and', $not = false) {
         $type = 'between';
 
         $this->wheres[] = compact('column', 'type', 'boolean', 'not');
@@ -314,10 +319,9 @@ trait WhereBuilder {
      *
      * @param  string  $column
      * @param  array   $values
-     * @return \Illuminate\Database\Query\Builder|static
+     * @return Query|static
      */
-    public function orWhereBetween($column, array $values)
-    {
+    public function orWhereBetween($column, array $values) {
         return $this->whereBetween($column, $values, 'or');
     }
 
@@ -327,10 +331,9 @@ trait WhereBuilder {
      * @param  string  $column
      * @param  array   $values
      * @param  string  $boolean
-     * @return \Illuminate\Database\Query\Builder|static
+     * @return Query|static
      */
-    public function whereNotBetween($column, array $values, $boolean = 'and')
-    {
+    public function whereNotBetween($column, array $values, $boolean = 'and') {
         return $this->whereBetween($column, $values, $boolean, true);
     }
 
@@ -339,10 +342,9 @@ trait WhereBuilder {
      *
      * @param  string  $column
      * @param  array   $values
-     * @return \Illuminate\Database\Query\Builder|static
+     * @return Query|static
      */
-    public function orWhereNotBetween($column, array $values)
-    {
+    public function orWhereNotBetween($column, array $values) {
         return $this->whereNotBetween($column, $values, 'or');
     }
 
@@ -350,9 +352,51 @@ trait WhereBuilder {
      * Add an "or where not null" clause to the query.
      *
      * @param  string  $column
-     * @return \Illuminate\Database\Query\Builder|static
+     * @return Query|static
      */
     public function orWhereNotNull($column) {
         return $this->whereNotNull($column, 'or');
+    }
+
+    /**
+     * Add a nested where statement to the query.
+     *
+     * @param  \Closure $callback
+     * @param  string   $boolean
+     * @return Query|static
+     */
+    public function whereNested(Closure $callback, $boolean = 'and') {
+        call_user_func($callback, $query = $this->forNestedWhere());
+
+        return $this->addNestedWhereQuery($query, $boolean);
+    }
+
+
+    /**
+     * Create a new query instance for nested where condition.
+     *
+     * @return Query
+     */
+    public function forNestedWhere() {
+        return (new static())->from($this->from);
+    }
+
+    /**
+     * Add another query builder as a nested where to the query builder.
+     *
+     * @param  Query|static $query
+     * @param  string  $boolean
+     * @return $this
+     */
+    public function addNestedWhereQuery($query, $boolean = 'and') {
+        if (count($query->wheres)) {
+            $type = 'Nested';
+
+            $this->wheres[] = compact('type', 'query', 'boolean');
+
+            $this->addBinding($query->getBindings(), 'where');
+        }
+
+        return $this;
     }
 }
