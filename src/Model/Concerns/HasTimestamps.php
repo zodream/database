@@ -38,7 +38,7 @@ trait HasTimestamps {
             $this->setUpdatedAt($time);
         }
 
-        if (!$this->isNewRecord
+        if ($this->isNewRecord
             && $this->isEmpty(static::CREATED_AT)
             && $this->hasColumn(static::CREATED_AT)) {
             $this->setCreatedAt($time);
@@ -111,5 +111,19 @@ trait HasTimestamps {
      */
     public function getUpdatedAtColumn() {
         return static::UPDATED_AT;
+    }
+
+    public function getCreatedAtAttribute() {
+        if (!$this->hasColumn($this->getCreatedAtColumn())) {
+            return;
+        }
+        return Time::format($this->getAttributeValue($this->getCreatedAtColumn()));
+    }
+
+    public function getUpdatedAtAttribute() {
+        if (!$this->hasColumn($this->getUpdatedAtColumn())) {
+            return;
+        }
+        return Time::format($this->getAttributeValue($this->getUpdatedAtColumn()));
     }
 }

@@ -17,26 +17,36 @@ trait HasAttributes {
 
     protected $append = []; //追加
 
-    public function get($key = null, $default = null){
+    public function getAttribute($key = null, $default = null){
         if (is_null($key)) {
-            return $this->_data;
-        }
-        if ($this->has($key)) {
-            return $this->_data[$key];
+            return parent::getAttribute($key, $default);
         }
         $method = sprintf('get%sAttribute', Str::studly($key));
         if (method_exists($this, $method)) {
-            $result = call_user_func([$this, $method]);
-            return $this->_data[$key] = $result;
+            return call_user_func([$this, $method]);
+        }
+        if ($this->has($key)) {
+            return $this->__attributes[$key];
         }
         if (!method_exists($this, $key)) {
             return $default;
+        }
+        return $this->getRelationValue($key);
+    }
+
+    public function getAttributeValue($key) {
+        return parent::getAttribute($key);
+    }
+
+    public function getRelationValue($key) {
+        if (array_key_exists($key, $this->relations)) {
+            return $this->relations[$key];
         }
         $result = call_user_func([$this, $key]);
         if ($result instanceof Relation) {
             $result = $result->getResults();
         }
-        return $this->_data[$key] = $result;
+        return $this->relations[$key] = $result;
     }
 
     /**
@@ -46,9 +56,9 @@ trait HasAttributes {
      */
     public function isEmpty($key = null) {
         if (is_null($key)) {
-            return count($this->_data) == 0;
+            return count($this->__attributes) == 0;
         }
-        return !$this->has($key) || empty($this->_data[$key]);
+        return !$this->has($key) || empty($this->__attributes[$key]);
     }
 
     /**
@@ -60,11 +70,22 @@ trait HasAttributes {
             return parent::has($key);
         }
         foreach ($key as $item) {
-            if (array_key_exists($item, $this->_data)) {
+            if (array_key_exists($item, $this->__attributes)) {
                 return true;
             }
         }
         return false;
+    }
+
+    public function setAttribute($key, $value = null) {
+        if (is_array($key)) {
+            return parent::setAttribute($key, $value);
+        }
+        $method = 'set'.Str::studly($key).'Attribute';
+        if (method_exists($this, $method)) {
+            return $this->{$method}($value);
+        }
+        return parent::setAttribute($key, $value);
     }
 
     /**

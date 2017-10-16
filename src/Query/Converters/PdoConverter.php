@@ -1,6 +1,7 @@
 <?php
 namespace Zodream\Database\Query\Converters;
 
+use Zodream\Database\Query\Expression;
 use Zodream\Database\Query\Query;
 
 trait PdoConverter {
@@ -100,7 +101,7 @@ trait PdoConverter {
      */
     protected function compileWhereIn($where) {
         if (! empty($where['values'])) {
-            return $where['column'].' in ('.$where['values'].')';
+            return $where['column'].' in ('.$this->parameterize($where['values']).')';
         }
 
         return '0 = 1';
@@ -114,7 +115,7 @@ trait PdoConverter {
      */
     protected function compileWhereNotIn($where) {
         if (! empty($where['values'])) {
-            return $where['column'].' not in ('.$where['values'].')';
+            return $where['column'].' not in ('.$this->parameterize($where['values']).')';
         }
 
         return '1 = 1';
@@ -496,6 +497,40 @@ trait PdoConverter {
      */
     protected function removeLeadingBoolean($value) {
         return preg_replace('/and |or /i', '', $value, 1);
+    }
+
+    public function parameterize(array $values) {
+        return implode(', ', array_map([$this, 'parameter'], $values));
+    }
+
+    /**
+     * Get the appropriate query parameter place-holder for a value.
+     *
+     * @param  mixed   $value
+     * @return string
+     */
+    public function parameter($value) {
+        return $this->isExpression($value) ? $this->getValue($value) : '?';
+    }
+
+    /**
+     * Determine if the given value is a raw expression.
+     *
+     * @param  mixed  $value
+     * @return bool
+     */
+    public function isExpression($value) {
+        return $value instanceof Expression;
+    }
+
+    /**
+     * Get the value of a raw expression.
+     *
+     * @param  Expression  $expression
+     * @return string
+     */
+    public function getValue($expression) {
+        return $expression->getValue();
     }
 
 }

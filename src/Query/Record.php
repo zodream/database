@@ -14,8 +14,6 @@ class Record extends BaseQuery  {
 
     use Attributes;
 
-    protected $__attributes = [];
-
     /**
      * SET TABLE
      * @param $table

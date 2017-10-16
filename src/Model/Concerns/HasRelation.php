@@ -44,7 +44,7 @@ trait HasRelation {
      */
     protected function getRelationWhere($links, $key = null) {
         if (is_null($key) && !is_array($links)) {
-            $key = in_array('id', $this->primaryKey) ? 'id' : current($this->primaryKey);
+            $key = in_array('id', $this->primaryKey) ? 'id' : reset($this->primaryKey);
         }
         if (!is_array($links)) {
             $links = [$links => $key];
