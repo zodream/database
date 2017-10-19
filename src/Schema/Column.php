@@ -186,15 +186,15 @@ class Column {
     }
 
     public function dateTime() {
-        return $this-$this->addData(self::KIND, 'DATETIME');
+        return $this->addData(self::KIND, 'DATETIME');
     }
 
     public function date() {
-        return $this-$this->addData(self::KIND, 'DATE');
+        return $this->addData(self::KIND, 'DATE');
     }
 
     public function time() {
-        return $this-$this->addData(self::KIND, 'TIME');
+        return $this->addData(self::KIND, 'TIME');
     }
 
     /**
@@ -211,7 +211,7 @@ class Column {
     }
 
     public function year() {
-        return $this-$this->addData(self::KIND, 'YEAR');
+        return $this->addData(self::KIND, 'YEAR');
     }
 
     public function enum(array $args) {

@@ -204,8 +204,17 @@ class Table extends BaseSchema {
      * @return void
      */
     public function timestamps() {
-        $this->set('created_at')->int(10)->unsigned()->defaultVal(0)->null();
-        $this->set('updated_at')->int(10)->unsigned()->defaultVal(0)->null();
+        $this->timestamp('created_at');
+        $this->timestamp('updated_at');
+    }
+
+    /**
+     * 设置为 PHP 版时间戳
+     * @param string $column
+     * @return Column
+     */
+    public function timestamp($column) {
+        return $this->set($column)->int(10)->unsigned()->defaultVal(0)->null();
     }
 
     /**
@@ -215,7 +224,7 @@ class Table extends BaseSchema {
      * @return Column
      */
     public function softDeletes($column = 'deleted_at') {
-        return $this->set($column)->int(10)->unsigned()->defaultVal(0)->null();
+        return $this->timestamp($column);
     }
 
     /**
