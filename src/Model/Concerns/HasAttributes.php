@@ -19,7 +19,7 @@ trait HasAttributes {
 
     public function getAttribute($key = null, $default = null){
         if (is_null($key)) {
-            return parent::getAttribute($key, $default);
+            return $this->getAllAttributes();
         }
         $method = sprintf('get%sAttribute', Str::studly($key));
         if (method_exists($this, $method)) {
@@ -34,7 +34,19 @@ trait HasAttributes {
         return $this->getRelationValue($key);
     }
 
-    public function getAttributeValue($key) {
+    public function getAllAttributes() {
+        $data = [];
+        foreach ($this->__attributes as $key => $value) {
+            $data[$key] = $this->getAttribute($key);
+        }
+        return $data;
+    }
+
+    public function getAttributeValue($key = null) {
+        return $this->getAttributeSource($key);
+    }
+
+    public function getAttributeSource($key = null) {
         return parent::getAttribute($key);
     }
 
@@ -191,6 +203,6 @@ trait HasAttributes {
     }
 
     public function toArray() {
-        return $this->getArrayAbleItems($this->get());
+        return $this->getArrayAbleItems($this->getAllAttributes());
     }
 }

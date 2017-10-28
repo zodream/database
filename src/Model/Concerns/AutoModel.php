@@ -3,6 +3,7 @@ namespace Zodream\Database\Model\Concerns;
 
 use Zodream\Infrastructure\Http\Request;
 use Zodream\Helpers\Str;
+use Zodream\Infrastructure\Interfaces\ArrayAble;
 
 /**
  * Created by PhpStorm.
@@ -39,7 +40,11 @@ trait AutoModel {
         if (empty($key)) {
             return $this;
         }
-        if (!is_array($key)) {
+        if ($key instanceof ArrayAble) {
+            $key = $key->toArray();
+        } elseif (is_object($key)) {
+            $key = (array)$key;
+        } elseif (!is_array($key)) {
             $key = [$key => $value];
         }
         foreach ($key as $k => $item) {

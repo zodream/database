@@ -161,11 +161,16 @@ class Query extends BaseQuery {
         foreach (func_get_args() as $group) {
             $this->groups = array_merge(
                 (array) $this->groups,
-                array_wrap($group)
+                (array)$group
             );
         }
         return $this;
     }
+
+    public function group($args) {
+        return call_user_func_array([$this, 'groupBy'], func_get_args());
+    }
+
 
     /**
      * 起别名

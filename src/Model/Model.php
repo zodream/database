@@ -184,10 +184,10 @@ abstract class Model extends MagicObject {
 	 */
 	protected function getUpdateData() {
 		if ($this->isNewRecord) {
-			return $this->getAttribute();
+			return $this->getAttributeValue();
 		}
 		$data = [];
-		foreach ($this->getAttribute() as $key => $item) {
+		foreach ($this->getAttributeValue() as $key => $item) {
 			if (array_key_exists($key, $this->_oldData) 
 				&& $item === $this->_oldData[$key]) {
 				continue;

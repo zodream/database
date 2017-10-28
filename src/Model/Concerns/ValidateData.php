@@ -47,7 +47,8 @@ trait ValidateData {
         if (!is_callable($method) &&
             (!is_string($method) || !method_exists($this, $method))) {
             DataFilter::clearError();
-            if (DataFilter::validateOne($this, $key, DataFilter::getFilters($rule))) {
+            if (DataFilter::validateOne($this->getAttributeValue(),
+                $key, DataFilter::getFilters($rule))) {
                 return true;
             }
             $this->setError(DataFilter::getError());
@@ -58,7 +59,7 @@ trait ValidateData {
             $method = [$this, $method];
         }
         foreach ((array)$key as $k) {
-            if (false !== call_user_func($method, $this->get($k))) {
+            if (false !== call_user_func($method, $this->getAttributeValue($k))) {
                 continue;
             }
             $result = false;;
