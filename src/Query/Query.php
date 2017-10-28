@@ -282,10 +282,11 @@ class Query extends BaseQuery {
      * @return Page
      */
     public function page($size = 20, $key = 'page') {
-        $select = $this->selects;
-        $this->selects = [];
-        $page = new Page($this, $size, $key);
-        $this->selects = $select;
+        $countQuery = clone $this;
+        $countQuery->selects = [];
+        $countQuery->orders = [];
+        $countQuery->limit = null;
+        $page = new Page($countQuery, $size, $key);
         return $page->setPage($this->limit($page->getLimit())->all());
     }
 
@@ -313,10 +314,13 @@ class Query extends BaseQuery {
         return current($result);
     }
 
-    public function pluck($column) {
-        $data = $this->select($column)->all();
+    public function pluck($column = null, $key = null) {
+        $data = $this->select($column, $key)->all();
         if (empty($data)) {
             return [];
+        }
+        if (!is_null($column) || !is_null($key)) {
+            return array_column($data, $column, $key);
         }
         $args = [];
         foreach ($data as $item) {

@@ -77,6 +77,11 @@ class Query extends BaseQuery {
         return parent::scalar();
     }
 
+    public function pluck($column = null, $key = null) {
+        $this->asArray();
+        return parent::pluck($column, $key);
+    }
+
     /**
      * 更新
      * @param array $args
