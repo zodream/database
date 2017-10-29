@@ -140,11 +140,15 @@ class Command extends ConfigObject {
         if (strpos($table, '`') !== false) {
             return $table;
         }
-        preg_match('/([\w_]+)( (as )?[\w_]+)?/i', $table, $match);
+        preg_match('/([\w_\.]+)( (as )?[\w_]+)?/i', $table, $match);
         $table = $match[1];
         $alias = '';
         if (count($match) > 2) {
             $alias = $match[2];
+        }
+        if (strpos($table, '.') !== false) {
+            list($schema, $table) = explode('.', $table);
+            return sprintf('`%s`.`%s`%s', $schema, $table, $alias);
         }
         if (strpos($table, '!') === 0) {
             return sprintf('`%s`%s', substr($table, 1), $alias);

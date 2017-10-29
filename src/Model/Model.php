@@ -130,7 +130,7 @@ abstract class Model extends MagicObject {
 			$keys = array_merge($keys, $this->primaryKey);
 		}
 		$data = [];
-		foreach ($this->getAttribute() as $k => $item) {
+		foreach ($this->getAttributeSource() as $k => $item) {
 			if (in_array($k, $keys) && !property_exists($this, $k)) {
 				$data[$k] = $item;
 			}
@@ -172,7 +172,7 @@ abstract class Model extends MagicObject {
 	protected function getWhereKey() {
 		foreach ($this->primaryKey as $item) {
 			if ($this->hasAttribute($item)) {
-				return [$item => $this->getAttribute($item)];
+				return [$item => $this->getAttributeSource($item)];
 			}
 		}
 		return false;
@@ -184,10 +184,10 @@ abstract class Model extends MagicObject {
 	 */
 	protected function getUpdateData() {
 		if ($this->isNewRecord) {
-			return $this->getAttributeValue();
+			return $this->getAttributeSource();
 		}
 		$data = [];
-		foreach ($this->getAttributeValue() as $key => $item) {
+		foreach ($this->getAttributeSource() as $key => $item) {
 			if (array_key_exists($key, $this->_oldData) 
 				&& $item === $this->_oldData[$key]) {
 				continue;

@@ -17,16 +17,15 @@ trait AutoModel {
 
     /**
      * 转载数据
-     * @param null $data
+     * @param string|array $data
      * @param null $key
      * @return bool
      */
     public function load($data = null, $key = null) {
         if (is_string($data)) {
-            $key = $data;
-            $data = null;
+            list($key, $data) = [$data, null];
         }
-        if (Request::isPost()) {
+        if (!is_array($data) && Request::isPost()) {
             $data = Request::post($key);
         }
         if (empty($data)) {
