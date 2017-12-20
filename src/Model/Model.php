@@ -42,6 +42,11 @@ abstract class Model extends MagicObject {
 
     public $isNewRecord = true;
 
+    /**
+     * 是否保存所有字段
+     * @var bool
+     */
+    protected $isFullColumns = false;
 
 
 
@@ -131,7 +136,9 @@ abstract class Model extends MagicObject {
 		}
 		$data = [];
 		foreach ($this->getAttributeSource() as $k => $item) {
-			if (in_array($k, $keys) && !property_exists($this, $k)) {
+			if (($this->isFullColumns
+                    || in_array($k, $keys))
+                && !property_exists($this, $k)) {
 				$data[$k] = $item;
 			}
 		}
@@ -162,7 +169,8 @@ abstract class Model extends MagicObject {
      * @return Record
      */
 	public static function record() {
-		return (new Record())->setTable(static::tableName());
+		return (new Record())
+            ->setTable(static::tableName());
 	}
 
 	/**
