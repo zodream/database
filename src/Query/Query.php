@@ -8,7 +8,7 @@ namespace Zodream\Database\Query;
  */
 use Zodream\Database\Query\Components\JoinBuilder;
 use Zodream\Database\Query\Components\WhereBuilder;
-use Zodream\Domain\Html\Page;
+use Zodream\Html\Page;
 use Zodream\Helpers\Arr;
 
 class Query extends BaseQuery {
