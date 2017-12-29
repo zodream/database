@@ -167,12 +167,12 @@ class Pdo extends BaseEngine {
 		return $this->error;
 	}
 
-	/**
-	 * 获取Object结果集
-	 * @param string $sql
-	 * @param array $parameters
-	 * @return object
-	 */
+    /**
+     * 获取Object结果集
+     * @param string $sql
+     * @param array $parameters
+     * @return array
+     */
 	public function getObject($sql = null, $parameters = array()) {
 		$this->execute($sql, $parameters);
 		$result = array();

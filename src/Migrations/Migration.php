@@ -12,4 +12,9 @@ abstract class Migration {
 
     public function down() {}
 
+    /**
+     * 生成测试数据
+     */
+    public function seed() {}
+
 }
