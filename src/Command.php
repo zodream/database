@@ -260,7 +260,7 @@ class Command extends ConfigObject {
         }
         if (is_null($tags)) {
             if (stripos($columns, 'insert') !== false) {
-                return $this->getEngine()->update($columns, $parameters);
+                return $this->getEngine()->insert($columns, $parameters);
             }
             return $this->getEngine()->insert("INSERT INTO {$this->table} {$columns} VALUES (NULL)", $parameters);
         }

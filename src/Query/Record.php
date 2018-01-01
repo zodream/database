@@ -31,9 +31,13 @@ class Record extends BaseQuery  {
      *
      * @access public
      *
+     * @param array $data
      * @return int 返回最后插入的ID,
      */
-    public function insert() {
+    public function insert($data = null) {
+        if (!empty($data) && is_array($data)) {
+            $this->setAttribute($data);
+        }
         if (!$this->hasAttribute()) {
             return $this->command()->insert(null, 'NULL'); // 获取自增值
         }
