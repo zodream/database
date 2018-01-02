@@ -7,9 +7,7 @@ namespace Zodream\Database\Query;
  * Time: 10:30
  */
 use Zodream\Database\Query\Components\JoinBuilder;
-use Zodream\Database\Query\Components\WhereBuilder;
 use Zodream\Html\Page;
-use Zodream\Helpers\Arr;
 
 class Query extends BaseQuery {
 
@@ -266,7 +264,6 @@ class Query extends BaseQuery {
         $this->unions[] = ['query' => $sql, 'all' => $all];
         return $this;
     }
-
 
 
     /**
