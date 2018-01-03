@@ -358,7 +358,7 @@ class Table extends BaseSchema {
         if (empty($data)) {
             return null;
         }
-        return $data[0]['Create Table'];
+        return $data[0]['Create Table'].';';
     }
 
 
@@ -474,6 +474,13 @@ class Table extends BaseSchema {
      */
     public function record() {
         return (new Record())->setTable($this->getTable());
+    }
+
+    /**
+     * @return Query
+     */
+    public function query() {
+        return (new Query())->from($this->getTable());
     }
 
     public function __call($name, $arguments) {
