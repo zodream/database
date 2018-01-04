@@ -303,7 +303,7 @@ class Table extends BaseSchema {
      * @return mixed
      */
     public function check() {
-        return $this->command()->execute('CHECK TABLE '.$this->getTable().'');
+        return $this->command()->execute($this->getCheckSql());
     }
 
     /**
@@ -311,7 +311,7 @@ class Table extends BaseSchema {
      * @return mixed
      */
     public function optimize() {
-        return $this->command()->execute('OPTIMIZE TABLE '.$this->getTable().'');
+        return $this->command()->execute($this->getOptimizeSql());
     }
 
     /**
@@ -319,7 +319,7 @@ class Table extends BaseSchema {
      * @return mixed
      */
     public function repair() {
-        return $this->command()->execute('REPAIR TABLE '.$this->getTable().'');
+        return $this->command()->execute($this->getRepairSql());
     }
 
     /**
@@ -327,7 +327,23 @@ class Table extends BaseSchema {
      * @return mixed
      */
     public function analyze() {
-        return $this->command()->execute('ANALYZE TABLE '.$this->getTable().'');
+        return $this->command()->execute($this->getAnalyzeSql());
+    }
+
+    /**
+     * 锁定
+     * @return mixed
+     */
+    public function lockTable() {
+        return $this->command()->execute($this->getLockSql());
+    }
+
+    /**
+     * 解锁
+     * @return mixed
+     */
+    public function unlockTable() {
+        return $this->command()->execute($this->getUnLockSql());
     }
 
     /**
@@ -431,6 +447,14 @@ class Table extends BaseSchema {
         return sprintf('DROP TABLE IF EXISTS %s;', $this->getTable());
     }
 
+    public function getLockSql() {
+        return sprintf('LOCK TABLES %s WRITE;', $this->getTable());
+    }
+
+    public function getUnLockSql() {
+        return 'UNLOCK TABLES;';
+    }
+
     /**
      * GET CREATE TABLE SQL
      * @return string
@@ -485,5 +509,33 @@ class Table extends BaseSchema {
 
     public function __call($name, $arguments) {
         $this->set($name, ...$arguments);
+    }
+
+    /**
+     * @return string
+     */
+    public function getAnalyzeSql() {
+        return sprintf('ANALYZE TABLE %s;', $this->getTable());
+    }
+
+    /**
+     * @return string
+     */
+    public function getCheckSql() {
+        return sprintf('CHECK TABLE %s;', $this->getTable());
+    }
+
+    /**
+     * @return string
+     */
+    public function getOptimizeSql() {
+        return sprintf('OPTIMIZE TABLE %s;', $this->getTable());
+    }
+
+    /**
+     * @return string
+     */
+    public function getRepairSql() {
+        return sprintf('REPAIR TABLE %s;', $this->getTable());
     }
 }
