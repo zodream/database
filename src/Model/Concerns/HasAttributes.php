@@ -3,6 +3,7 @@ namespace Zodream\Database\Model\Concerns;
 
 use Zodream\Database\Model\Relations\Relation;
 use Zodream\Helpers\Str;
+use LogicException;
 /**
  * Created by PhpStorm.
  * User: ZoDream
@@ -46,19 +47,54 @@ trait HasAttributes {
         return $this->getAttributeSource($key);
     }
 
+    /**
+     * @param null $key
+     * @return mixed|null
+     */
     public function getAttributeSource($key = null) {
         return parent::getAttribute($key);
     }
 
+    /**
+     * Get a relationship.
+     *
+     * @param  string  $key
+     * @return mixed
+     */
     public function getRelationValue($key) {
-        if (array_key_exists($key, $this->relations)) {
+        // If the key already exists in the relationships array, it just means the
+        // relationship has already been loaded, so we'll just return it out of
+        // here because there is no need to query within the relations twice.
+        if ($this->relationLoaded($key)) {
             return $this->relations[$key];
         }
-        $result = call_user_func([$this, $key]);
-        if ($result instanceof Relation) {
-            $result = $result->getResults();
+
+        // If the "attribute" exists as a method on the model, we will just assume
+        // it is a relationship and will load and return results from the query
+        // and hydrate the relationship's value on the "relationships" array.
+        if (method_exists($this, $key)) {
+            return $this->getRelationshipFromMethod($key);
         }
-        return $this->relations[$key] = $result;
+    }
+
+    /**
+     * Get a relationship value from a method.
+     *
+     * @param  string  $method
+     * @return mixed
+     *
+     * @throws \LogicException
+     */
+    protected function getRelationshipFromMethod($method) {
+        $relation = $this->$method();
+
+        if (! $relation instanceof Relation) {
+            throw new LogicException('Relationship method must return an object of type '
+                .'Illuminate\Database\Eloquent\Relations\Relation');
+        }
+        $results = $relation->getResults();
+        $this->setRelation($method, $results);
+        return $results;
     }
 
     /**

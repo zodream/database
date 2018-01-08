@@ -1,63 +1,42 @@
 <?php
 namespace Zodream\Database\Model\Relations;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\Relations\Concerns\SupportsDefaultModels;
 
-class HasOne extends HasOneOrMany
-{
-    use SupportsDefaultModels;
+use Zodream\Database\Model\Model;
+
+class HasOne extends HasOneOrMany {
 
     /**
      * Get the results of the relationship.
      *
-     * @return mixed
+     * @return Model|boolean
      */
-    public function getResults()
-    {
-        return $this->query->first() ?: $this->getDefaultFor($this->parent);
+    public function getResults() {
+        return $this->query->one();
     }
 
     /**
      * Initialize the relation on a set of models.
      *
-     * @param  array   $models
-     * @param  string  $relation
+     * @param  array $models
+     * @param  string $relation
      * @return array
      */
     public function initRelation(array $models, $relation)
     {
-        foreach ($models as $model) {
-            $model->setRelation($relation, $this->getDefaultFor($model));
-        }
-
-        return $models;
+        // TODO: Implement initRelation() method.
     }
 
     /**
      * Match the eagerly loaded results to their parents.
      *
-     * @param  array  $models
-     * @param  \Illuminate\Database\Eloquent\Collection  $results
-     * @param  string  $relation
+     * @param  array $models
+     * @param  mixed $results
+     * @param  string $relation
      * @return array
      */
-    public function match(array $models, Collection $results, $relation)
+    public function match(array $models, $results, $relation)
     {
-        return $this->matchOne($models, $results, $relation);
-    }
-
-    /**
-     * Make a new related instance for the given model.
-     *
-     * @param  \Illuminate\Database\Eloquent\Model  $parent
-     * @return \Illuminate\Database\Eloquent\Model
-     */
-    public function newRelatedInstanceFor(Model $parent)
-    {
-        return $this->related->newInstance()->setAttribute(
-            $this->getForeignKeyName(), $parent->{$this->localKey}
-        );
+        // TODO: Implement match() method.
     }
 }

@@ -1,46 +1,40 @@
 <?php
 namespace Zodream\Database\Model\Relations;
 
-use Illuminate\Database\Eloquent\Collection;
+use Zodream\Database\Model\Model;
 
-class HasMany extends HasOneOrMany
-{
+class HasMany extends HasOneOrMany {
     /**
      * Get the results of the relationship.
      *
-     * @return mixed
+     * @return Model[]|boolean
      */
-    public function getResults()
-    {
-        return $this->query->get();
+    public function getResults() {
+        return $this->query->all();
     }
 
     /**
      * Initialize the relation on a set of models.
      *
-     * @param  array   $models
-     * @param  string  $relation
+     * @param  array $models
+     * @param  string $relation
      * @return array
      */
     public function initRelation(array $models, $relation)
     {
-        foreach ($models as $model) {
-            $model->setRelation($relation, $this->related->newCollection());
-        }
-
-        return $models;
+        // TODO: Implement initRelation() method.
     }
 
     /**
      * Match the eagerly loaded results to their parents.
      *
-     * @param  array   $models
-     * @param  \Illuminate\Database\Eloquent\Collection  $results
-     * @param  string  $relation
+     * @param  array $models
+     * @param  mixed $results
+     * @param  string $relation
      * @return array
      */
-    public function match(array $models, Collection $results, $relation)
+    public function match(array $models, $results, $relation)
     {
-        return $this->matchMany($models, $results, $relation);
+        // TODO: Implement match() method.
     }
 }

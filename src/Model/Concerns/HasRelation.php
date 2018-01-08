@@ -3,6 +3,8 @@ namespace Zodream\Database\Model\Concerns;
 
 use Zodream\Database\Model\Model;
 use Zodream\Database\Model\Query;
+use Zodream\Database\Model\Relations\HasMany;
+use Zodream\Database\Model\Relations\HasOne;
 use Zodream\Database\Model\Relations\Relation;
 
 /**
@@ -28,12 +30,7 @@ trait HasRelation {
         if ($table instanceof Model) {
             $table = $table->className();
         }
-        if (!array_key_exists($table, $this->relations)) {
-            $this->setRelation($table, $this->getRelationQuery($table)
-                ->where($this->getRelationWhere($link, $key))
-                ->one());
-        }
-        return $this->getRelation($table);
+        return new HasOne($this->getRelationQuery($table)->where($this->getRelationWhere($link, $key)), $this,  $link, $key);
     }
 
     /**
@@ -79,12 +76,7 @@ trait HasRelation {
         if ($table instanceof Model) {
             $table = $table->className();
         }
-        if (!array_key_exists($table, $this->relations)) {
-            $this->setRelation($table, $this->getRelationQuery($table)
-                ->where($this->getRelationWhere($link, $key))
-                ->all());
-        }
-        return $this->getRelation($table);
+        return new HasMany($this->getRelationQuery($table)->where($this->getRelationWhere($link, $key)), $this, $link, $key);
     }
 
     /**
@@ -96,6 +88,17 @@ trait HasRelation {
     public function getRelation($relation) {
         return $this->relations[$relation];
     }
+
+    /**
+     * Determine if the given relation is loaded.
+     *
+     * @param  string  $key
+     * @return bool
+     */
+    public function relationLoaded($key) {
+        return array_key_exists($key, $this->relations);
+    }
+
 
     /**
      * Set the specific relationship in the model.

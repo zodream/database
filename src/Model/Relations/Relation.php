@@ -100,33 +100,12 @@ abstract class Relation {
      * Match the eagerly loaded results to their parents.
      *
      * @param  array   $models
-     * @param  \Illuminate\Database\Eloquent\Collection  $results
+     * @param  mixed  $results
      * @param  string  $relation
      * @return array
      */
-    abstract public function match(array $models, Collection $results, $relation);
+    abstract public function match(array $models, $results, $relation);
 
-    /**
-     * Get the relationship for eager loading.
-     *
-     * @return \Illuminate\Database\Eloquent\Collection
-     */
-    public function getEager()
-    {
-        return $this->get();
-    }
-
-    /**
-     * Touch all of the related models for the relationship.
-     *
-     * @return void
-     */
-    public function touch()
-    {
-        $column = $this->getRelated()->getUpdatedAtColumn();
-
-        $this->rawUpdate([$column => $this->getRelated()->freshTimestampString()]);
-    }
 
     /**
      * Run a raw update against the base query.
@@ -137,5 +116,32 @@ abstract class Relation {
     public function rawUpdate(array $attributes = [])
     {
         return $this->query->update($attributes);
+    }
+
+    /**
+     * Handle dynamic method calls to the relationship.
+     *
+     * @param  string  $method
+     * @param  array   $parameters
+     * @return mixed
+     */
+    public function __call($method, $parameters) {
+
+        $result = call_user_func_array([$this->query, $method], $parameters);
+
+        if ($result === $this->query) {
+            return $this;
+        }
+
+        return $result;
+    }
+
+    /**
+     * Force a clone of the underlying query builder when cloning.
+     *
+     * @return void
+     */
+    public function __clone() {
+        $this->query = clone $this->query;
     }
 }
