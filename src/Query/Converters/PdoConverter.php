@@ -439,11 +439,11 @@ trait PdoConverter {
      * @return string
      */
     public function compileDelete() {
-        $table = $this->addPrefix($this->from);
+        $table = $this->addPrefix(reset($this->from));
 
         $where = is_array($this->wheres) ? $this->compileWheres() : '';
 
-        return isset($this->joins)
+        return !empty($this->joins)
             ? $this->compileDeleteWithJoins($table, $where)
             : $this->compileDeleteWithoutJoins($table, $where);
     }
@@ -451,13 +451,11 @@ trait PdoConverter {
     /**
      * Compile a delete query that does not use joins.
      *
-     * @param  Query  $query
      * @param  string  $table
      * @param  array  $where
      * @return string
      */
-    protected function compileDeleteWithoutJoins($query, $table, $where)
-    {
+    protected function compileDeleteWithoutJoins($table, $where) {
         $sql = trim("delete from {$table} {$where}");
 
         // When using MySQL, delete statements may contain order by statements and limits
