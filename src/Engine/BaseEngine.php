@@ -29,7 +29,8 @@ abstract class BaseEngine extends ConfigObject {
 		'password' => '',					//密码
 		'prefix'   => '',					//前缀
 		'encoding' => 'utf8',					//编码
-		'persistent' => false                   //使用持久化连接
+		'persistent' => false,                   //使用持久化连接
+        'result_type' => 'array',               // 结果返回类型 array | object
 	);
 	 
 	//私有克隆
@@ -38,6 +39,7 @@ abstract class BaseEngine extends ConfigObject {
     /**
      * BaseEngine constructor.
      * @param array|resource|\mysqli|\PDO $config
+     * @throws \Exception
      */
 	public function __construct($config) {
         if (is_array($config)) {
@@ -80,10 +82,15 @@ abstract class BaseEngine extends ConfigObject {
 	 * 查询
 	 * @param string $sql
 	 * @param array $parameters
-	 * @return array
+	 * @return array| object[]
 	 */
 	public function select($sql, $parameters = array()) {
-		return $this->getArray($sql, $parameters);
+		if ($this->configs['result_type'] == 'object'
+            || $this->configs['result_type'] == '{}'
+            || $this->configs['result_type'] === true) {
+            return $this->getObject($sql, $parameters);
+        }
+        return $this->getArray($sql, $parameters);
 	}
 
 	/**

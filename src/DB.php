@@ -7,7 +7,7 @@ class DB {
     /**
      *
      * @param $table
-     * @return static
+     * @return Query
      */
     public static function table($table) {
         return (new Query())->from($table);

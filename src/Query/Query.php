@@ -104,6 +104,7 @@ class Query extends BaseQuery {
      * 统计
      * @param string $column
      * @return integer
+     * @throws \Exception
      */
     public function count($column = '*') {
         return (int)$this->_selectFunction(__FUNCTION__, $column)->scalar();
@@ -113,6 +114,7 @@ class Query extends BaseQuery {
      * 最大值
      * @param $column
      * @return bool|string
+     * @throws \Exception
      */
     public function max($column)  {
         return $this->_selectFunction(__FUNCTION__, $column)->scalar();
@@ -122,6 +124,7 @@ class Query extends BaseQuery {
      * 最小值
      * @param $column
      * @return bool|int|string
+     * @throws \Exception
      */
     public function min($column)  {
         return $this->_selectFunction(__FUNCTION__, $column)->scalar();
@@ -131,6 +134,7 @@ class Query extends BaseQuery {
      * 平均值
      * @param $column
      * @return bool|int|string
+     * @throws \Exception
      */
     public function avg($column)  {
         return $this->_selectFunction(__FUNCTION__, $column)->scalar();
@@ -140,6 +144,7 @@ class Query extends BaseQuery {
      * 总和
      * @param $column
      * @return bool|int|string
+     * @throws \Exception
      */
     public function sum($column)  {
         return $this->_selectFunction(__FUNCTION__, $column)->scalar();
@@ -269,12 +274,10 @@ class Query extends BaseQuery {
     /**
      * @param bool $isArray
      * @return array|object[]
+     * @throws \Exception
      */
     public function all($isArray = true) {
-        if ($isArray) {
-            return $this->command()->getArray($this->getSql(), $this->getBindings());
-        }
-        return $this->command()->getObject($this->getSql(), $this->getBindings());
+        return $this->command()->select($this->getSql(), $this->getBindings());
     }
 
     /**
@@ -282,6 +285,7 @@ class Query extends BaseQuery {
      * @param int $size
      * @param string $key
      * @return Page
+     * @throws \Exception
      */
     public function page($size = 20, $key = 'page') {
         $countQuery = clone $this;
@@ -294,6 +298,7 @@ class Query extends BaseQuery {
 
     /**
      * @return array|bool
+     * @throws \Exception
      */
     public function one() {
         $this->limit(1);
@@ -307,6 +312,7 @@ class Query extends BaseQuery {
     /**
      *
      * @return bool|string|int
+     * @throws \Exception
      */
     public function scalar() {
         $result = $this->one();
@@ -335,6 +341,7 @@ class Query extends BaseQuery {
      * 获取值
      * @param string $column
      * @return bool|int|string
+     * @throws \Exception
      */
     public function value($column) {
         return $this->select($column)->scalar();

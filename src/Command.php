@@ -10,7 +10,6 @@ use Zodream\Infrastructure\Base\ConfigObject;
 use Zodream\Database\Engine\BaseEngine;
 use Zodream\Database\Engine\Pdo;
 use Zodream\Infrastructure\Event\EventManger;
-use Zodream\Service\Config;
 use Zodream\Service\Factory;
 use Zodream\Helpers\Str;
 use Zodream\Infrastructure\Traits\SingletonPattern;
@@ -37,7 +36,6 @@ class Command extends ConfigObject {
     protected $currentName = '__default__';
 
     public function __construct() {
-        Factory::timer()->record('dbInit');
         $this->loadConfigs();
         $this->getCurrentName();
         if (isset($this->table)) {
@@ -70,6 +68,7 @@ class Command extends ConfigObject {
      * @param string|array|BaseEngine $name
      * @param array|BaseEngine|null $configs
      * @return BaseEngine
+     * @throws \Exception
      */
     public function addEngine($name, $configs = null) {
         if (!is_string($name) && !is_numeric($name)) {
@@ -95,9 +94,9 @@ class Command extends ConfigObject {
      * GET DATABASE ENGINE
      * @param string $name
      * @return BaseEngine
+     * @throws \Exception
      */
     public function getEngine($name = null) {
-        Factory::timer()->record('dbGet');
         if (is_null($name)) {
             $name = $this->getCurrentName();
         }
@@ -135,6 +134,7 @@ class Command extends ConfigObject {
      * ADD TABLE PREFIX
      * @param string $table
      * @return string
+     * @throws \Exception
      */
     public function addPrefix($table) {
         if (strpos($table, '`') !== false) {
@@ -165,6 +165,7 @@ class Command extends ConfigObject {
      * 设置表
      * @param string $table
      * @return $this
+     * @throws \Exception
      */
     public function setTable($table) {
         $this->table = $this->addPrefix($table);
@@ -183,6 +184,7 @@ class Command extends ConfigObject {
      * 更改数据库
      * @param string $database
      * @return $this
+     * @throws \Exception
      */
     public function changedDatabase($database) {
         $this->getEngine()->execute('use '.$database);
@@ -199,6 +201,7 @@ class Command extends ConfigObject {
     /**
      * @param string $sql
      * @return array null
+     * @throws \Exception
      */
     public function getCache($sql) {
         if (!$this->allowCache) {
@@ -215,24 +218,38 @@ class Command extends ConfigObject {
         if (!$this->allowCache || (defined('DEBUG') && DEBUG)) {
             return;
         }
-        Factory::cache()->set($this->currentName.$sql, serialize($data), 3600);
+        Factory::cache()->set($this->currentName.$sql, serialize($data), $this->cacheLife);
     }
 
     /**
      * 查询
      * @param string $sql
-     * @param string $field
+     * @param string|array $field
      * @param array $parameters
      * @return mixed
+     * @throws \Exception
      */
     public function select($sql, $field = '*', $parameters = array()) {
-        return $this->getArray("SELECT {$field} FROM {$this->table} {$sql}", $parameters);
+        if (is_array($field)) {
+            list($parameters, $field) = [$field, '*'];
+        }
+        if (stripos($sql, 'select') !== 0) {
+            $sql = sprintf('SELECT %s FROM %s %s', $field, $this->table, $sql);
+        }
+        $args = empty($parameters) ? serialize($parameters) : null;
+        if ($cache = $this->getCache($sql.$args)) {
+            return $cache;
+        }
+        $result = $this->getEngine()->select($sql, $parameters);
+        $this->setCache($sql.$args, $result);
+        return $result;
     }
 
     /**
      * 执行事务
      * @param array $args sql语句的数组
      * @return bool
+     * @throws \Exception
      */
     public function transaction($args) {
         return $this->getEngine()->transaction($args);
@@ -241,6 +258,7 @@ class Command extends ConfigObject {
     /**
      * 开始执行事务
      * @return BaseEngine
+     * @throws \Exception
      */
     public function beginTransaction() {
         $this->getEngine()->begin();
@@ -253,6 +271,7 @@ class Command extends ConfigObject {
      * @param string $tags
      * @param array $parameters
      * @return int
+     * @throws \Exception
      */
     public function insert($columns, $tags, $parameters = array()) {
         if (is_array($tags)) {
@@ -281,6 +300,7 @@ class Command extends ConfigObject {
      * @param string $update
      * @param array $parameters
      * @return int
+     * @throws \Exception
      */
     public function insertOrUpdate($columns, $tags, $update, $parameters = array()) {
         if (!empty($columns) && strpos($columns, '(') === false) {
@@ -299,6 +319,7 @@ class Command extends ConfigObject {
      * @param string $tags
      * @param array $parameters
      * @return int
+     * @throws \Exception
      */
     public function insertOrReplace($columns, $tags, $parameters = array()) {
         if (!empty($columns) && strpos($columns, '(') === false) {
@@ -317,6 +338,7 @@ class Command extends ConfigObject {
      * @param string $where
      * @param array $parameters
      * @return int
+     * @throws \Exception
      */
     public function update($columns, $where = null, $parameters = array()) {
         if (is_array($where)) {
@@ -340,6 +362,7 @@ class Command extends ConfigObject {
      * @param string $where
      * @param array $parameters
      * @return int
+     * @throws \Exception
      */
     public function delete($where = null, $parameters = array()) {
         $where = trim($where);
@@ -359,6 +382,7 @@ class Command extends ConfigObject {
      * @param string $sql
      * @param array $parameters
      * @return mixed
+     * @throws \Exception
      */
     public function execute($sql, $parameters = array()) {
         EventManger::getInstance()->run('executeSql', $sql);
@@ -378,6 +402,7 @@ class Command extends ConfigObject {
      * @param string $sql
      * @param array $parameters
      * @return array
+     * @throws \Exception
      */
     public function getArray($sql, $parameters = array()) {
         $args = empty($parameters) ? serialize($parameters) : null;
@@ -388,10 +413,12 @@ class Command extends ConfigObject {
         $this->setCache($sql.$args, $result);
         return $result;
     }
+
     /**
      * @param string $sql
      * @param array $parameters
      * @return object
+     * @throws \Exception
      */
     public function getObject($sql, $parameters = array()) {
         $args = empty($parameters) ? serialize($parameters) : null;
@@ -405,6 +432,7 @@ class Command extends ConfigObject {
 
     /**
      * 获取错误信息
+     * @throws \Exception
      */
     public function getError() {
         return $this->getEngine()->getError();
