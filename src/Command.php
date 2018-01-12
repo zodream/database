@@ -103,10 +103,13 @@ class Command extends ConfigObject {
         if (array_key_exists($name, $this->engines)) {
             return $this->engines[$name];
         }
-        if ($this->hasConfig($name)) {
-            return $this->addEngine($name, $this->getConfig($name));
+        if (!$this->hasConfig($name)) {
+            throw new \InvalidArgumentException($name. ' DOES NOT HAVE CONFIG!');
         }
-        throw new \InvalidArgumentException($name. ' DOES NOT HAVE CONFIG!');
+        $engine = $this->addEngine($name, $this->getConfig($name));
+        // 改变缓存状态
+        $this->openCache($engine->getConfig('cache_expire'));
+        return $engine;
     }
 
     public function getCurrentName() {
@@ -196,6 +199,17 @@ class Command extends ConfigObject {
      */
     public function copy() {
         return $this->select(null, '* INTO table in db');
+    }
+
+    /**
+     * 开启缓存
+     * @param int $expire
+     * @return $this
+     */
+    public function openCache($expire = 3600) {
+        $this->allowCache = $expire !== false;
+        $this->cacheLife = $expire;
+        return $this;
     }
 
     /**

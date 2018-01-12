@@ -190,13 +190,6 @@ class Query extends BaseQuery {
     public function having($column, $operator = null, $value = null, $boolean = 'and') {
         $type = 'Basic';
 
-        // Here we will make some assumptions about the operator. If only 2 values are
-        // passed to the method, we will assume that the operator is an equals sign
-        // and keep going. Otherwise, we'll require the operator to be passed in.
-        list($value, $operator) = $this->prepareValueAndOperator(
-            $value, $operator, func_num_args() == 2
-        );
-
         // If the given operator is not found in the list of valid operators we will
         // assume that the developer is just short-cutting the '=' operators and
         // we will set the operators to '=' and set the values appropriately.
@@ -277,7 +270,10 @@ class Query extends BaseQuery {
      * @throws \Exception
      */
     public function all($isArray = true) {
-        return $this->command()->select($this->getSql(), $this->getBindings());
+        if ($isArray) {
+            return $this->command()->getArray($this->getSql(), $this->getBindings());
+        }
+        return $this->command()->getObject($this->getSql(), $this->getBindings());
     }
 
     /**
@@ -347,6 +343,14 @@ class Query extends BaseQuery {
         return $this->select($column)->scalar();
     }
 
-
+    /**
+     * 开启缓存
+     * @param int $expire
+     * @return $this
+     */
+    public function openCache($expire = 3600) {
+        $this->command()->openCache($expire);
+        return $this;
+    }
 
 }
