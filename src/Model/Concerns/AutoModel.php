@@ -13,7 +13,7 @@ use Zodream\Infrastructure\Interfaces\ArrayAble;
  */
 trait AutoModel {
 
-    protected $_oldData = [];
+    protected $__oldAttributes = [];
 
     /**
      * 转载数据
@@ -61,27 +61,47 @@ trait AutoModel {
         return $this;
     }
 
+    public function isNewAttribute($key) {
+        if (!$this->hasOldAttribute($key)) {
+            return true;
+        }
+        return $this->getOldAttribute($key)
+            === $this->getAttributeSource($key);
+    }
+
     /**
      * 设置旧值
      * @param null $data
      * @return $this
      */
-    public function setOldData($data = null) {
+    public function setOldAttribute($data = null) {
         if (is_null($data)) {
             $data = $this->getAttribute();
         }
         $this->isNewRecord = false;
-        $this->_oldData = array_merge($this->_oldData, $data);
+        $this->__oldAttributes = array_merge($this->__oldAttributes, $data);
         return $this;
+    }
+
+    public function getOldAttribute($key) {
+        if (!$this->hasOldAttribute($key)) {
+            return null;
+        }
+        return $this->__oldAttributes[$key];
+    }
+
+    public function hasOldAttribute($key) {
+        return isset($this->__oldAttributes[$key])
+            || array_key_exists($key, $this->__oldAttributes);
     }
 
     /**
      * 初始化旧值
      * @return $this
      */
-    public function initOldData() {
+    public function initOldAttribute() {
         $this->isNewRecord = true;
-        $this->_oldData = [];
+        $this->__oldAttributes = [];
         return $this;
     }
 }

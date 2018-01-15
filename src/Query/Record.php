@@ -6,7 +6,6 @@ namespace Zodream\Database\Query;
  * Date: 2016/7/12
  * Time: 19:24
  */
-use Zodream\Helpers\Arr;
 use Zodream\Helpers\Str;
 use Zodream\Infrastructure\Traits\Attributes;
 

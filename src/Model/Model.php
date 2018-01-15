@@ -9,6 +9,7 @@ use Zodream\Database\Model\Concerns\AutoModel;
 use Zodream\Database\Model\Concerns\HasAttributes;
 use Zodream\Database\Model\Concerns\HasRelation;
 use Zodream\Database\Model\Concerns\HasTimestamps;
+use Zodream\Database\Model\Concerns\SaveModel;
 use Zodream\Database\Model\Concerns\ValidateData;
 use Zodream\Database\Query\Record;
 use Zodream\Infrastructure\Base\MagicObject;
@@ -17,7 +18,7 @@ use Zodream\Infrastructure\Traits\EventTrait;
 
 abstract class Model extends MagicObject {
 
-    use ErrorTrait, AutoModel, EventTrait, HasRelation, HasAttributes, ValidateData, HasTimestamps;
+    use ErrorTrait, AutoModel, EventTrait, HasRelation, HasAttributes, ValidateData, HasTimestamps, SaveModel;
 
     const BEFORE_SAVE = 'before save';
     const AFTER_SAVE = 'after save';
@@ -109,71 +110,6 @@ abstract class Model extends MagicObject {
 		return ucwords(str_replace('_', ' ', $key));
 	}
 
-	public function save() {
-		$this->invoke(self::BEFORE_SAVE, [$this]);
-		if ($this->usesTimestamps()) {
-            $this->updateTimestamps();
-        }
-		if ($this->isNewRecord) {
-			$row = $this->insert();
-		} else {
-			$row = $this->update();
-		}
-		$this->invoke(self::BEFORE_SAVE, [$this]);
-		return $row;
-	}
-
-    /**
-     * 获取表的列名
-     * @return array
-     */
-	protected function getTableFields() {
-	    return array_merge(array_keys($this->rules()), (array)$this->primaryKey);
-    }
-
-    protected function getNewFields() {
-	    if ($this->isNewRecord) {
-	        return $this->getAttributeSource();
-        }
-        return array_diff($this->getAttributeSource(), $this->_oldData);
-    }
-
-	/**
-	 * @param 是否包含主键唯一等字段的值
-	 * @return array
-	 */
-	protected function getFilterFields() {
-		$keys = $this->getTableFields();
-		$data = [];
-		foreach ($this->getNewFields() as $k => $item) {
-			if (($this->isFullColumns
-                    || in_array($k, $keys))
-                && !property_exists($this, $k)) {
-				$data[$k] = $item;
-			}
-		}
-		return $data;
-	}
-
-
-    /**
-     * @return bool|int
-     */
-	public function insert() {
-		if (!$this->validate()) {
-			return false;
-		}
-		$this->invoke(self::BEFORE_INSERT, [$this]);
-		$row = static::record()
-            ->set($this->getFilterFields())
-            ->insert();
-		if (!empty($row)) {
-			$this->set(current($this->primaryKey), $row);
-            $this->setOldData();
-		}
-		$this->invoke(self::AFTER_INSERT, [$this]);
-		return $row;
-	}
 
     /**
      * @return Record
@@ -183,84 +119,18 @@ abstract class Model extends MagicObject {
             ->setTable(static::tableName());
 	}
 
-	/**
-	 * 自动获取条件
-	 * @return array|bool
-	 */
-	protected function getWhereKey() {
-		foreach ($this->primaryKey as $item) {
-			if ($this->hasAttribute($item)) {
-				return [$item => $this->getAttributeSource($item)];
-			}
-		}
-		return false;
-	}
-
-	/**
-	 * 获取需要更新的数据
-	 * @return array
-	 */
-	protected function getUpdateData() {
-		if ($this->isNewRecord) {
-			return $this->getAttributeSource();
-		}
-		$data = [];
-		foreach ($this->getAttributeSource() as $key => $item) {
-			if (array_key_exists($key, $this->_oldData) 
-				&& $item === $this->_oldData[$key]) {
-				continue;
-			}
-			$data[$key] = $item;
-		}
-		return $data;
-	}
-
-	/**
-	 * 修改记录
-	 *
-	 * @return int 返回影响的行数,
-	 */
-	public function update() {
-		if (!$this->validate()) {
-			return false;
-		}
-		$data = $this->getUpdateData();
-		if (empty($data)) {
-		    return true;
-        }
-		$this->invoke(self::BEFORE_UPDATE, [$this]);
-		$row = $this->record()
-            ->set($data)
-            ->where($this->getWhereKey())
-			->update();
-        if (!empty($row)) {
-            $this->setOldData();
-        }
-		$this->invoke(self::AFTER_UPDATE, [$this]);
-		return $row;
-	}
 
     /**
-     * 初始化并保存到数据库
-     * @param array $data
-     * @return static
-     */
-	public static function create(array $data) {
-	    $model = new static($data);
-	    $model->save();
-	    return $model;
-    }
-
-	/**
-	 * SELECT ONE BY QUERY
-	 * 查询一条数据
-	 *
-	 * @access public
-	 *
-	 * @param array|string $param 条件
-	 * @param string $field
-	 * @param array $parameters
-	 * @return static|boolean
+     * SELECT ONE BY QUERY
+     * 查询一条数据
+     *
+     * @access public
+     *
+     * @param array|string $param 条件
+     * @param string $field
+     * @param array $parameters
+     * @return static|boolean
+     * @throws \Exception
      */
 	public static function find($param, $field = '*', $parameters = array()) {
 	    if (empty($param)) {
@@ -312,21 +182,7 @@ abstract class Model extends MagicObject {
         return $model;
     }
 
-	/**
-	 * 删除数据
-	 * DELETE QUERY
-	 *
-	 * @return int 返回影响的行数,
-	 */
-	public function delete() {
-		$row = $this->record()
-			->whereMany($this->getWhereKey())
-			->delete();
-		if (!empty($row)) {
-		    $this->initOldData();
-        }
-        return $row;
-	}
+
 
 	/**
 	 * 查询数据

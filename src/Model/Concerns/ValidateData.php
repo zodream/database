@@ -42,6 +42,12 @@ trait ValidateData {
         return $result && !$this->hasError();
     }
 
+    /**
+     * 验证 int 时 bool 要转换可以通过
+     * @param $key
+     * @param $rule
+     * @return bool
+     */
     private function _validateOne($key, $rule) {
         $method = is_array($rule) ? current($rule) : $rule;
         if (!is_callable($method) &&

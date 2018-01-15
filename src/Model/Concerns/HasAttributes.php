@@ -115,10 +115,10 @@ trait HasAttributes {
      */
     public function has($key = null) {
         if (!is_array($key)) {
-            return parent::has($key);
+            return $this->hasAttribute($key);
         }
         foreach ($key as $item) {
-            if (array_key_exists($item, $this->__attributes)) {
+            if ($this->hasAttribute($item)) {
                 return true;
             }
         }
