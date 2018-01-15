@@ -1,5 +1,6 @@
 <?php
 namespace Zodream\Database\Model;
+
 use Zodream\Database\Schema\Table;
 use Zodream\Service\Factory;
 
@@ -27,14 +28,15 @@ class AiModel extends Model {
        static::$tableName = $table;
     }
 
-    public function getTableField() {
+    public function getTableFields() {
         $key = 'table_'.static::tableName();
         $data = Factory::cache()->get($key);
         if (!empty($data)) {
             return unserialize($data);
         }
-        $data = (new Table(static::tableName()))->getAllColumn(true);
-        Factory::cache()->set($key, $data);
+        $data = (new Table(static::tableName()))->getAllColumn();
+        $data = array_column($data, 'Field');
+        Factory::cache()->set($key, serialize($data));
         return $data;
     }
 

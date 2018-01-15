@@ -123,19 +123,29 @@ abstract class Model extends MagicObject {
 		return $row;
 	}
 
+    /**
+     * 获取表的列名
+     * @return array
+     */
+	protected function getTableFields() {
+	    return array_merge(array_keys($this->rules()), (array)$this->primaryKey);
+    }
 
+    protected function getNewFields() {
+	    if ($this->isNewRecord) {
+	        return $this->getAttributeSource();
+        }
+        return array_diff($this->getAttributeSource(), $this->_oldData);
+    }
 
 	/**
-	 * @param bool $all 是否包含主键唯一等字段的值
+	 * @param 是否包含主键唯一等字段的值
 	 * @return array
 	 */
-	protected function getValues($all = true) {
-		$keys = array_keys($this->rules());
-		if ($all) {
-			$keys = array_merge($keys, $this->primaryKey);
-		}
+	protected function getFilterFields() {
+		$keys = $this->getTableFields();
 		$data = [];
-		foreach ($this->getAttributeSource() as $k => $item) {
+		foreach ($this->getNewFields() as $k => $item) {
 			if (($this->isFullColumns
                     || in_array($k, $keys))
                 && !property_exists($this, $k)) {
@@ -155,7 +165,7 @@ abstract class Model extends MagicObject {
 		}
 		$this->invoke(self::BEFORE_INSERT, [$this]);
 		$row = static::record()
-            ->set($this->getValues())
+            ->set($this->getFilterFields())
             ->insert();
 		if (!empty($row)) {
 			$this->set(current($this->primaryKey), $row);
