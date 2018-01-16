@@ -143,11 +143,12 @@ class Query extends BaseQuery {
     /**
      * 总和
      * @param $column
-     * @return bool|int|string
+     * @return int|float|double
      * @throws \Exception
      */
     public function sum($column)  {
-        return $this->_selectFunction(__FUNCTION__, $column)->scalar();
+        $val = $this->_selectFunction(__FUNCTION__, $column)->scalar();
+        return empty($val) ? 0 : $val;
     }
 
     /**

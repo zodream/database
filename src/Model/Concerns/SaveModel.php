@@ -17,7 +17,8 @@ trait SaveModel {
      */
     public function save() {
         $this->invoke(self::BEFORE_SAVE, [$this]);
-        if ($this->isNewRecord) {
+        if ($this->isNewRecord
+            && !$this->hasPrimaryKey()) {
             $row = $this->insert();
         } else {
             $row = $this->update();
@@ -142,6 +143,19 @@ trait SaveModel {
         foreach ($this->primaryKey as $item) {
             if ($this->hasAttribute($item)) {
                 return $this->record()->where($item, $this->getAttributeSource($item));
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 是否有主键值存在
+     * @return bool
+     */
+    public function hasPrimaryKey() {
+        foreach ($this->primaryKey as $item) {
+            if (!empty($this->getAttributeSource($item))) {
+                return true;
             }
         }
         return false;
