@@ -76,7 +76,7 @@ class Redis {
 	 * @return int
 	 */
 	public function lpush($key, $value){
-		return $this->_redis->LPUSH($key, $value);
+		return $this->_redis->lPush($key, $value);
 	}
 
 	/**
@@ -86,7 +86,7 @@ class Redis {
 	 * @return int
 	 */
 	public function rpush($key, $value){
-		return $this->_redis->rpush($key, $value);
+		return $this->_redis->rPush($key, $value);
 	}
 
 	/**
