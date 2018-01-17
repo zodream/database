@@ -114,16 +114,17 @@ trait HasTimestamps {
     }
 
     public function getCreatedAtAttribute() {
-        if (!$this->hasColumn($this->getCreatedAtColumn())) {
-            return;
-        }
-        return Time::format($this->getAttributeValue($this->getCreatedAtColumn()));
+        return $this->formatTimeAttribute($this->getCreatedAtColumn());
     }
 
     public function getUpdatedAtAttribute() {
-        if (!$this->hasColumn($this->getUpdatedAtColumn())) {
+        return $this->formatTimeAttribute($this->getUpdatedAtColumn());
+    }
+
+    protected function formatTimeAttribute($key) {
+        if (!$this->hasColumn($key)) {
             return;
         }
-        return Time::format($this->getAttributeValue($this->getUpdatedAtColumn()));
+        return Time::format($this->getAttributeValue($key));
     }
 }
