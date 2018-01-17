@@ -17,8 +17,7 @@ trait SaveModel {
      */
     public function save() {
         $this->invoke(self::BEFORE_SAVE, [$this]);
-        if ($this->isNewRecord
-            && !$this->hasPrimaryKey()) {
+        if ($this->isNewRecord) {
             $row = $this->insert();
         } else {
             $row = $this->update();
