@@ -159,4 +159,15 @@ trait SaveModel {
         }
         return false;
     }
+
+    /**
+     * 自动设置是否是新值
+     * @return $this
+     */
+    public function autoIsNew() {
+        if ($this->isNewRecord) {
+            $this->isNewRecord = $this->hasPrimaryKey();
+        }
+        return $this;
+    }
 }

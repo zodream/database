@@ -236,7 +236,7 @@ class Column {
 
     public function ai($begin = null) {
         $this->table->setAI($begin);
-        return $this->addData(self::AI, 'AUTO_INCREMENT');
+        return $this->addData(self::AI, 'AUTO_INCREMENT')->unsigned();
     }
 
     public function pk() {
