@@ -166,7 +166,7 @@ trait SaveModel {
      */
     public function autoIsNew() {
         if ($this->isNewRecord) {
-            $this->isNewRecord = $this->hasPrimaryKey();
+            $this->isNewRecord = !$this->hasPrimaryKey();
         }
         return $this;
     }
