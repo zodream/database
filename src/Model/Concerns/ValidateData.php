@@ -37,7 +37,7 @@ trait ValidateData {
             if (is_integer($key) && is_array($rule)) {
                 $key = array_shift($rule);
             }
-            $result = $result && $this->_validateOne($key, $rule);
+            $result = !$result ? $result : $this->_validateOne($key, $rule);
         }
         return $result && !$this->hasError();
     }
@@ -49,22 +49,20 @@ trait ValidateData {
      * @return bool
      */
     private function _validateOne($key, $rule) {
+        $key = (array)$key;
         $method = is_array($rule) ? current($rule) : $rule;
         if (!is_callable($method) &&
             (!is_string($method) || !method_exists($this, $method))) {
-            DataFilter::clearError();
-            if (DataFilter::validateOne($this->getAttributeValue(),
-                $key, DataFilter::getFilters($rule))) {
-                return true;
-            }
-            $this->setError(DataFilter::getError());
-            return false;
+            return $this->_validateByFilter($key, $rule);
         }
         $result = true;
         if (is_string($method)) {
             $method = [$this, $method];
         }
-        foreach ((array)$key as $k) {
+        foreach ($key as $k) {
+            if (!$this->isNewRecord && !$this->hasAttribute($k)) {
+                continue;
+            }
             if (false !== call_user_func($method, $this->getAttributeValue($k))) {
                 continue;
             }
@@ -74,5 +72,26 @@ trait ValidateData {
             }
         }
         return $result;
+    }
+
+    /**
+     * @param $key
+     * @param $rule
+     * @return bool
+     */
+    private function _validateByFilter($key, $rule) {
+        DataFilter::clearError();
+        $rule = DataFilter::getFilters($rule);
+        foreach ($key as $k) {
+            if (!$this->isNewRecord && !$this->hasAttribute($k)) {
+                continue;
+            }
+            if (!DataFilter::validateOneKey($this->getAttributeValue(),
+                $rule, $k)) {
+                $this->setError(DataFilter::getError());
+                return false;
+            }
+        }
+        return !$this->hasError();
     }
 }
