@@ -66,7 +66,7 @@ trait AutoModel {
             return true;
         }
         return $this->getOldAttribute($key)
-            === $this->getAttributeSource($key);
+            !== $this->getAttributeSource($key);
     }
 
     /**

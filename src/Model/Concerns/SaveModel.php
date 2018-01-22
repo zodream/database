@@ -45,6 +45,9 @@ trait SaveModel {
             return false;
         }
         $data = $this->_getRealFields();
+        if (empty($data)) {
+            return true;
+        }
         $row = $query->set($data)
             ->update();
         if (!empty($row)) {
