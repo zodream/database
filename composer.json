@@ -3,7 +3,7 @@
     "description": "SQL Builder With PDO, ORM etc",
     "keywords": ["sql", "orm", "zodream"],
     "homepage": "https://github.com/zodream/database",
-    "license": "Unlicense",
+    "license": "MIT",
     "authors": [
         {
             "name" : "Jason Zou",
