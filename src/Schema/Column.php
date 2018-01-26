@@ -274,6 +274,7 @@ class Column {
     }
 
     public function getSql() {
+        ksort($this->data);
         $sql = implode(' ', $this->data);
         if (!empty($this->field)) {
             $sql = "`{$this->field}` ".$sql;
