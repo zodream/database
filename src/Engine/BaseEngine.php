@@ -22,7 +22,7 @@ abstract class BaseEngine extends ConfigObject {
 	
 	protected $configs = array(
 	    'type'     => 'mysql',                //数据库类型
-		'host'     => 'localhost',                //服务器
+		'host'     => '127.0.0.1',                //服务器
 		'port'     => '3306',						//端口
 		'database' => 'test',				//数据库
 		'user'     => 'root',						//账号
@@ -44,9 +44,9 @@ abstract class BaseEngine extends ConfigObject {
      */
 	public function __construct($config) {
         if (is_array($config)) {
-            Factory::timer()->record('dbEngineInit');
+            Factory::timer()->record('db engine init');
             $this->setConfigs($config)->connect();
-            Factory::timer()->record('dbEngineEnd');
+            Factory::timer()->record('db engine end');
             return;
         }
         $this->setDriver($config);

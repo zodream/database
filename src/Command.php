@@ -86,7 +86,7 @@ class Command extends ConfigObject {
         }
         $class = $configs['driver'];
         $this->engines[$name] = new $class($configs);
-        Factory::timer()->record('dbEnd');
+        Factory::timer()->record('db init end');
         return $this->engines[$name];
     }
 
