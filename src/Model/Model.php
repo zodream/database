@@ -10,7 +10,7 @@ use Zodream\Database\Model\Concerns\HasAttributes;
 use Zodream\Database\Model\Concerns\HasRelation;
 use Zodream\Database\Model\Concerns\HasTimestamps;
 use Zodream\Database\Model\Concerns\SaveModel;
-use Zodream\Database\Model\Concerns\ValidateData;
+use Zodream\Database\Model\Concerns\ValidateAttributes;
 use Zodream\Database\Query\Record;
 use Zodream\Infrastructure\Base\MagicObject;
 use Zodream\Infrastructure\Traits\ErrorTrait;
@@ -18,7 +18,7 @@ use Zodream\Infrastructure\Traits\EventTrait;
 
 abstract class Model extends MagicObject {
 
-    use ErrorTrait, AutoModel, EventTrait, HasRelation, HasAttributes, ValidateData, HasTimestamps, SaveModel;
+    use ErrorTrait, AutoModel, EventTrait, HasRelation, HasAttributes, ValidateAttributes, HasTimestamps, SaveModel;
 
     const BEFORE_SAVE = 'before save';
     const AFTER_SAVE = 'after save';
