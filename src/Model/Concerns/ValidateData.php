@@ -14,6 +14,14 @@ trait ValidateData {
     }
 
     /**
+     * 自定义验证错误信息
+     * @return array
+     */
+    protected function messages() {
+        return [];
+    }
+
+    /**
      * 判断是否有列名
      * @param $key
      *
