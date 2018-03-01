@@ -231,7 +231,7 @@ trait PdoConverter {
      * @return string
      */
     protected function compileBasicHaving($having) {
-        $column = $this->wrap($having['column']);
+        $column = $having['column'];
 
         $parameter = $this->parameter($having['value']);
 
@@ -326,67 +326,102 @@ trait PdoConverter {
         return $sql;
     }
 
+    protected function getPrefixTable() {
+        if (empty($this->from)) {
+            throw new \Exception('NOT HAVE TABLE');
+        }
+        if (is_array($this->from)) {
+            return $this->addPrefix(reset($this->from));
+        }
+        return $this->addPrefix($this->from);
+    }
+
 
     /**
      * Compile an insert statement into SQL.
      *
-     * @param  array  $values
+     * @param  array $values
      * @return string
+     * @throws \Exception
      */
     public function compileInsert(array $values) {
         // Essentially we will force every insert to be treated as a batch insert which
         // simply makes creating the SQL easier for us since we can utilize the same
         // basic routine regardless of an amount of records given to us to insert.
-        $table = $this->addPrefix($this->from);
+        $table = $this->getPrefixTable();
 
         if (! is_array(reset($values))) {
             $values = [$values];
         }
 
-        $columns = implode('`,`', array_keys(reset($values)));
+        $column_keys = array_keys(reset($values));
+        sort($column_keys);
+        $columns = implode('`,`', $column_keys);
 
         // We need to build a list of parameter place-holders of values that are bound
         // to the query. Each insert should have the exact same amount of parameter
         // bindings so we will loop through the record and parameterize them all.
         $args = [];
+        $others = []; // 其他不规则的单独处理
+        $column_count = count($column_keys);
         foreach ($values as $item) {
-            $arg = [];
-            foreach ($item as $value) {
-                if (is_null($value)) {
-                    $arg[] = 'NULL';
-                    continue;
-                }
-                if (is_bool($value)) {
-                    $arg[] = intval($value);
-                    continue;
-                }
-                if (is_string($value)) {
-                    $arg[] = '?';
-                    $this->addBinding($value);
-                    continue;
-                }
-                if (is_array($value) || is_object($value)) {
-                    $arg[] = '?';
-                    $this->addBinding(serialize($value));
-                    continue;
-                }
-                $arg[] = $value;
+            if (count($item) != $column_count) {
+                $others[] = $item;
+                continue;
             }
-            $args[] = '(' . implode(', ', $arg) . ')';
+            ksort($item);
+            $args[] = $this->compileInsertColumn($item);;
         }
         $parameters = implode(', ', $args);
-        return "insert into $table (`$columns`) values $parameters";
+        $insert_columns = [
+            "insert into $table (`$columns`) values $parameters"
+        ];
+        if (!empty($others)) {
+            $insert_columns[] = $this->compileInsert($others);
+        }
+        return implode(';', $insert_columns);
+    }
+
+    /**
+     * @param array $item
+     * @return string
+     */
+    public function compileInsertColumn($item) {
+        $arg = [];
+        foreach ($item as $value) {
+            if (is_null($value)) {
+                $arg[] = 'NULL';
+                continue;
+            }
+            if (is_bool($value)) {
+                $arg[] = intval($value);
+                continue;
+            }
+            if (is_string($value)) {
+                $arg[] = '?';
+                $this->addBinding($value);
+                continue;
+            }
+            if (is_array($value) || is_object($value)) {
+                $arg[] = '?';
+                $this->addBinding(serialize($value));
+                continue;
+            }
+            $arg[] = $value;
+        }
+        return '(' . implode(', ', $arg) . ')';
     }
 
 
     /**
      * Compile an update statement into SQL.
      *
-     * @param  array  $values
+     * @param  array $values
      * @return string
+     * @throws \Exception
      */
     public function compileUpdate($values) {
-        $table = $this->addPrefix($this->from);
+        $table = $this->getPrefixTable();
         $data = [];
         $parameters = array();
         foreach ($values as $key => $value) {
@@ -437,9 +472,10 @@ trait PdoConverter {
      * Compile a delete statement into SQL.
      *
      * @return string
+     * @throws \Exception
      */
     public function compileDelete() {
-        $table = $this->addPrefix(reset($this->from));
+        $table = $this->getPrefixTable();
 
         $where = is_array($this->wheres) ? $this->compileWheres() : '';
 

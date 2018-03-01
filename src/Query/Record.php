@@ -17,6 +17,7 @@ class Record extends BaseQuery  {
      * SET TABLE
      * @param $table
      * @return Record
+     * @throws \Exception
      */
     public function setTable($table) {
         $this->command()->setTable($table);
@@ -32,6 +33,7 @@ class Record extends BaseQuery  {
      *
      * @param array $data
      * @return int 返回最后插入的ID,
+     * @throws \Exception
      */
     public function insert($data = null) {
         if (!empty($data) && is_array($data)) {
@@ -50,6 +52,7 @@ class Record extends BaseQuery  {
      * @param array|string $columns
      * @param array $data
      * @return int
+     * @throws \Exception
      */
     public function batchInsert($columns, array $data) {
         $args = [];
@@ -83,9 +86,14 @@ class Record extends BaseQuery  {
 
     /**
      * UPDATE
+     * @param null $data
      * @return mixed
+     * @throws \Exception
      */
-    public function update() {
+    public function update($data = null) {
+        if (!empty($data) && is_array($data)) {
+            $this->setAttribute($data);
+        }
         return $this->command()
             ->update($this->compileUpdate($this->get()), $this->getBindings());
     }
@@ -95,6 +103,7 @@ class Record extends BaseQuery  {
      *
      * @param string $filed
      * @return int
+     * @throws \Exception
      */
     public function updateBool($filed) {
         $this->__attributes[] = "{$filed} = CASE WHEN {$filed} = 1 THEN 0 ELSE 1 END";
@@ -107,6 +116,7 @@ class Record extends BaseQuery  {
      * @param string|string $filed
      * @param integer $num
      * @return int
+     * @throws \Exception
      */
     public function updateOne($filed, $num = 1) {
         $sql = array();
@@ -136,6 +146,7 @@ class Record extends BaseQuery  {
     /**
      * INSERT OR REPLACE
      * @return mixed
+     * @throws \Exception
      */
     public function replace() {
         $addFields = implode('`,`', array_keys($this->__attributes));
@@ -147,6 +158,7 @@ class Record extends BaseQuery  {
     /**
      * DELETE RECORD
      * @return mixed
+     * @throws \Exception
      */
     public function delete() {
         return $this->command()
@@ -157,6 +169,7 @@ class Record extends BaseQuery  {
      * @param array|Query $data
      * @param array $relations
      * @return bool
+     * @throws \Exception
      */
     public static function moveTo($data, array $relations) {
         if ($data instanceof Query) {
