@@ -52,21 +52,21 @@ trait ValidateAttributes {
                     if (false !== call_user_func($args, $value)) {
                         continue;
                     }
-                    $validator->messages()->add($key, $validator->getMessage($key, $rule, $rule['message']));
+                    $validator->messages()->add($key, $validator->getMessage($key, $rule, $item['message']));
                     continue;
                 }
                 if (method_exists($this, $rule)) {
                     if (false !== call_user_func([$this, $rule], $value)) {
                         continue;
                     }
-                    $validator->messages()->add($key, $validator->getMessage($key, $rule, $rule['message']));
+                    $validator->messages()->add($key, $validator->getMessage($key, $rule, $item['message']));
                     continue;
                 }
                 if (Validator::buildRule($rule, (array)$args)
                     ->validate($value)) {
                     continue;
                 }
-                $validator->messages()->add($key, $validator->getMessage($key, $rule, $rule['message']));
+                $validator->messages()->add($key, $validator->getMessage($key, $rule, $item['message']));
             }
         }
         $this->setError($validator->messages()->all());
