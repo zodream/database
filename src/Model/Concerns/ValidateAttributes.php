@@ -69,7 +69,7 @@ trait ValidateAttributes {
                 $validator->messages()->add($key, $validator->getMessage($key, $rule, $item['message']));
             }
         }
-        $this->setError($validator->messages()->all());
+        $this->setError($validator->messages()->getMessages());
         return !$this->hasError();
     }
 }
