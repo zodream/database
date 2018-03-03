@@ -83,6 +83,10 @@ trait PdoConverter {
         return $where['column'].' '.$where['operator'].' ?';
     }
 
+    protected function compileWhereColumn($where) {
+        return $where['first'].' '.$where['operator'].' '.$where['second'];
+    }
+
     /**
      * Compile a "where null" clause.
      *

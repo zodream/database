@@ -48,8 +48,7 @@ abstract class HasOneOrMany extends Relation {
      * @param  array  $attributes
      * @return Model
      */
-    public function make(array $attributes = [])
-    {
+    public function make(array $attributes = []) {
 //        return tap($this->related->newInstance($attributes), function ($instance) {
 //            $instance->setAttribute($this->getForeignKeyName(), $this->getParentKey());
 //        });
@@ -85,8 +84,7 @@ abstract class HasOneOrMany extends Relation {
      *
      * @return string
      */
-    public function getRelationCountHash()
-    {
+    public function getRelationCountHash() {
         return 'laravel_reserved_'.static::$selfJoinCount++;
     }
 
@@ -95,8 +93,7 @@ abstract class HasOneOrMany extends Relation {
      *
      * @return string
      */
-    public function getExistenceCompareKey()
-    {
+    public function getExistenceCompareKey() {
         return $this->getQualifiedForeignKeyName();
     }
 
@@ -115,8 +112,7 @@ abstract class HasOneOrMany extends Relation {
      *
      * @return string
      */
-    public function getQualifiedParentKeyName()
-    {
+    public function getQualifiedParentKeyName() {
         return $this->parent->tableName().'.'.$this->localKey;
     }
 
@@ -125,8 +121,7 @@ abstract class HasOneOrMany extends Relation {
      *
      * @return string
      */
-    public function getForeignKeyName()
-    {
+    public function getForeignKeyName() {
         $segments = explode('.', $this->getQualifiedForeignKeyName());
 
         return $segments[count($segments) - 1];
@@ -137,8 +132,104 @@ abstract class HasOneOrMany extends Relation {
      *
      * @return string
      */
-    public function getQualifiedForeignKeyName()
-    {
+    public function getQualifiedForeignKeyName() {
         return $this->foreignKey;
+    }
+
+    public function matchOne(array $models, array $results, $relation) {
+        return $this->matchOneOrMany($models, $results, $relation, 'one');
+    }
+
+    /**
+     * Match the eagerly loaded results to their many parents.
+     *
+     * @param  array   $models
+     * @param  array  $results
+     * @param  string  $relation
+     * @return array
+     */
+    public function matchMany(array $models, array $results, $relation) {
+        return $this->matchOneOrMany($models, $results, $relation, 'many');
+    }
+
+    /**
+     * Match the eagerly loaded results to their many parents.
+     *
+     * @param  array   $models
+     * @param  array  $results
+     * @param  string  $relation
+     * @param  string  $type
+     * @return array
+     */
+    protected function matchOneOrMany(array $models, array $results, $relation, $type) {
+        $dictionary = $this->buildDictionary($results);
+
+
+
+        // Once we have the dictionary we can simply spin through the parent models to
+        // link them up with their children using the keyed dictionary to make the
+        // matching very convenient and easy work. Then we'll just return them.
+        foreach ($models as $model) {
+            if (isset($dictionary[$key = $model->getAttribute($this->localKey)])) {
+                $model->setRelation(
+                    $relation, $this->getRelationValue($dictionary, $key, $type)
+                );
+            }
+        }
+
+        return $models;
+    }
+
+    /**
+     * @param Model[] $results
+     * @return mixed
+     */
+    protected function buildDictionary(array $results) {
+        $foreign = $this->getForeignKeyName();
+        $data = [];
+        foreach ($results as $result) {
+            $data[$result->{$foreign}][] = $result;
+        }
+        return $data;
+    }
+
+    /**
+     * Get the value of a relationship by one or many type.
+     *
+     * @param  array   $dictionary
+     * @param  string  $key
+     * @param  string  $type
+     * @return mixed
+     */
+    protected function getRelationValue(array $dictionary, $key, $type) {
+        $value = $dictionary[$key];
+        return $type == 'one' ? reset($value) : $value;
+    }
+
+    /**
+     * 保存一个
+     * @param Model $model
+     * @return $this
+     */
+    public function save(Model $model) {
+        if ($model->isPrimaryKey($this->foreignKey)) {
+            $model->save();
+            $this->parent->{$this->localKey} = $model->{$this->foreignKey};
+            $this->parent->save();
+            return $this;
+        }
+        $model->{$this->foreignKey} = $this->parent->{$this->localKey};
+        $model->save();
+        return $this;
+    }
+
+    /**
+     * 新建
+     * @param array $data
+     * @return mixed
+     */
+    public function create(array $data) {
+        $data[$this->foreignKey] = $this->parent->{$this->localKey};
+        return call_user_func(sprintf('%s::create', $this->query->getModelName()), $data);
     }
 }

@@ -18,25 +18,26 @@ class HasOne extends HasOneOrMany {
     /**
      * Initialize the relation on a set of models.
      *
-     * @param  array $models
+     * @param  Model[] $models
      * @param  string $relation
      * @return array
      */
-    public function initRelation(array $models, $relation)
-    {
-        // TODO: Implement initRelation() method.
+    public function initRelation(array $models, $relation) {
+        foreach ($models as $model) {
+            $model->setRelation($relation, null);
+        }
+        return $models;
     }
 
     /**
      * Match the eagerly loaded results to their parents.
      *
-     * @param  array $models
-     * @param  mixed $results
-     * @param  string $relation
+     * @param  array  $models
+     * @param  array  $results
+     * @param  string  $relation
      * @return array
      */
-    public function match(array $models, $results, $relation)
-    {
-        // TODO: Implement match() method.
+    public function match(array $models, $results, $relation) {
+        return $this->matchOne($models, $results, $relation);
     }
 }

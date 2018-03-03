@@ -12,6 +12,7 @@ use Zodream\Database\Model\Concerns\HasTimestamps;
 use Zodream\Database\Model\Concerns\SaveModel;
 use Zodream\Database\Model\Concerns\ValidateAttributes;
 use Zodream\Database\Query\Record;
+use Zodream\Helpers\Str;
 use Zodream\Infrastructure\Base\MagicObject;
 use Zodream\Infrastructure\Traits\ErrorTrait;
 use Zodream\Infrastructure\Traits\EventTrait;
@@ -91,6 +92,19 @@ abstract class Model extends MagicObject {
 	}
 
     /**
+     * 判断字段是不是主键
+     * @param $key
+     * @return bool
+     */
+	public function isPrimaryKey($key) {
+	    return in_array($key, $this->primaryKey);
+    }
+
+    public function getKeyName() {
+	    return reset($this->primaryKey);
+    }
+
+    /**
      * 判断是否是新增
      * @return bool
      */
@@ -104,7 +118,7 @@ abstract class Model extends MagicObject {
 	 */
 	public function getLabel($key) {
 		$labels = $this->labels();
-		if (array_key_exists($key, $labels)) {
+		if (isset($labels[$key])) {
 			return $labels[$key];
 		}
 		return ucwords(str_replace('_', ' ', $key));
@@ -138,7 +152,7 @@ abstract class Model extends MagicObject {
         }
 		$model = new static;
 		if (is_numeric($param)) {
-			$param = [$model->primaryKey[0] => $param];
+			$param = [$model->getKeyName() => $param];
 		}
 		if (!is_array($param) || !array_key_exists('where', $param)) {
 			$param = [
@@ -158,6 +172,7 @@ abstract class Model extends MagicObject {
      * @param string $field
      * @param array $parameters
      * @return bool|Model|static
+     * @throws \Exception
      */
 	public static function findOrNew($param, $field = '*', $parameters = array()) {
 	    $model = static::find($param, $field, $parameters);
@@ -173,6 +188,7 @@ abstract class Model extends MagicObject {
      * @param string $field
      * @param array $parameters
      * @return bool|Model
+     * @throws \Exception
      */
     public static function findOrThrow($param, $field = '*', $parameters = array()) {
         $model = static::find($param, $field, $parameters);
@@ -211,6 +227,14 @@ abstract class Model extends MagicObject {
         $model = new static((array) $attributes);
         $model->isNewRecord = !$exists;
         return $model;
+    }
+
+    public function qualifyColumn($column) {
+        if (Str::contains($column, '.')) {
+            return $column;
+        }
+
+        return static::tableName().'.'.$column;
     }
 
 

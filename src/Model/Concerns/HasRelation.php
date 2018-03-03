@@ -22,15 +22,15 @@ trait HasRelation {
 
     /**
      * @param string $table
-     * @param string $link $table.$link
-     * @param string $key $this.$key
+     * @param string $foreignKey $table.$link
+     * @param string $localKey $this.$key
      * @return Relation
      */
-    public function hasOne($table, $link, $key = null) {
+    public function hasOne($table, $foreignKey, $localKey = null) {
         if ($table instanceof Model) {
             $table = $table->className();
         }
-        return new HasOne($this->getRelationQuery($table)->where($this->getRelationWhere($link, $key)), $this,  $link, $key);
+        return new HasOne($this->getRelationQuery($table), $this,  $foreignKey, $localKey);
     }
 
     /**
@@ -76,7 +76,7 @@ trait HasRelation {
         if ($table instanceof Model) {
             $table = $table->className();
         }
-        return new HasMany($this->getRelationQuery($table)->where($this->getRelationWhere($link, $key)), $this, $link, $key);
+        return new HasMany($this->getRelationQuery($table), $this, $link, $key);
     }
 
     /**

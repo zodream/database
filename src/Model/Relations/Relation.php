@@ -55,7 +55,7 @@ abstract class Relation {
      * Run a callback with constraints disabled on the relation.
      *
      * @param  \Closure  $callback
-     * @return mixed
+     * @return Relation|null
      */
     public static function noConstraints(Closure $callback) {
         $previous = static::$constraints;
@@ -70,6 +70,10 @@ abstract class Relation {
         } finally {
             static::$constraints = $previous;
         }
+    }
+
+    public function getRelated() {
+        return $this->related;
     }
 
     /**
@@ -106,17 +110,72 @@ abstract class Relation {
      */
     abstract public function match(array $models, $results, $relation);
 
+    /**
+     * @param Model[] $models
+     * @param null $key
+     * @return mixed
+     */
+    protected function getKeys(array $models, $key = null) {
+        $data = [];
+        foreach ($models as $model) {
+            $data[] = $model->getAttribute($key ?: $model->getKeyName());
+        }
+        $data = array_unique($data);
+        sort($data);
+        return $data;
+    }
+
+    public function getEager() {
+        return $this->get();
+    }
+
+    /**
+     * Execute the query as a "select" statement.
+     *
+     * @param  array  $columns
+     * @return array
+     */
+    public function get($columns = ['*']) {
+        return $this->query->select($columns)->all();
+    }
 
     /**
      * Run a raw update against the base query.
      *
-     * @param  array  $attributes
+     * @param  array $attributes
      * @return int
+     * @throws \Exception
      */
-    public function rawUpdate(array $attributes = [])
-    {
+    public function rawUpdate(array $attributes = []) {
         return $this->query->update($attributes);
     }
+
+    public function getRelationExistenceCountQuery(Query $query, Query $parentQuery) {
+        return $this->getRelationExistenceQuery(
+            $query, $parentQuery, 'count(*)'
+        );
+    }
+
+    /**
+     * Add the constraints for an internal relationship existence query.
+     *
+     * Essentially, these queries compare on column names like whereColumn.
+     *
+     * @param  Query  $query
+     * @param  Query  $parentQuery
+     * @param  array|mixed $columns
+     * @return Query
+     */
+    public function getRelationExistenceQuery(Query $query, Query $parentQuery, $columns = ['*']) {
+        return $query->select($columns)->whereColumn(
+            $this->parent->qualifyColumn($this->parent->getKeyName()), '=', $this->getExistenceCompareKey()
+        );
+    }
+
+    public function getExistenceCompareKey() {
+        return '';
+    }
+
 
     /**
      * Handle dynamic method calls to the relationship.
