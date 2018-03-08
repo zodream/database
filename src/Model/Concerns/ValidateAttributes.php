@@ -45,8 +45,13 @@ trait ValidateAttributes {
             if (!$this->isNewRecord && !$this->hasAttribute($key)) {
                 continue;
             }
-            $value = $this->getAttributeValue($key);
             $item = $validator->converterRule($item);
+            // 增加必须判断
+            if (!$this->hasAttribute($key)
+                && !isset($item['rules']['required'])) {
+                continue;
+            }
+            $value = $this->getAttributeValue($key);
             foreach ($item['rules'] as $rule => $args) {
                 if (is_callable($args)) {
                     if (false !== call_user_func($args, $value)) {
