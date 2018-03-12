@@ -9,7 +9,6 @@ namespace Zodream\Database;
 use Zodream\Infrastructure\Base\ConfigObject;
 use Zodream\Database\Engine\BaseEngine;
 use Zodream\Database\Engine\Pdo;
-use Zodream\Infrastructure\Event\EventManger;
 use Zodream\Service\Factory;
 use Zodream\Helpers\Str;
 use Zodream\Infrastructure\Traits\SingletonPattern;
@@ -399,7 +398,6 @@ class Command extends ConfigObject {
      * @throws \Exception
      */
     public function execute($sql, $parameters = array()) {
-        EventManger::getInstance()->run('executeSql', $sql);
         if (preg_match('/^(insert|delete|update|replace|drop|create)\s+/i', $sql)) {
             return $this->getEngine()->execute($sql, $parameters);
         }
