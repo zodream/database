@@ -1,7 +1,9 @@
 <?php
 namespace Zodream\Database\Model\Concerns;
 
+use Zodream\Service\Factory;
 use Zodream\Validate\Validator;
+use Exception;
 
 trait ValidateAttributes {
     /**
@@ -34,12 +36,25 @@ trait ValidateAttributes {
      * 验证
      * @param array $rules
      * @return bool
-     * @throws \Exception
+     * @throws Exception
      */
     public function validate($rules = array()) {
         if (empty($rules)) {
             $rules = $this->rules();
         }
+        if ($this->validateAttribute($rules)) {
+            return true;
+        }
+        Factory::log()->error('model validate error', $this->getError());
+        return false;
+    }
+
+    /**
+     * 验证属性值
+     * @param $rules
+     * @throws Exception
+     */
+    protected function validateAttribute($rules) {
         $validator = new Validator();
         foreach ($rules as $key => $item) {
             if (!$this->isNewRecord && !$this->hasAttribute($key)) {

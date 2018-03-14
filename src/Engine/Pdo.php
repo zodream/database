@@ -146,14 +146,13 @@ class Pdo extends BaseEngine {
 			}
 			$this->result->execute();
 		} catch (\PDOException  $ex) {
-		    if (Config::isDebug()) {
-                Factory::log()->error(sprintf('PDO: %s => %s', $sql, $this->error), $parameters);
-		        throw $ex;
+            if (Config::isDebug()) {
+                Factory::log()->info(sprintf('PDO: %s => %s', $sql, $this->error), $parameters);
+                throw $ex;
             }
 			$this->error = $ex->getMessage();
 		}
-        Factory::log()->info(sprintf('PDO: %s => %s', $sql, $this->error), $parameters);
-		return $this->result;
+        return $this->result;
 	}
 	
 	/**
