@@ -89,7 +89,9 @@ trait SaveModel {
      */
     public static function create(array $data) {
         $model = new static($data);
-        $model->save();
+        if (!$model->save()) {
+            return false;
+        }
         return $model;
     }
 
