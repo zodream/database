@@ -75,7 +75,11 @@ trait SaveModel {
             ->set($data)
             ->insert();
         if (!empty($row)) {
-            $this->set(current($this->primaryKey), $row);
+            $pk = current($this->primaryKey);
+            // 插入空主键自动设置
+            if ($this->isEmpty($pk)) {
+                $this->set($pk, $row);
+            }
             $this->setOldAttribute();
         }
         $this->invoke(self::AFTER_INSERT, [$this]);

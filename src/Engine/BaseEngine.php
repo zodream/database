@@ -101,8 +101,12 @@ abstract class BaseEngine extends ConfigObject {
 	 * @return int id
 	 */
 	public function insert($sql, $parameters = array()) {
-		$this->execute($sql, $parameters);
-		return $this->lastInsertId();
+	    $this->execute($sql, $parameters);
+	    $id = $this->lastInsertId();
+	    if (empty($id)) {
+	        return $this->rowCount() > 0;
+        }
+		return $id;
 	}
 
 	/**
