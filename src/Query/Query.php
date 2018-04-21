@@ -370,7 +370,10 @@ class Query extends BaseQuery {
     }
 
     public function pluck($column = null, $key = null) {
-        $data = $this->select($column, $key)->all();
+        if (empty($this->selects)) {
+            $this->select($column, $key);
+        }
+        $data = $this->all();
         if (empty($data)) {
             return [];
         }
