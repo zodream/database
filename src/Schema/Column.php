@@ -227,7 +227,7 @@ class Column {
         if (is_string($arg)) {
             $arg = "'{$arg}'";
         }
-        return $this->addData(self::_DEFAULT_, 'DEFAULT '.$arg);
+        return $this->addData(self::_DEFAULT_, 'DEFAULT '.$arg)->notNull();
     }
 
     public function comment($arg) {
