@@ -67,7 +67,7 @@ abstract class UserModel extends Model implements UserObject {
         ]);
     }
 
-    public static function signInAccount($username, $password) {
+    public static function findByAccount($username, $password) {
         throw new \Exception('undefined method');
     }
 
