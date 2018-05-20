@@ -214,7 +214,7 @@ class Table extends BaseSchema {
      * @return Column
      */
     public function timestamp($column) {
-        return $this->set($column)->int(10)->unsigned()->defaultVal(0)->null();
+        return $this->set($column)->int(10)->unsigned()->defaultVal(0);
     }
 
     /**
