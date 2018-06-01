@@ -146,7 +146,7 @@ class Query extends BaseQuery {
         } elseif (is_string($query)) {
             return [$query, []];
         } else {
-            throw new \InvalidArgumentException;
+            throw new \InvalidArgumentException();
         }
     }
 

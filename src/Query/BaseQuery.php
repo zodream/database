@@ -146,7 +146,9 @@ abstract class BaseQuery extends BaseSchema  {
      */
     public function setBindings(array $bindings, $type = 'where') {
         if (! array_key_exists($type, $this->bindings)) {
-            throw new InvalidArgumentException("Invalid binding type: {$type}.");
+            throw new InvalidArgumentException(
+                __('Invalid binding type: ').$type
+            );
         }
 
         $this->bindings[$type] = $bindings;
@@ -165,7 +167,9 @@ abstract class BaseQuery extends BaseSchema  {
      */
     public function addBinding($value, $type = 'where') {
         if (! array_key_exists($type, $this->bindings)) {
-            throw new InvalidArgumentException("Invalid binding type: {$type}.");
+            throw new InvalidArgumentException(
+                __('Invalid binding type: ').$type
+            );
         }
 
         if (is_array($value)) {

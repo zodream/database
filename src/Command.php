@@ -9,6 +9,7 @@ namespace Zodream\Database;
 use Zodream\Infrastructure\Base\ConfigObject;
 use Zodream\Database\Engine\BaseEngine;
 use Zodream\Database\Engine\Pdo;
+use Zodream\Service\Config;
 use Zodream\Service\Factory;
 use Zodream\Helpers\Str;
 use Zodream\Infrastructure\Traits\SingletonPattern;
@@ -103,7 +104,11 @@ class Command extends ConfigObject {
             return $this->engines[$name];
         }
         if (!$this->hasConfig($name)) {
-            throw new \InvalidArgumentException($name. ' DOES NOT HAVE CONFIG!');
+            throw new \InvalidArgumentException(
+                sprintf(
+                __('%s DOES NOT HAVE CONFIG!')
+                , $name)
+            );
         }
         $engine = $this->addEngine($name, $this->getConfig($name));
         // 改变缓存状态
@@ -228,7 +233,7 @@ class Command extends ConfigObject {
     }
 
     public function setCache($sql, $data) {
-        if (!$this->allowCache || (defined('DEBUG') && DEBUG)) {
+        if (!$this->allowCache || Config::isDebug()) {
             return;
         }
         Factory::cache()->set($this->currentName.$sql, serialize($data), $this->cacheLife);

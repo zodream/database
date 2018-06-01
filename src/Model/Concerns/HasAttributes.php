@@ -89,7 +89,9 @@ trait HasAttributes {
         $relation = $this->$method();
 
         if (! $relation instanceof Relation) {
-            throw new LogicException('Relationship method must return an object of type ');
+            throw new LogicException(
+                __('Relationship method must return an object of type ')
+            );
         }
         $results = $relation->getResults();
         $this->setRelation($method, $results);

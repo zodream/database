@@ -15,24 +15,35 @@ class Mysql extends BaseEngine {
      */
     protected function connect() {
         if (empty($this->configs)) {
-            die ('Mysql host is not set');
+            die (
+                __('Mysql host is not set')
+            );
         }
         if ($this->configs['persistent'] === true) {
             $this->driver = mysql_pconnect(
                 $this->configs['host']. ':'. $this->configs['port'],
                 $this->configs['user'],
                 $this->configs['password']
-            ) or die('There was a problem connecting to the database');;
+            ) or die(
+                __('There was a problem connecting to the database')
+            );;
         } else {
             $this->driver = mysql_connect(
                 $this->configs['host'] . ':' . $this->configs['port'],
                 $this->configs['user'],
                 $this->configs['password']
-            ) or die('There was a problem connecting to the database');
+            ) or die(
+                __('There was a problem connecting to the database')
+            );
         }
 
         mysql_select_db($this->configs['database'], $this->driver)
-        or die ("Can't use {$this->configs['database']} : " . mysql_error());
+        or die (
+            __('Can\'t use {database} : {error}'  , [
+                'database' => $this->configs['database'],
+                'error' => mysql_error()
+            ])
+        );
         if (isset($this->configs['encoding'])) {
             mysql_query('SET NAMES '.$this->configs['encoding'], $this->driver);
         }
