@@ -138,7 +138,11 @@ trait SaveModel {
             if (!$this->isNewRecord && !$this->isNewAttribute($item)) {
                 continue;
             }
-            $data[$item] = $this->getAttributeSource($item);
+            $value = $this->getAttributeSource($item);
+            if ($this->isPrimaryKey($item) && empty($value)) {
+                continue;
+            }
+            $data[$item] = $value;
         }
         return $data;
     }
