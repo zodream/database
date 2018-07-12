@@ -12,19 +12,37 @@ use LogicException;
  */
 trait HasAttributes {
 
+    /**
+     * 动态获取数据缓存
+     * @var array
+     */
+    protected $dynamic_attributes = [];
+
     protected $hidden = []; //隐藏
 
     protected $visible = [];  //显示
 
     protected $append = []; //追加
 
+    /**
+     * 获取信息
+     * @param null $key
+     * @param null $default
+     * @return array|mixed|null
+     * @throws \Exception
+     */
     public function getAttribute($key = null, $default = null){
         if (is_null($key)) {
             return $this->getAllAttributes();
         }
         $method = sprintf('get%sAttribute', Str::studly($key));
+        if (isset($this->dynamic_attributes[$method])
+            || array_key_exists($method, $this->dynamic_attributes)) {
+            return $this->dynamic_attributes[$method];
+        }
         if (method_exists($this, $method)) {
-            return call_user_func([$this, $method]);
+            return $this->dynamic_attributes[$method]
+                = call_user_func([$this, $method]);
         }
         if ($this->has($key)) {
             return $this->__attributes[$key];
@@ -58,8 +76,9 @@ trait HasAttributes {
     /**
      * Get a relationship.
      *
-     * @param  string  $key
+     * @param  string $key
      * @return mixed
+     * @throws \Exception
      */
     public function getRelationValue($key) {
         // If the key already exists in the relationships array, it just means the
@@ -80,10 +99,11 @@ trait HasAttributes {
     /**
      * Get a relationship value from a method.
      *
-     * @param  string  $method
+     * @param  string $method
      * @return mixed
      *
      * @throws \LogicException
+     * @throws \Exception
      */
     protected function getRelationshipFromMethod($method) {
         $relation = $this->$method();
