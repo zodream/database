@@ -26,7 +26,7 @@ class Table extends BaseSchema {
 
     protected $tableName;
 
-    protected $charset = 'UTF8';
+    protected $charset = 'utf8mb4';
 
     protected $engine = 'MyIAM';
 
@@ -51,7 +51,7 @@ class Table extends BaseSchema {
         $table,
         $data = [],
         $engine = self::MyISAM,
-        $charset = 'UTF8'
+        $charset = 'utf8mb4'
     ) {
         $this->setTableName($table);
         $this->_data = $data;
@@ -256,6 +256,7 @@ class Table extends BaseSchema {
     /**
      * CREATE TABLE
      * @return mixed
+     * @throws \Exception
      */
     public function create() {
         return $this->command()->execute($this->getSql());
@@ -264,6 +265,7 @@ class Table extends BaseSchema {
     /**
      * DROP AND CREATE TABLE
      * @return mixed
+     * @throws \Exception
      */
     public function replace() {
         $this->drop();
@@ -273,6 +275,7 @@ class Table extends BaseSchema {
     /**
      * TRUNCATE TABLE
      * @return mixed
+     * @throws \Exception
      */
     public function truncate() {
         return $this->command()->execute($this->getTruncateSql());
@@ -281,6 +284,7 @@ class Table extends BaseSchema {
     /**
      * ALERT TABLE
      * @return mixed
+     * @throws \Exception
      */
     public function alert() {
         return $this->command()->execute($this->getAlertSql());
@@ -289,6 +293,7 @@ class Table extends BaseSchema {
     /**
      * DROP COLUMN
      * @return mixed
+     * @throws \Exception
      */
     public function dropColumn() {
         $columns = func_get_args();
@@ -301,6 +306,7 @@ class Table extends BaseSchema {
     /**
      * 检查表
      * @return mixed
+     * @throws \Exception
      */
     public function check() {
         return $this->command()->execute($this->getCheckSql());
@@ -309,6 +315,7 @@ class Table extends BaseSchema {
     /**
      * 优化表
      * @return mixed
+     * @throws \Exception
      */
     public function optimize() {
         return $this->command()->execute($this->getOptimizeSql());
@@ -317,6 +324,7 @@ class Table extends BaseSchema {
     /**
      * 修复表
      * @return mixed
+     * @throws \Exception
      */
     public function repair() {
         return $this->command()->execute($this->getRepairSql());
@@ -325,6 +333,7 @@ class Table extends BaseSchema {
     /**
      * 分析表
      * @return mixed
+     * @throws \Exception
      */
     public function analyze() {
         return $this->command()->execute($this->getAnalyzeSql());

@@ -18,9 +18,9 @@ class Schema {
 
     protected $schema = 'zodream';
 
-    protected $charset = 'UTF8';
+    protected $charset = 'utf8mb4';
 
-    protected $collationName = 'utf8_general_ci'; // 校对集
+    protected $collationName = 'utf8mb4_general_ci'; // 校对集
 
     public function __construct($schema = null) {
         $this->setSchema($schema);
