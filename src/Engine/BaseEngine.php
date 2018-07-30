@@ -28,7 +28,7 @@ abstract class BaseEngine extends ConfigObject {
 		'user'     => 'root',						//账号
 		'password' => '',					//密码
 		'prefix'   => '',					//前缀
-		'encoding' => 'utf8',					//编码
+		'encoding' => 'utf8mb4',					//编码
 		'persistent' => false,                   //使用持久化连接
         'result_type' => 'array',               // 结果返回类型 array | object
         'cache_expire' => false
