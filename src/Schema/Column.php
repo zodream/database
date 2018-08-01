@@ -28,6 +28,10 @@ class Column {
 
     protected $afterColumn;
 
+    protected $charset = 'utf8mb4';
+
+    protected $collate = 'utf8mb4_general_ci';
+
     /**
      * @var Table
      */
@@ -39,7 +43,42 @@ class Column {
 
     public function setTable(Table $table) {
         $this->table = $table;
+        $this->setCharset($table->getCharset());
+        $this->setCollate($table->getCollate());
         return $this;
+    }
+
+    /**
+     * TABLE CHARSET, DEFAULT UTF8
+     * @param string $arg
+     * @return $this
+     */
+    public function setCharset($arg) {
+        $this->charset = $arg;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getCharset() {
+        return $this->charset;
+    }
+
+    /**
+     * @param string $collate
+     * @return Table
+     */
+    public function setCollate($collate) {
+        $this->collate = $collate;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getCollate() {
+        return $this->collate;
     }
 
     public function setField($field) {
@@ -279,7 +318,7 @@ class Column {
         if (!empty($this->field)) {
             $sql = "`{$this->field}` ".$sql;
         }
-        return $sql;
+        return $sql.sprintf(' CHARACTER SET \'%s\' COLLATE \'%s\'', $this->getCharset(), $this->getCollate());
     }
 
     public function __toString() {

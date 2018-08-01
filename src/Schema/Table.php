@@ -28,6 +28,8 @@ class Table extends BaseSchema {
 
     protected $charset = 'utf8mb4';
 
+    protected $collate = 'utf8mb4_general_ci';
+
     protected $engine = 'MyIAM';
 
     protected $foreignKey = [];
@@ -93,6 +95,29 @@ class Table extends BaseSchema {
     public function setCharset($arg) {
         $this->charset = $arg;
         return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getCharset() {
+        return $this->charset;
+    }
+
+    /**
+     * @param string $collate
+     * @return Table
+     */
+    public function setCollate($collate) {
+        $this->collate = $collate;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getCollate() {
+        return $this->collate;
     }
 
     /**
