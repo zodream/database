@@ -42,14 +42,14 @@ abstract class UserModel extends Model implements UserObject {
 
     public function login() {
         $this->invoke(static::BEFORE_LOGIN, [$this]);
-        Auth::login($this);
+        auth()->login($this);
         $this->invoke(static::AFTER_LOGIN, [$this]);
         return true;
     }
     
     public function logout() {
         $this->invoke(static::BEFORE_LOGOUT, [$this]);
-        Auth::logout();
+        auth()->logout();
         $this->invoke(static::AFTER_LOGOUT, [$this]);
         return true;
     }
