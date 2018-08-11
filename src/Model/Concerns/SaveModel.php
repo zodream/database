@@ -75,7 +75,7 @@ trait SaveModel {
             ->set($data)
             ->insert();
         if (!empty($row)) {
-            $pk = current($this->primaryKey);
+            $pk = $this->primaryKey;
             // 插入空主键自动设置
             if ($this->isEmpty($pk)) {
                 $this->set($pk, $row);
@@ -122,7 +122,11 @@ trait SaveModel {
      * @return array
      */
     protected function getTableFields() {
-        return array_merge(array_keys($this->rules()), (array)$this->primaryKey);
+        $data = array_keys($this->rules());
+        if (!empty($this->primaryKey)) {
+            $data[] = $this->primaryKey;
+        }
+        return $data;
     }
 
     /**
@@ -152,10 +156,10 @@ trait SaveModel {
      * @return Record|bool
      */
     public function getPrimaryKeyQuery() {
-        foreach ($this->primaryKey as $item) {
-            if ($this->hasAttribute($item)) {
-                return $this->record()->where($item, $this->getAttributeSource($item));
-            }
+        if (!empty($this->primaryKey)
+            && $this->hasAttribute($this->primaryKey)) {
+            return $this->record()->where($this->primaryKey,
+                $this->getAttributeSource($this->primaryKey));
         }
         return false;
     }
@@ -165,12 +169,8 @@ trait SaveModel {
      * @return bool
      */
     public function hasPrimaryKey() {
-        foreach ($this->primaryKey as $item) {
-            if (!empty($this->getAttributeSource($item))) {
-                return true;
-            }
-        }
-        return false;
+        return !empty($this->primaryKey)
+            && !empty($this->getAttributeSource($this->primaryKey));
     }
 
     /**

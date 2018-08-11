@@ -79,6 +79,10 @@ trait HasRelation {
         return new HasMany($this->getRelationQuery($table), $this, $link, $key);
     }
 
+    public function belongsToMany($dist, $middle, $currentForeignKey, $distForeignKey) {
+
+    }
+
     /**
      * Get a specified relationship.
      *

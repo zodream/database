@@ -50,6 +50,12 @@ abstract class Model extends MagicObject {
      */
     protected $isFullColumns = false;
 
+    /**
+     * 主键
+     * @var string
+     */
+    protected $primaryKey = 'id';
+
 
 
 	/**
@@ -72,13 +78,7 @@ abstract class Model extends MagicObject {
 	    return static::class;
     }
 
-	/**
-	 * 主键
-	 * @var array
-	 */
-	protected $primaryKey = [
-		'id'
-	];
+
 
 	public function __construct($data = []) {
 	    if (!empty($data)) {
@@ -97,11 +97,11 @@ abstract class Model extends MagicObject {
      * @return bool
      */
 	public function isPrimaryKey($key) {
-	    return in_array($key, $this->primaryKey);
+	    return $key == $this->primaryKey;
     }
 
     public function getKeyName() {
-	    return reset($this->primaryKey);
+	    return $this->primaryKey;
     }
 
     /**

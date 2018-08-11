@@ -318,6 +318,11 @@ class Column {
         if (!empty($this->field)) {
             $sql = "`{$this->field}` ".$sql;
         }
+        if ($this->table->getCharset() == $this->getCharset() ||
+            (strpos($this->data[self::KIND], 'CHAR') === false
+            && strpos($this->data[self::KIND], 'TEXT') === false)) {
+            return $sql;
+        }
         return $sql.sprintf(' CHARACTER SET \'%s\' COLLATE \'%s\'', $this->getCharset(), $this->getCollate());
     }
 
