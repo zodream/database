@@ -327,6 +327,13 @@ class Query extends BaseQuery {
         return $this->command()->getObject($this->getSql(), $this->getBindings());
     }
 
+    public function get($fields = null) {
+        if (func_num_args() > 0) {
+            $this->select(...func_get_args());
+        }
+       return  $this->all();
+    }
+
     /**
      *
      * @param int $size
@@ -354,6 +361,13 @@ class Query extends BaseQuery {
             return false;
         }
         return current($result);
+    }
+
+    public function first($fields = null) {
+        if (func_num_args() > 0) {
+            $this->select(...func_get_args());
+        }
+        return $this->one();
     }
 
     /**
