@@ -175,6 +175,9 @@ abstract class Model extends MagicObject {
      * @throws \Exception
      */
 	public static function findOrNew($param, $field = '*', $parameters = array()) {
+	    if (empty($param)) {
+	        return new static();
+        }
 	    $model = static::find($param, $field, $parameters);
 	    if (empty($model)) {
 	        return new static();
