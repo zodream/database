@@ -1,6 +1,7 @@
 <?php 
 namespace Zodream\Database\Engine;
 
+use Zodream\Database\DB;
 use Zodream\Service\Config;
 use Zodream\Service\Factory;
 /**
@@ -140,6 +141,7 @@ class Pdo extends BaseEngine {
 			return null;
 		}
 		try {
+		    DB::addQueryLog($sql, $parameters);
 			if (!empty($sql)) {
 				$this->prepare($sql);
 				$this->bind($parameters);

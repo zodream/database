@@ -15,6 +15,7 @@ class DB {
     }
 
     public static function queryLogs() {
+        self::$enableLog = false;
         return self::$logs;
     }
 
