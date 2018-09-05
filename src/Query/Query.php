@@ -411,6 +411,25 @@ class Query extends BaseQuery {
         return $this->select($column)->scalar();
     }
 
+    public function insert($data = null) {
+        if (empty($data)) {
+            return $this->command()->insert(null, 'NULL'); // 获取自增值
+        }
+        return $this->command()
+            ->insert($this->compileInsert($data),
+                $this->getBindings());
+    }
+
+    public function update($data) {
+        return $this->command()
+            ->update($this->compileUpdate($data), $this->getBindings());
+    }
+
+    public function delete() {
+        return $this->command()
+            ->delete($this->compileDelete(), $this->getBindings());
+    }
+
     /**
      * 开启缓存
      * @param int $expire
