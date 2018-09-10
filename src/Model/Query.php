@@ -261,6 +261,35 @@ class Query extends BaseQuery {
         return parent::scalar();
     }
 
+    /**
+     * @param array $attributes
+     * @return Model
+     */
+    public function firstOrNew(array $attributes = []) {
+        /** @var $model Model */
+        $model = self::first();
+        if (!empty($model)) {
+            return $model;
+        }
+        $model = new $this->modelName;
+        $model->set($attributes);
+        return $model;
+    }
+
+    /**
+     * @param array $attributes
+     * @return Model|bool
+     */
+    public function firstWithReplace(array $attributes = []) {
+        $model = self::first();
+        if (empty($model)) {
+            return $model;
+        }
+        /** @var $model Model */
+        $model->set($attributes);
+        return $model;
+    }
+
     public function pluck($column = null, $key = null) {
         $this->asArray();
         return parent::pluck($column, $key);

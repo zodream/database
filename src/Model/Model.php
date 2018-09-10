@@ -207,7 +207,7 @@ abstract class Model extends MagicObject {
      * @return bool|Model
      * @throws \Exception
      */
-    public static function findAndSet($param, array $attributes) {
+    public static function findWithReplace($param, array $attributes) {
         $model = self::findOrNew($param);
         $model->set($attributes);
         return $model;
