@@ -186,6 +186,34 @@ abstract class Model extends MagicObject {
     }
 
     /**
+     * Set not found default data
+     * @param $param
+     * @param array $attributes
+     * @return bool|Model
+     * @throws \Exception
+     */
+    public static function findOrDefault($param, array $attributes) {
+        $model = self::findOrNew($param);
+        if ($model->isNewRecord) {
+            $model->set($attributes);
+        }
+        return $model;
+    }
+
+    /**
+     * Set new attr
+     * @param $param
+     * @param array $attributes
+     * @return bool|Model
+     * @throws \Exception
+     */
+    public static function findAndSet($param, array $attributes) {
+        $model = self::findOrNew($param);
+        $model->set($attributes);
+        return $model;
+    }
+
+    /**
      * 查找或报错
      * @param $param
      * @param string $field
