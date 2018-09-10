@@ -420,7 +420,7 @@ class Query extends BaseQuery {
                 $this->getBindings());
     }
 
-    public function update($data) {
+    public function update(array $data) {
         return $this->command()
             ->update($this->compileUpdate($data), $this->getBindings());
     }
