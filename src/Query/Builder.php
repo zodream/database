@@ -1,20 +1,22 @@
 <?php
+declare(strict_types = 1);
+
 namespace Zodream\Database\Query;
-/**
- * Created by PhpStorm.
- * User: zx648
- * Date: 2016/6/25
- * Time: 9:38
- */
+
+
+use Zodream\Database\Grammars\Grammar;
+use Zodream\Database\Query\Components\ExecBuilder;
+use Zodream\Database\Query\Components\JoinBuilder;
+use Zodream\Database\Query\Components\RecordBuilder;
+use Zodream\Database\Query\Components\SelectBuilder;
 use Zodream\Database\Query\Components\WhereBuilder;
-use Zodream\Database\Query\Converters\PdoConverter;
 use Zodream\Database\Schema\BaseSchema;
 use Closure;
 use InvalidArgumentException;
 
-abstract class BaseQuery extends BaseSchema  {
+class Builder extends BaseSchema {
 
-    use WhereBuilder, PdoConverter;
+    use SelectBuilder, JoinBuilder, WhereBuilder, ExecBuilder, RecordBuilder;
 
     /**
      * The current query value bindings.
@@ -30,15 +32,36 @@ abstract class BaseQuery extends BaseSchema  {
         'union'  => [],
     ];
 
-    public $wheres = array();
-
-    public $from = array();
+    public $from = [];
 
     public $limit;
 
     public $offset;
 
-    protected $operators = array(
+    public $groups = [];
+
+    public $having = [];
+
+    public $orders = [];
+
+    public $unions = [];
+
+    protected $sequence = [
+        'select',
+        'from',
+        'join',
+        'left',
+        'inner',
+        'right',
+        'where',
+        'group',
+        'having',
+        'order',
+        'limit',
+        'offset'
+    ];
+
+    protected $operators = [
         '=', '<', '>', '<=', '>=', '<>', '!=',
         'in', 'not in', 'is', 'is not',
         'like', 'like binary', 'not like', 'between', 'not between', 'ilike',
@@ -46,7 +69,119 @@ abstract class BaseQuery extends BaseSchema  {
         'rlike', 'regexp', 'not regexp',
         '~', '~*', '!~', '!~*', 'similar to',
         'not similar to'
-    );
+    ];
+
+    /**
+     * 提前知道查询结果为空，但必须保留链式
+     * @var bool
+     */
+    protected $isEmpty = false;
+
+    public function __construct($args = array()) {
+        $this->load($args);
+    }
+
+    public function isEmpty() {
+        $this->isEmpty = true;
+        return $this;
+    }
+
+    /**
+     * MAKE LIKE 'SELECT' TO EMPTY ARRAY!
+     * @param $tag
+     * @return static
+     */
+    public function flush($tag) {
+        $args = func_get_args();
+        foreach ($args as $item) {
+            if (in_array($item, $this->sequence)) {
+                $this->$item = [];
+            }
+        }
+        return $this;
+    }
+
+    public function load($args = []) {
+        if (empty($args)) {
+            return $this;
+        }
+        foreach ($args as $key => $item) {
+            $tag = strtolower(is_integer($key) ? array_shift($item) : $key);
+            if (!in_array($tag, $this->sequence) || empty($item)) {
+                continue;
+            }
+            $this->$tag($item);
+        }
+        return $this;
+    }
+
+    public function groupBy($groups) {
+        foreach (func_get_args() as $group) {
+            $this->groups = array_merge(
+                (array) $this->groups,
+                (array)$group
+            );
+        }
+        return $this;
+    }
+
+    public function group($args) {
+        return call_user_func_array([$this, 'groupBy'], func_get_args());
+    }
+
+
+    /**
+     * 起别名
+     * @param string $key
+     * @return static
+     */
+    public function alias($key) {
+        if (count($this->from) == 1) {
+            $this->from = array($key => current($this->from));
+        }
+        return $this;
+    }
+
+    /**
+     * ORDER SQL
+     * @param array|string $args
+     * @return Query
+     */
+    public function orderBy($args) {
+        if (!is_array($args)) {
+            $args = func_get_args();
+        }
+        // 把关联数组变成 1，asc
+        foreach ($args as $key => $item) {
+            if (!is_integer($key)) {
+                if (is_array($item)) {
+                    //'asc' => ['a', 'b']
+                    foreach ($item as $value) {
+                        $this->orders[] = $value;
+                        $this->orders[] = $key;
+                    }
+                    continue;
+                }
+                // 'a' => 'b'
+                $this->orders[] = $key;
+                $this->orders[] = $item;
+                continue;
+            }
+            if (is_array($item)) {
+                // ['a', 'asc']
+                $this->orders[] = $item[0];
+                $this->orders[] = $item[1];
+                continue;
+            }
+            $this->orders[] = $item;
+        }
+        return $this;
+    }
+
+    public function union($sql, $all = false) {
+        $this->unions[] = ['query' => $sql, 'all' => $all];
+        return $this;
+    }
 
     /**
      * @param string|array $tables
@@ -187,7 +322,7 @@ abstract class BaseQuery extends BaseSchema  {
      * @param  BaseQuery  $query
      * @return $this
      */
-    public function mergeBindings(BaseQuery $query) {
+    public function mergeBindings(Builder $query) {
         $this->bindings = array_merge_recursive($this->bindings, $query->bindings);
 
         return $this;
@@ -205,7 +340,19 @@ abstract class BaseQuery extends BaseSchema  {
         }));
     }
 
-    public function getSql() {
-        return $this->compileQuery();
+    /**
+     * @return string
+     * @throws \Exception
+     */
+    public function getSql(): string {
+        return $this->grammar()->compileSelect($this);
+    }
+
+    /**
+     * @return Grammar
+     * @throws \Exception
+     */
+    protected function grammar() {
+        return $this->command()->grammar();
     }
 }

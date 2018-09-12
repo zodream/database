@@ -6,8 +6,10 @@ namespace Zodream\Database\Engine;
  * @author zx648
  *
  */
+use Zodream\Database\Grammars\Grammar;
 use Zodream\Infrastructure\Base\ConfigObject;
 use Zodream\Service\Factory;
+
 abstract class BaseEngine extends ConfigObject {
 	
 	protected $driver             = null;
@@ -61,6 +63,11 @@ abstract class BaseEngine extends ConfigObject {
 	public function getDriver() {
 		return $this->driver;
 	}
+
+    /**
+     * @return Grammar
+     */
+	abstract public function getGrammar();
 
     /**
      * @param mixed $driver

@@ -180,6 +180,14 @@ class Command extends ConfigObject {
     }
 
     /**
+     * @return Grammars\Grammar
+     * @throws \Exception
+     */
+    public function grammar() {
+        return $this->getEngine()->getGrammar();
+    }
+
+    /**
      * GET TABLE
      * @return string
      */
@@ -242,25 +250,13 @@ class Command extends ConfigObject {
     /**
      * 查询
      * @param string $sql
-     * @param string|array $field
      * @param array $parameters
      * @return mixed
      * @throws \Exception
      */
-    public function select($sql, $field = '*', $parameters = array()) {
-        if (is_array($field)) {
-            list($parameters, $field) = [$field, '*'];
-        }
-        if (stripos($sql, 'select') !== 0) {
-            $sql = sprintf('SELECT %s FROM %s %s', $field, $this->table, $sql);
-        }
-        $args = empty($parameters) ? serialize($parameters) : null;
-        if ($cache = $this->getCache($sql.$args)) {
-            return $cache;
-        }
-        $result = $this->getEngine()->select($sql, $parameters);
-        $this->setCache($sql.$args, $result);
-        return $result;
+    public function select($sql, $parameters = array()) {
+        DB::addQueryLog($sql, $parameters);
+        return $this->getArray($sql, $parameters);
     }
 
     /**
@@ -285,30 +281,14 @@ class Command extends ConfigObject {
 
     /**
      * 插入
-     * @param string $columns
-     * @param string $tags
+     * @param $sql
      * @param array $parameters
      * @return int
      * @throws \Exception
      */
-    public function insert($columns, $tags, $parameters = array()) {
-        if (is_array($tags)) {
-            list($tags, $parameters) = [null, $tags];
-        }
-        if (is_null($tags)) {
-            if (stripos($columns, 'insert') !== false) {
-                return $this->getEngine()->insert($columns, $parameters);
-            }
-            return $this->getEngine()->insert("INSERT INTO {$this->table} {$columns} VALUES (NULL)", $parameters);
-        }
-        if (!empty($columns) && strpos($columns, '(') === false) {
-            $columns = '('.$columns.')';
-        }
-        $tags = trim($tags);
-        if (strpos($tags, '(') !== 0) {
-            $tags = '('.$tags.')';
-        }
-        return $this->getEngine()->insert("INSERT INTO {$this->table} {$columns} VALUES {$tags}", $parameters);
+    public function insert($sql, $parameters = array()) {
+        DB::addQueryLog($sql, $parameters);
+        return $this->getEngine()->insert($sql, $parameters);
     }
 
     /**
@@ -328,7 +308,7 @@ class Command extends ConfigObject {
         if (strpos($tags, '(') !== 0) {
             $tags = '('.$tags.')';
         }
-        return $this->getEngine()->update("INSERT INTO {$this->table} {$columns} VALUES {$tags} ON DUPLICATE KEY UPDATE {$update}", $parameters);
+        return $this->update("INSERT INTO {$this->table} {$columns} VALUES {$tags} ON DUPLICATE KEY UPDATE {$update}", $parameters);
     }
 
     /**
@@ -347,53 +327,31 @@ class Command extends ConfigObject {
         if (strpos($tags, '(') !== 0) {
             $tags = '('.$tags.')';
         }
-        return $this->getEngine()->update("REPLACE INTO {$this->table} {$columns} VALUES {$tags}", $parameters);
+        return $this->update("REPLACE INTO {$this->table} {$columns} VALUES {$tags}", $parameters);
     }
 
     /**
      * 更新
-     * @param string $columns
-     * @param string $where
+     * @param $sql
      * @param array $parameters
      * @return int
      * @throws \Exception
      */
-    public function update($columns, $where = null, $parameters = array()) {
-        if (is_array($where)) {
-            list($where, $parameters) = [null, $where];
-        }
-        if (is_null($where)) {
-            if (stripos($columns, 'update') !== false) {
-                return $this->getEngine()->update($columns, $parameters);
-            }
-            return $this->getEngine()->update("UPDATE {$this->table} SET {$columns}", $parameters);
-        }
-        $where = trim($where);
-        if (strncasecmp($where, 'where', 5) !== 0) {
-            $where = 'WHERE '.$where;
-        }
-        return $this->getEngine()->update("UPDATE {$this->table} SET {$columns} {$where}", $parameters);
+    public function update($sql, $parameters = array()) {
+        DB::addQueryLog($sql, $parameters);
+        return $this->getEngine()->update($sql, $parameters);
     }
 
     /**
      * 删除
-     * @param string $where
+     * @param null $sql
      * @param array $parameters
      * @return int
      * @throws \Exception
      */
-    public function delete($where = null, $parameters = array()) {
-        $where = trim($where);
-        if (empty($where)) {
-            return $this->getEngine()->delete('DELETE FROM '.$this->table, $parameters);
-        }
-        if (stripos($where, 'delete') !== false) {
-            return $this->getEngine()->delete($where, $parameters);
-        }
-        if (strncasecmp($where, 'where', 5) !== 0) {
-            $where = 'WHERE '.$where;
-        }
-        return $this->getEngine()->delete("DELETE FROM {$this->table} {$where}", $parameters);
+    public function delete($sql = null, $parameters = array()) {
+        DB::addQueryLog($sql, $parameters);
+        return $this->getEngine()->delete($sql, $parameters);
     }
 
     /**
@@ -410,9 +368,29 @@ class Command extends ConfigObject {
         if ($cache = $this->getCache($sql.$args)) {
             return $cache;
         }
+        DB::addQueryLog($sql, $parameters);
         $result = $this->getEngine()->execute($sql, $parameters);
         $this->setCache($sql.$args, $result);
         return $result;
+    }
+
+    /**
+     * 获取最后修改的id
+     * @return int
+     *
+     * @throws \Exception
+     */
+    public function lastInsertId(): int {
+        return $this->getEngine()->lastInsertId();
+    }
+
+    /**
+     * 改变的行数
+     * @return int
+     * @throws \Exception
+     */
+    public function rowCount(): int {
+        return $this->getEngine()->rowCount();
     }
 
     /**
@@ -434,7 +412,7 @@ class Command extends ConfigObject {
     /**
      * @param string $sql
      * @param array $parameters
-     * @return object
+     * @return object[]
      * @throws \Exception
      */
     public function getObject($sql, $parameters = array()) {

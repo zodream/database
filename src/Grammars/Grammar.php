@@ -1,27 +1,31 @@
 <?php
-namespace Zodream\Database\Query\Converters;
+declare(strict_types = 1);
 
+namespace Zodream\Database\Grammars;
+
+
+use Zodream\Database\Query\Builder;
 use Zodream\Database\Query\Expression;
-use Zodream\Database\Query\Query;
 
-trait PdoConverter {
+class Grammar {
 
-    protected function compileSelects() {
-        return 'SELECT '.$this->getField();
+    public function compileSelects(Builder $query): string {
+        return 'SELECT '.$this->getField($query->selects);
     }
 
     /**
      *
      * 关键字 DISTINCT 唯一 AVG() COUNT() FIRST() LAST() MAX()  MIN() SUM() UCASE() 大写  LCASE()
      * MID(column_name,start[,length]) 提取字符串 LEN() ROUND() 舍入 NOW() FORMAT() 格式化
+     * @param $selects
      * @return string
      */
-    protected function getField() {
-        if (empty($this->selects)) {
+    protected function getField($selects): string {
+        if (empty($selects)) {
             return '*';
         }
         $result = array();
-        foreach ((array)$this->selects as $key => $item) {
+        foreach ((array)$selects as $key => $item) {
             if (is_integer($key)) {
                 $result[] = $item;
             } else {
@@ -31,59 +35,60 @@ trait PdoConverter {
         return implode($result, ',');
     }
 
-    protected function compileFrom() {
-        if (empty($this->from)) {
-            return null;
+    public function compileFrom(Builder $query): string {
+        if (empty($query->from)) {
+            return '';
         }
         $result = array();
-        foreach ($this->from as $key => $item) {
+        foreach ($query->from as $key => $item) {
             if (is_integer($key)) {
-                $result[] = $this->addPrefix($item);
+                $result[] = $query->addPrefix($item);
                 continue;
             }
-            if ($item instanceof Query) {
+            if ($item instanceof Builder) {
                 $result[] = '('.$item->getSql().') ' .$key;
                 continue;
             }
-            $result[] = $this->addPrefix($item).' ' .$key;
+            $result[] = $query->addPrefix($item).' ' .$key;
         }
         return ' FROM '.implode($result, ',');
     }
 
     /**
      * 支持多个相同的left [$table, $where, ...]
+     * @param Builder $query
      * @return string
      */
-    protected function compileJoins() {
+    public function compileJoins(Builder $query): string {
         if (empty($this->joins)) {
-            return null;
+            return '';
         }
         $sql = '';
         foreach ($this->joins as $item) {
             $sql .= sprintf(' %s JOIN %s ON %s',
                 strtoupper($item['type']),
-                $this->addPrefix($item['table']),
+                $query->addPrefix($item['table']),
                 $item['on']);
         }
         return $sql;
     }
 
-    public function compileWheres() {
-        if (empty($this->wheres)) {
-            return null;
+    public function compileWheres(Builder $query): string {
+        if (empty($query->wheres)) {
+            return '';
         }
         $args = [];
-        foreach ($this->wheres as $where) {
+        foreach ($query->wheres as $where) {
             $args[] = $where['boolean'].' '.$this->{"compileWhere{$where['type']}"}($where);
         }
         return ' WHERE '.$this->removeLeadingBoolean(implode(' ', $args));
     }
 
-    protected function compileWhereBasic($where) {
+    protected function compileWhereBasic($where): string {
         return $where['column'].' '.$where['operator'].' ?';
     }
 
-    protected function compileWhereColumn($where) {
+    protected function compileWhereColumn($where): string {
         return $where['first'].' '.$where['operator'].' '.$where['second'];
     }
 
@@ -93,7 +98,7 @@ trait PdoConverter {
      * @param  array  $where
      * @return string
      */
-    protected function compileWhereNull($where) {
+    protected function compileWhereNull($where): string {
         return $where['column'].' is null';
     }
 
@@ -103,7 +108,7 @@ trait PdoConverter {
      * @param  array  $where
      * @return string
      */
-    protected function compileWhereIn($where) {
+    protected function compileWhereIn($where): string {
         if (! empty($where['values'])) {
             return $where['column'].' in ('.$this->parameterize($where['values']).')';
         }
@@ -117,7 +122,7 @@ trait PdoConverter {
      * @param  array  $where
      * @return string
      */
-    protected function compileWhereNotIn($where) {
+    protected function compileWhereNotIn($where): string {
         if (! empty($where['values'])) {
             return $where['column'].' not in ('.$this->parameterize($where['values']).')';
         }
@@ -132,7 +137,7 @@ trait PdoConverter {
      * @param  array  $where
      * @return string
      */
-    protected function compileWhereNotNull($where) {
+    protected function compileWhereNotNull($where): string {
         return $where['column'].' is not null';
     }
 
@@ -142,7 +147,7 @@ trait PdoConverter {
      * @param  array  $where
      * @return string
      */
-    protected function compileWhereBetween($where) {
+    protected function compileWhereBetween($where): string {
         $between = $where['not'] ? 'not between' : 'between';
 
         return $where['column'].' '.$between.' ? and ?';
@@ -154,7 +159,7 @@ trait PdoConverter {
      * @param  array  $where
      * @return string
      */
-    protected function compileWhereRaw($where) {
+    protected function compileWhereRaw($where): string {
         return $where['sql'];
     }
 
@@ -164,7 +169,7 @@ trait PdoConverter {
      * @param  array  $where
      * @return string
      */
-    protected function compileWhereNested($where) {
+    protected function compileWhereNested($where): string {
         // Here we will calculate what portion of the string we need to remove. If this
         // is a join clause query, we need to remove the "on" portion of the SQL and
         // if it is a normal query we need to take the leading "where" of queries.
@@ -174,24 +179,25 @@ trait PdoConverter {
     }
 
     /**
+     * @param Builder $query
      * @return string
      */
-    protected function compileUnions() {
-        if (empty($this->unions)) {
-            return null;
+    protected function compileUnions(Builder $query): string {
+        if (empty($query->unions)) {
+            return '';
         }
         $sql = ' ';
-        foreach ($this->unions as $item) {
+        foreach ($query->unions as $item) {
             $sql .= 'UNION ';
             if ($item['all']) {
                 $sql .= 'ALL ';
             }
-            if ($item['query'] instanceof Query) {
+            if ($item['query'] instanceof Builder) {
                 $sql .= $item['query']->getSql();
                 continue;
             }
             if (is_array($item['query'])) {
-                $sql .= (new Query())->load($item['query'])->getSql();
+                $sql .= (new Builder())->load($item['query'])->getSql();
             }
             $sql .= $item['query'];
         }
@@ -201,13 +207,14 @@ trait PdoConverter {
     /**
      * Compile the "having" portions of the query.
      *
+     * @param Builder $query
      * @return string
      */
-    protected function compileHavings() {
-        if (empty($this->having)) {
-            return null;
+    protected function compileHavings(Builder $query): string {
+        if (empty($query->having)) {
+            return '';
         }
-        $sql = implode(' ', array_map([$this, 'compileHaving'], $this->having));
+        $sql = implode(' ', array_map([$this, 'compileHaving'], $query->having));
         return ' HAVING '.$this->removeLeadingBoolean($sql);
     }
 
@@ -217,7 +224,7 @@ trait PdoConverter {
      * @param  array   $having
      * @return string
      */
-    protected function compileHaving(array $having) {
+    protected function compileHaving(array $having): string {
         // If the having clause is "raw", we can just return the clause straight away
         // without doing any more processing on it. Otherwise, we will compile the
         // clause into SQL based on the components that make it up from builder.
@@ -234,7 +241,7 @@ trait PdoConverter {
      * @param  array   $having
      * @return string
      */
-    protected function compileBasicHaving($having) {
+    protected function compileBasicHaving($having): string {
         $column = $having['column'];
 
         $parameter = $this->parameter($having['value']);
@@ -244,22 +251,23 @@ trait PdoConverter {
 
 
 
-    protected function compileGroups() {
-        if (empty($this->groups)) {
-            return null;
+    protected function compileGroups(Builder $query): string {
+        if (empty($query->groups)) {
+            return '';
         }
-        return ' GROUP BY '.implode(',', (array)$this->groups);
+        return ' GROUP BY '.implode(',', (array)$query->groups);
     }
 
-    protected function compileOrders() {
-        if (empty($this->orders)) {
-            return null;
+    protected function compileOrders(Builder $query): string {
+        if (empty($query->orders)) {
+            return '';
         }
         $result = array();
-        for ($i = 0, $length = count($this->orders); $i < $length; $i ++) {
-            $sql = $this->orders[$i];
-            if ($i < $length - 1 && in_array(strtolower($this->orders[$i + 1]), array('asc', 'desc')) ) {
-                $sql .= ' '.strtoupper($this->orders[$i + 1]);
+        for ($i = 0, $length = count($query->orders); $i < $length; $i ++) {
+            $sql = $query->orders[$i];
+            if ($i < $length - 1 && in_array(strtolower($query->orders[$i + 1]),
+                    array('asc', 'desc')) ) {
+                $sql .= ' '.strtoupper($query->orders[$i + 1]);
                 $i ++;
             }
             $result[] = $sql;
@@ -267,11 +275,11 @@ trait PdoConverter {
         return ' ORDER BY '.implode($result, ',');
     }
 
-    protected function compileLimit() {
-        if (empty($this->limit)) {
-            return null;
+    protected function compileLimit(Builder $query): string {
+        if (empty($query->limit)) {
+            return '';
         }
-        $param = (array)$this->limit;
+        $param = (array)$query->limit;
         if (count($param) == 1) {
             return " LIMIT {$param[0]}";
         }
@@ -283,11 +291,11 @@ trait PdoConverter {
         return " LIMIT {$param[0]},{$param[1]}";
     }
 
-    protected function compileOffset() {
-        if (empty($this->offset)) {
-            return null;
+    protected function compileOffset(Builder $query): string {
+        if (empty($query->offset)) {
+            return '';
         }
-        return ' OFFSET '.intval($this->offset);
+        return ' OFFSET '.intval($query->offset);
     }
 
     /**
@@ -306,7 +314,7 @@ trait PdoConverter {
      * @param  bool|string  $value
      * @return string
      */
-    protected function compileLock($value) {
+    public function compileLock($value) {
         if (! is_string($value)) {
             return $value ? ' for update' : ' lock in share mode';
         }
@@ -315,82 +323,77 @@ trait PdoConverter {
     }
 
     /**
+     * @param Builder $query
      * @return string
      */
-    public function compileQuery() {
-        $sql = $this->compileSelects().
-            $this->compileFrom().
-            $this->compileJoins().
-            $this->compileWheres().
-            $this->compileGroups().
-            $this->compileHavings().
-            $this->compileOrders().
-            $this->compileLimit().
-            $this->compileOffset();
+    public function compileSelect(Builder $query) {
+        $sql = $this->compileSelects($query).
+            $this->compileFrom($query).
+            $this->compileJoins($query).
+            $this->compileWheres($query).
+            $this->compileGroups($query).
+            $this->compileHavings($query).
+            $this->compileOrders($query).
+            $this->compileLimit($query).
+            $this->compileOffset($query);
         return $sql;
     }
 
-    protected function getPrefixTable() {
-        if (empty($this->from)) {
-            throw new \Exception('NOT HAVE TABLE');
+    public function compileInsert(Builder $query, $columns = null, $values = null): string {
+        $table = $query->getTable();
+        if (empty($columns)) {
+            return sprintf('INSERT INTO %s (%s)', $table, is_null($values) ? 'NULL' : $values);
         }
-        if (is_array($this->from)) {
-            return $this->addPrefix(reset($this->from));
+        if (is_array($columns)) {
+            if (is_array(reset($columns))) {
+                list($values, $columns) = [$columns, array_keys(reset($values))];
+                sort($columns);
+            } elseif (is_null($values)) {
+                list($values, $columns) = [$columns, array_keys($columns)];
+            }
         }
-        return $this->addPrefix($this->from);
+        if (is_array($columns)) {
+            $columns = implode('`,`', $columns);
+        }
+        return $this->compileInsertColumns($query, $table, $columns, $values);
     }
 
-
-    /**
-     * Compile an insert statement into SQL.
-     *
-     * @param  array $values
-     * @return string
-     * @throws \Exception
-     */
-    public function compileInsert(array $values) {
-        // Essentially we will force every insert to be treated as a batch insert which
-        // simply makes creating the SQL easier for us since we can utilize the same
-        // basic routine regardless of an amount of records given to us to insert.
-        $table = $this->getPrefixTable();
-
-        if (! is_array(reset($values))) {
-            $values = [$values];
+    protected function compileInsertColumns(Builder $query, $table, $columns, $values) {
+        if (!is_array($values)) {
+            return sprintf('INSERT INTO %s (%s) VALUES %s', $table, $columns,
+                $values);
         }
-
-        $column_keys = array_keys(reset($values));
-        sort($column_keys);
-        $columns = implode('`,`', $column_keys);
-
-        // We need to build a list of parameter place-holders of values that are bound
-        // to the query. Each insert should have the exact same amount of parameter
-        // bindings so we will loop through the record and parameterize them all.
+        if (!is_array(reset($values))) {
+            return sprintf('INSERT INTO %s (%s) VALUES %s', $table, $columns,
+                $this->compileInsertColumn($query, $values));
+        }
         $args = [];
         $others = []; // 其他不规则的单独处理
-        $column_count = count($column_keys);
+        $column_count = count(explode(',', $columns));
         foreach ($values as $item) {
             if (count($item) != $column_count) {
                 $others[] = $item;
                 continue;
             }
             ksort($item);
-            $args[] = $this->compileInsertColumn($item);;
+            $args[] = $this->compileInsertColumn($query, $item);
         }
         $parameters = implode(', ', $args);
         $insert_columns = [
             "insert into $table (`$columns`) values $parameters"
         ];
         if (!empty($others)) {
-            $insert_columns[] = $this->compileInsert($others);
+            $insert_columns[] = $this->compileInsert($query, $others);
         }
         return implode(';', $insert_columns);
     }
 
     /**
+     * @param Builder $query
      * @param array $item
      * @return string
      */
-    public function compileInsertColumn($item) {
+    public function compileInsertColumn(Builder $query, $item) {
         $arg = [];
         foreach ($item as $value) {
             if (is_null($value)) {
@@ -403,12 +406,12 @@ trait PdoConverter {
             }
             if (is_string($value)) {
                 $arg[] = '?';
-                $this->addBinding($value);
+                $query->addBinding($value);
                 continue;
             }
             if (is_array($value) || is_object($value)) {
                 $arg[] = '?';
-                $this->addBinding(serialize($value));
+                $query->addBinding(serialize($value));
                 continue;
             }
             $arg[] = $value;
@@ -416,16 +419,8 @@ trait PdoConverter {
         return '(' . implode(', ', $arg) . ')';
     }
 
-
-    /**
-     * Compile an update statement into SQL.
-     *
-     * @param  array $values
-     * @return string
-     * @throws \Exception
-     */
-    public function compileUpdate($values) {
-        $table = $this->getPrefixTable();
+    public function compileUpdate(Builder $query, array $values): string {
+        $table = $query->getTable();
         $data = [];
         $parameters = array();
         foreach ($values as $key => $value) {
@@ -437,7 +432,7 @@ trait PdoConverter {
             $parameters[] = $value;
         }
         $columns = implode(',', $data);
-        $this->addBinding($parameters, 'join');
+        $query->addBinding($parameters, 'join');
 
         // If the query has any "join" clauses, we will setup the joins on the builder
         // and compile them so we can attach them to this update, as update queries
@@ -445,13 +440,13 @@ trait PdoConverter {
         $joins = '';
 
         if (isset($this->joins)) {
-            $joins = $this->compileJoins();
+            $joins = $this->compileJoins($query);
         }
 
         // Of course, update queries may also be constrained by where clauses so we'll
         // need to compile the where clauses and attach it to the query so only the
         // intended records are updated by the SQL statements we generate to run.
-        $where = $this->compileWheres();
+        $where = $this->compileWheres($query);
 
         $sql = rtrim("update {$table}{$joins} set $columns $where");
 
@@ -459,54 +454,49 @@ trait PdoConverter {
         // order bys on update statements. We'll compile them using the typical way
         // of compiling order bys. Then they will be appended to the SQL queries.
         if (! empty($this->orders)) {
-            $sql .= $this->compileOrders();
+            $sql .= $this->compileOrders($query);
         }
 
         // Updates on MySQL also supports "limits", which allow you to easily update a
         // single record very easily. This is not supported by all database engines
         // so we have customized this update compiler here in order to add it in.
         if (isset($this->limit)) {
-            $sql .= $this->compileLimit();
+            $sql .= $this->compileLimit($query);
         }
 
         return rtrim($sql);
     }
 
-    /**
-     * Compile a delete statement into SQL.
-     *
-     * @return string
-     * @throws \Exception
-     */
-    public function compileDelete() {
-        $table = $this->getPrefixTable();
+    public function compileDelete(Builder $query): string {
+        $table = $query->getTable();
 
-        $where = is_array($this->wheres) ? $this->compileWheres() : '';
+        $where = is_array($query->wheres) ? $this->compileWheres($query) : '';
 
         return !empty($this->joins)
-            ? $this->compileDeleteWithJoins($table, $where)
-            : $this->compileDeleteWithoutJoins($table, $where);
+            ? $this->compileDeleteWithJoins($query, $table, $where)
+            : $this->compileDeleteWithoutJoins($query, $table, $where);
     }
 
     /**
      * Compile a delete query that does not use joins.
      *
-     * @param  string  $table
-     * @param  array  $where
+     * @param Builder $query
+     * @param  string $table
+     * @param  array $where
      * @return string
      */
-    protected function compileDeleteWithoutJoins($table, $where) {
+    protected function compileDeleteWithoutJoins(Builder $query, $table, $where) {
         $sql = trim("delete from {$table} {$where}");
 
         // When using MySQL, delete statements may contain order by statements and limits
         // so we will compile both of those here. Once we have finished compiling this
         // we will return the completed SQL statement so it will be executed for us.
         if (! empty($this->orders)) {
-            $sql .= $this->compileOrders();
+            $sql .= $this->compileOrders($query);
         }
 
         if (isset($this->limit)) {
-            $sql .= $this->compileLimit();
+            $sql .= $this->compileLimit($query);
         }
         return $sql;
     }
@@ -514,12 +504,13 @@ trait PdoConverter {
     /**
      * Compile a delete query that uses joins.
      *
-     * @param  string  $table
-     * @param  array  $where
+     * @param Builder $query
+     * @param  string $table
+     * @param  array $where
      * @return string
      */
-    protected function compileDeleteWithJoins($table, $where) {
-        $joins = $this->compileJoins();
+    protected function compileDeleteWithJoins(Builder $query, $table, $where) {
+        $joins = $this->compileJoins($query);
 
         $alias = strpos(strtolower($table), ' as ') !== false
             ? explode(' as ', $table)[1] : $table;
@@ -570,5 +561,4 @@ trait PdoConverter {
     public function getValue($expression) {
         return $expression->getValue();
     }
-
 }

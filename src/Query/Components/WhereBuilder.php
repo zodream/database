@@ -9,6 +9,8 @@ use Zodream\Infrastructure\Interfaces\ArrayAble;
 
 trait WhereBuilder {
 
+    public $wheres = [];
+
     public function where($column, $operator = null, $value = null, $boolean = 'and') {
         if (is_array($column)) {
             return $this->addArrayOfWheres($column, $boolean);
@@ -402,5 +404,36 @@ trait WhereBuilder {
         }
 
         return $this;
+    }
+
+    public function having($column, $operator = null, $value = null, $boolean = 'and') {
+        $type = 'Basic';
+
+        // If the given operator is not found in the list of valid operators we will
+        // assume that the developer is just short-cutting the '=' operators and
+        // we will set the operators to '=' and set the values appropriately.
+        if ($this->invalidOperator($operator)) {
+            list($value, $operator) = [$operator, '='];
+        }
+
+        $this->having[] = compact('type', 'column', 'operator', 'value', 'boolean');
+
+        if (! $value instanceof Expression) {
+            $this->addBinding($value, 'having');
+        }
+
+        return $this;
+    }
+
+    /**
+     * Add a "or having" clause to the query.
+     *
+     * @param  string  $column
+     * @param  string  $operator
+     * @param  string  $value
+     * @return static
+     */
+    public function orHaving($column, $operator = null, $value = null) {
+        return $this->having($column, $operator, $value, 'or');
     }
 }

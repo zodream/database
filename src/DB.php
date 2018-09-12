@@ -1,7 +1,8 @@
 <?php
 namespace Zodream\Database;
 
-use Zodream\Database\Query\Query;
+
+use Zodream\Database\Query\Builder;
 
 class DB {
 
@@ -28,10 +29,10 @@ class DB {
     /**
      *
      * @param $table
-     * @return Query
+     * @return Builder
      */
     public static function table($table) {
-        return (new Query())->from($table);
+        return (new Builder())->from($table);
     }
 
     public static function __callStatic($name, $arguments) {

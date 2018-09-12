@@ -4,6 +4,9 @@ namespace Zodream\Database\Query\Components;
 use Zodream\Database\Query\Query;
 
 trait JoinBuilder {
+
+    public $joins = [];
+
     /**
      * Add a join clause to the query.
      *

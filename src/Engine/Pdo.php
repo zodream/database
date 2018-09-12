@@ -1,7 +1,8 @@
 <?php 
 namespace Zodream\Database\Engine;
 
-use Zodream\Database\DB;
+use Zodream\Database\Grammars\Grammar;
+use Zodream\Database\Grammars\MySqlGrammar;
 use Zodream\Service\Config;
 use Zodream\Service\Factory;
 /**
@@ -141,7 +142,6 @@ class Pdo extends BaseEngine {
 			return null;
 		}
 		try {
-		    DB::addQueryLog($sql, $parameters);
 			if (!empty($sql)) {
 				$this->prepare($sql);
 				$this->bind($parameters);
@@ -246,4 +246,11 @@ class Pdo extends BaseEngine {
 	public function rollBack() {
 		return $this->driver->rollBack();
 	}
+
+    /**
+     * @return Grammar
+     */
+    public function getGrammar() {
+        return new MySqlGrammar();
+    }
 }

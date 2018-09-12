@@ -2,11 +2,11 @@
 namespace Zodream\Database\Model;
 
 use Zodream\Database\Model\Relations\Relation;
-use Zodream\Database\Query\Query as BaseQuery;
+use Zodream\Database\Query\Builder;
 use Zodream\Helpers\Str;
 use Closure;
 
-class Query extends BaseQuery {
+class Query extends Builder {
 
     protected $relations = [];
 
@@ -233,11 +233,10 @@ class Query extends BaseQuery {
      * @param bool $isArray
      * @return array|object[]|Model[]
      */
-    public function all($isArray = true) {
-        $data = parent::all($isArray);
+    public function all(): ?array {
+        $data = parent::all();
         if (empty($data)
             || $this->isArray
-            || !$isArray
             || !class_exists($this->modelName)) {
             return $data;
         }
@@ -256,7 +255,7 @@ class Query extends BaseQuery {
      * @return bool|int|string
      * @throws \Exception
      */
-    public function scalar() {
+    public function scalar(): ?string {
         $this->asArray();
         return parent::scalar();
     }
@@ -265,7 +264,7 @@ class Query extends BaseQuery {
      * @param array $attributes
      * @return Model
      */
-    public function firstOrNew(array $attributes = []) {
+    public function firstOrNew(array $attributes = []): Model {
         /** @var $model Model */
         $model = self::first();
         if (!empty($model)) {
@@ -280,41 +279,21 @@ class Query extends BaseQuery {
      * @param array $attributes
      * @return Model|bool
      */
-    public function firstWithReplace(array $attributes = []) {
+    public function firstWithReplace(array $attributes = []): ?Model {
         $model = self::first();
         if (empty($model)) {
-            return $model;
+            return null;
         }
         /** @var $model Model */
         $model->set($attributes);
         return $model;
     }
 
-    public function pluck($column = null, $key = null) {
+    public function pluck($column = null, $key = null) : array {
         $this->asArray();
         return parent::pluck($column, $key);
     }
 
-    /**
-     * 更新
-     * @param array $args
-     * @return int
-     * @throws \Exception
-     */
-    public function update(array $args) {
-        return $this->command()
-            ->update($this->compileUpdate($args), $this->getBindings());
-    }
-
-    /**
-     * 删除
-     * @return int
-     * @throws \Exception
-     */
-    public function delete() {
-        return $this->command()
-            ->delete($this->compileDelete(), $this->getBindings());
-    }
 
 
     /**

@@ -25,7 +25,7 @@ abstract class BaseSchema {
         return $this->_command;
     }
 
-    protected function addPrefix($table) {
+    public function addPrefix($table) {
         return $this->command()->addPrefix($table);
     }
 

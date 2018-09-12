@@ -1,7 +1,8 @@
 <?php
 namespace Zodream\Database\Model\Concerns;
 
-use Zodream\Database\Query\Record;
+
+use Zodream\Database\Model\Query;
 
 /**
  * Created by PhpStorm.
@@ -48,8 +49,8 @@ trait SaveModel {
         if (empty($data)) {
             return true;
         }
-        $row = $query->set($data)
-            ->update();
+        $row = $query
+            ->update($data);
         if (!empty($row)) {
             $this->setOldAttribute();
         }
@@ -71,9 +72,8 @@ trait SaveModel {
             return false;
         }
         $data = $this->_getRealFields();
-        $row = static::record()
-            ->set($data)
-            ->insert();
+        $row = static::query()
+            ->insert($data);
         if (!empty($row)) {
             $pk = $this->primaryKey;
             // 插入空主键自动设置
@@ -153,12 +153,12 @@ trait SaveModel {
 
     /**
      * 自动获取条件
-     * @return Record|bool
+     * @return Query|bool
      */
     public function getPrimaryKeyQuery() {
         if (!empty($this->primaryKey)
             && $this->hasAttribute($this->primaryKey)) {
-            return $this->record()->where($this->primaryKey,
+            return static::query()->where($this->primaryKey,
                 $this->getAttributeSource($this->primaryKey));
         }
         return false;

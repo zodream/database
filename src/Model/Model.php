@@ -11,7 +11,6 @@ use Zodream\Database\Model\Concerns\HasRelation;
 use Zodream\Database\Model\Concerns\HasTimestamps;
 use Zodream\Database\Model\Concerns\SaveModel;
 use Zodream\Database\Model\Concerns\ValidateAttributes;
-use Zodream\Database\Query\Record;
 use Zodream\Helpers\Str;
 use Zodream\Infrastructure\Base\MagicObject;
 use Zodream\Infrastructure\Traits\ErrorTrait;
@@ -122,15 +121,6 @@ abstract class Model extends MagicObject {
 			return $labels[$key];
 		}
 		return ucwords(str_replace('_', ' ', $key));
-	}
-
-
-    /**
-     * @return Record
-     */
-	public static function record() {
-		return (new Record())
-            ->setTable(static::tableName());
 	}
 
 
