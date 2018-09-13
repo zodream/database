@@ -97,7 +97,7 @@ class Schema {
      * @return array
      */
     public static function getAllDatabase() {
-        return Command::getInstance()->getArray('SHOW DATABASES');
+        return Command::getInstance()->select('SHOW DATABASES');
     }
 
     /**
@@ -110,10 +110,10 @@ class Schema {
             ->changedDatabase($this->schema);
         if ($hasStatus) {
             return $this->command()
-                ->getArray('SHOW TABLE STATUS');
+                ->select('SHOW TABLE STATUS');
         }
         $tables = $this->command()
-            ->getArray('SHOW TABLES');
+            ->select('SHOW TABLES');
         foreach ($tables as &$table) {
             $table = current($table);
         }

@@ -7,8 +7,7 @@ namespace Zodream\Database\Schema;
  * Date: 2016/8/11
  * Time: 14:50
  */
-use Zodream\Database\Query\Query;
-use Zodream\Database\Query\Record;
+use Zodream\Database\Query\Builder;
 
 class Table extends BaseSchema {
 
@@ -386,9 +385,9 @@ class Table extends BaseSchema {
      */
     public function getAllColumn($isFull = false) {
         if ($isFull) {
-            return $this->command()->getArray('SHOW FULL COLUMNS FROM '.$this->getTable());
+            return $this->command()->select('SHOW FULL COLUMNS FROM '.$this->getTable());
         }
-        return $this->command()->getArray('SHOW COLUMNS FROM '.$this->getTable());
+        return $this->command()->select('SHOW COLUMNS FROM '.$this->getTable());
     }
 
     /**
@@ -404,7 +403,7 @@ class Table extends BaseSchema {
      * @return string
      */
     public function getCreateTableSql() {
-        $data = $this->command()->getArray('SHOW CREATE TABLE '.$this->getTable());
+        $data = $this->command()->select('SHOW CREATE TABLE '.$this->getTable());
         if (empty($data)) {
             return null;
         }
@@ -414,11 +413,10 @@ class Table extends BaseSchema {
 
     /**
      * @param string $offset
-     * @param null $default
      * @return bool|Column
      */
-    public function get($offset = null, $default = null) {
-        return parent::get($offset, false);
+    public function get($offset = null) {
+        return isset($this->_data[$offset]) ? $this->_data[$offset] : null;
     }
 
     /**
@@ -519,7 +517,7 @@ class Table extends BaseSchema {
      * @return array
      */
     public function getForeignKeys() {
-        return (new Query())
+        return (new Builder())
             ->from('information_schema.key_column_usage')
             ->where([
                 'CONSTRAINT_SCHEMA' => $this->schema->getSchema(),
@@ -527,18 +525,12 @@ class Table extends BaseSchema {
             ])->all();
     }
 
-    /**
-     * @return Record
-     */
-    public function record() {
-        return (new Record())->setTable($this->getTable());
-    }
 
     /**
-     * @return Query
+     * @return Builder
      */
     public function query() {
-        return (new Query())->from($this->getTable());
+        return (new Builder())->from($this->getTable());
     }
 
     public function __call($name, $arguments) {

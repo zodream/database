@@ -175,7 +175,7 @@ class Grammar {
         // if it is a normal query we need to take the leading "where" of queries.
         $offset = 6;
 
-        return '('.substr($where['query']->compileWheres(), $offset).')';
+        return '('.substr($this->compileWheres($where['query']), $offset).')';
     }
 
     /**
