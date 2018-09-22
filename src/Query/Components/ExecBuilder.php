@@ -47,7 +47,7 @@ trait ExecBuilder {
      * @return array|bool
      * @throws \Exception
      */
-    public function one(): ?array {
+    public function one() {
         $this->limit(1);
         $result = $this->all();
         if (empty($result)) {
@@ -56,7 +56,7 @@ trait ExecBuilder {
         return current($result);
     }
 
-    public function first($fields = null): ?array {
+    public function first($fields = null) {
         if (func_num_args() > 0) {
             $this->select(...func_get_args());
         }
