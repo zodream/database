@@ -364,7 +364,7 @@ class Grammar {
                 $values);
         }
         if (!is_array(reset($values))) {
-            return sprintf('INSERT INTO %s (%s) VALUES %s', $table, $columns,
+            return sprintf('INSERT INTO %s (`%s`) VALUES %s', $table, $columns,
                 $this->compileInsertColumn($query, $values));
         }
         $args = [];
