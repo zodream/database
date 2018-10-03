@@ -60,11 +60,11 @@ class Grammar {
      * @return string
      */
     public function compileJoins(Builder $query): string {
-        if (empty($this->joins)) {
+        if (empty($query->joins)) {
             return '';
         }
         $sql = '';
-        foreach ($this->joins as $item) {
+        foreach ($query->joins as $item) {
             $sql .= sprintf(' %s JOIN %s ON %s',
                 strtoupper($item['type']),
                 $query->addPrefix($item['table']),
