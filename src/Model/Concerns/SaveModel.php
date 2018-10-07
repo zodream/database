@@ -53,6 +53,8 @@ trait SaveModel {
             ->update($data);
         if (!empty($row)) {
             $this->setOldAttribute();
+        } else {
+            $this->setError('data', 'Data is not change!');
         }
         $this->invoke(self::AFTER_UPDATE, [$this]);
         return $row;

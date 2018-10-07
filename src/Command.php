@@ -331,7 +331,7 @@ class Command extends ConfigObject {
     }
 
     /**
-     * 更新
+     * 更新, 如果数据相同会返回0
      * @param $sql
      * @param array $parameters
      * @return int
