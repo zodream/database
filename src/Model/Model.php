@@ -157,6 +157,16 @@ abstract class Model extends MagicObject {
 	}
 
     /**
+     * @param integer|string $id
+     * @param string $key
+     * @return static
+     * @throws \Exception
+     */
+	public static function findWithAuth($id, $key = 'id') {
+	    return static::where($key, $id)->where('user_id', auth()->id())->one();
+    }
+
+    /**
      * 查找或新增
      * @param $param
      * @param string $field
