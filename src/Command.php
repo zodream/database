@@ -148,7 +148,7 @@ class Command extends ConfigObject {
             return $table;
         }
         preg_match('/([\w_\.]+)( (as )?[\w_]+)?/i', $table, $match);
-        $table = $match[1];
+        $table = count($match) == 2 ? $table : $match[1];
         $alias = '';
         if (count($match) > 2) {
             $alias = $match[2];
