@@ -3,6 +3,7 @@ namespace Zodream\Database\Model;
 
 use Zodream\Database\Model\Relations\Relation;
 use Zodream\Database\Query\Builder;
+use Zodream\Helpers\Arr;
 use Zodream\Helpers\Str;
 use Closure;
 
@@ -230,8 +231,8 @@ class Query extends Builder {
     }
 
     /**
-     * @param bool $isArray
      * @return array|object[]|Model[]
+     * @throws \Exception
      */
     public function all(): ?array {
         $data = parent::all();
@@ -242,13 +243,27 @@ class Query extends Builder {
         }
         $args = [];
         foreach ($data as $item) {
+            $item = $this->getRealValues($item);
             /** @var $model Model */
             $model = new $this->modelName;
-            $model->setOldAttribute($item)->set($item);
+            $model->setOldAttribute($item)
+                ->setSourceAttribute($item);
             $args[] = $model;
         }
         return $this->eagerLoadRelations($args);
     }
+
+    /**
+     * 转换成真实的数据
+     * @param array $data
+     * @return array
+     * @throws \Exception
+     */
+    protected function getRealValues(array $data) {
+        $maps = Arr::getRealType($this->modelName);
+        return empty($maps) ? $data : Arr::toRealArr($data, $maps);
+    }
+
 
     /**
      * 取一个值

@@ -58,6 +58,9 @@ trait HasAttributes {
         foreach ($this->__attributes as $key => $value) {
             $data[$key] = $this->getAttribute($key);
         }
+        foreach ($this->append as $key) {
+            $data[$key] = $this->getAttribute($key);
+        }
         return $data;
     }
 

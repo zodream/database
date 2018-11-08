@@ -20,6 +20,7 @@ trait AutoModel {
      * @param string|array $data
      * @param null $key
      * @return bool
+     * @throws \Exception
      */
     public function load($data = null, $key = null) {
         if (is_string($data)) {
@@ -67,6 +68,24 @@ trait AutoModel {
         }
         return $this->getOldAttribute($key)
             !== $this->getAttributeSource($key);
+    }
+
+    /**
+     * 设置原数据
+     * @param $key
+     * @param null $value
+     * @return $this
+     */
+    public function setSourceAttribute($key, $value = null) {
+        if (empty($key)) {
+            return $this;
+        }
+        if (!is_array($key)) {
+            $this->__attributes[$key] = $value;
+            return $this;
+        }
+        $this->__attributes = $key;
+        return $this;
     }
 
     /**
