@@ -1,9 +1,7 @@
 <?php
 namespace Zodream\Database;
 
-
-use Zodream\Database\Query\Query;
-use Zodream\Helpers\Arr;
+use Zodream\Database\Query\Builder;
 
 class Relation {
 
@@ -17,7 +15,7 @@ class Relation {
     protected $key;
 
     /**
-     * @var Query
+     * @var Builder
      */
     protected $query;
 
@@ -93,7 +91,7 @@ class Relation {
     }
 
     /**
-     * @param Query $query
+     * @param Builder $query
      */
     public function setQuery($query) {
         $this->query = $query;
@@ -131,7 +129,7 @@ class Relation {
     /**
      * 转化成关联参训语句
      * @param array $data
-     * @return Query
+     * @return Builder
      */
     public function getRelationQuery(array $data) {
         foreach ($this->links as $key => $val) {
