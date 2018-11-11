@@ -16,7 +16,7 @@ trait WhereBuilder {
             return $this->addArrayOfWheres($column, $boolean);
         }
 
-        if ($this->invalidOperator($operator)) {
+        if (func_num_args() < 3 || $this->invalidOperator($operator)) {
             list($value, $operator) = [$operator, '='];
         }
 
