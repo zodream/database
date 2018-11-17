@@ -1,6 +1,7 @@
 <?php
 namespace Zodream\Database;
 
+use Zodream\Database\Model\Model;
 use Zodream\Database\Query\Builder;
 
 class Relation {
@@ -162,47 +163,119 @@ class Relation {
         if (empty($this->relations)) {
             return static::getRelationQuery($models)->all();
         }
-        $data = static::getRelationQuery($models)->select($this->getRelationFields())->all();
+        $data = static::getRelationQuery($models)->appendSelect($this->getRelationFields())->all();
         if (empty($data)) {
             return $data;
         }
-        $results = [];
         foreach ($this->relations as $relation) {
             if (empty($relation->getKey())) {
                 return $relation->getResults($data);
             }
-            $results[$relation->getKey()] = $relation->getResults($data);
+            $data = $relation->getResults($data);
         }
-        return $results;
+        return $data;
     }
 
     /**
      * 获取查询结果
-     * @param array $data
+     * @param array $models
      * @return array|mixed|object[]
      * @throws \Exception
      */
-    public function getResults(array $data) {
-        $results = $this->getQueryResults($data);
-        if (empty($results)) {
+    public function getResults($models) {
+        $is_one = !is_array($models) || !is_array(reset($models));
+        if ($is_one) {
+            $models = [$models];
+        }
+        $results = $this->getQueryResults($models);
+        if (empty($results) || !$is_one) {
             return $results;
         }
         return $this->type == self::TYPE_ONE ? reset($results) : $results;
     }
 
+    /**
+     * 获取并绑定属性值
+     * @param array $data
+     * @return array
+     * @throws \Exception
+     */
+    public function get(array $data) {
+        $results = $this->getQueryResults($data);
+        return $this->buildRelation($data, $results);
+    }
 
     /**
+     * 绑定属性
+     * @param array $models
+     * @param array $results
+     * @return array
+     */
+    public function buildRelation(array $models, array $results) {
+        foreach ($models as &$model) {
+            if ($model instanceof Model) {
+                $model->setRelation($this->getKey(), $this->matchRelation($model, $results));
+                continue;
+            }
+            $model[$this->getKey()] = $this->matchRelation($model, $results);
+        }
+        unset($model);
+        return $models;
+    }
+
+    /**
+     * 匹配值
+     * @param $model
+     * @param $results
+     * @return array
+     */
+    public function matchRelation($model, $results) {
+        $data = [];
+        foreach ($results as $item) {
+            if (!$this->isMatchRelation($model, $item)) {
+                continue;
+            }
+            if ($this->type == self::TYPE_ONE) {
+                return $item;
+            }
+            $data[] = $item;
+        }
+        return $data;
+    }
+
+    /**
+     * 是否匹配
+     * @param $model
+     * @param $result
+     * @return bool
+     */
+    public function isMatchRelation($model, $result) {
+        foreach ($this->links as $fk => $lk) {
+            if ($model[$fk] != $result[$lk]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+
+    /**
+     * 通过关联获取值（支持Model, 单个数组, 多个）
      * @param array[] $models
      * @param array[] $relations
      * @return array
      * @throws \Exception
      */
-    public static function create(array $models, array $relations) {
+    public static function create($models, array $relations) {
+        $is_one = !is_array($models) || !is_array(reset($models));
+        if ($is_one) {
+            $models = [$models];
+        }
         foreach ($relations as $key => $relation) {
             $relation = static::parse($relation, $key);
-            $models[$relation->getKey()] = $relation->getResults($models);
+            $models =  $relation->get($models);
         }
-        return $models;
+        return $is_one ? reset($models) : $models;
     }
 
     /**
@@ -217,7 +290,7 @@ class Relation {
         $relation = new static();
         $relation->setKey($key);
         $relation->setQuery($data['query']);
-        $relation->setLinks($relation['link']);
+        $relation->setLinks($data['link']);
         if (isset($data['type'])) {
             $relation->setType($data['type']);
         }

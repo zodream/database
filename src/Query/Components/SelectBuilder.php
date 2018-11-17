@@ -21,6 +21,13 @@ trait SelectBuilder {
         return $this->andSelect($field);
     }
 
+    public function appendSelect($field) {
+        if (empty($this->selects)) {
+            $this->selects[] = '*';
+        }
+        return $this->andSelect(...func_get_args());
+    }
+
     public function andSelect($field = '*') {
         if (!is_array($field)) {
             $field = func_get_args();
