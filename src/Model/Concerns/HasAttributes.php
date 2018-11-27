@@ -2,8 +2,10 @@
 namespace Zodream\Database\Model\Concerns;
 
 use Zodream\Database\Model\Relations\Relation;
+use Zodream\Helpers\Arr;
 use Zodream\Helpers\Str;
 use LogicException;
+
 /**
  * Created by PhpStorm.
  * User: ZoDream
@@ -263,6 +265,6 @@ trait HasAttributes {
     }
 
     public function toArray() {
-        return $this->getArrayAbleItems($this->getAllAttributes());
+        return Arr::format($this->getArrayAbleItems($this->getAllAttributes()));
     }
 }
