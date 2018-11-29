@@ -18,19 +18,23 @@ trait AutoModel {
     /**
      * 转载数据
      * @param string|array $data
-     * @param null $key
+     * @param string|array $key
+     * @param array $excludes 排除的数组
      * @return bool
      * @throws \Exception
      */
-    public function load($data = null, $key = null) {
+    public function load($data = null, $key = null, $excludes = []) {
         if (is_string($data)) {
-            list($key, $data) = [$data, null];
+            list($key, $excludes, $data) = [$data, $key, null];
         }
         if (!is_array($data) && app('request')->isPost()) {
             $data = app('request')->get($key);
         }
         if (empty($data)) {
             return false;
+        }
+        if (!empty($excludes)) {
+            $data = array_diff_key($data, array_flip((array)$excludes));
         }
         $this->set($data);
         return true;
