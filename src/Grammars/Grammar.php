@@ -347,9 +347,11 @@ class Grammar {
         if (is_array($columns)) {
             if (is_array(reset($columns))) {
                 list($values, $columns) = [$columns, array_keys(reset($values))];
-                sort($columns);
             } elseif (is_null($values)) {
                 list($values, $columns) = [$columns, array_keys($columns)];
+            }
+            if (is_array($values) && is_array(reset($values))){
+                sort($columns);
             }
         }
         if (is_array($columns)) {
