@@ -346,7 +346,7 @@ class Grammar {
         }
         if (is_array($columns)) {
             if (is_array(reset($columns))) {
-                list($values, $columns) = [$columns, array_keys(reset($values))];
+                list($values, $columns) = [$columns, array_keys(reset($columns))];
             } elseif (is_null($values)) {
                 list($values, $columns) = [$columns, array_keys($columns)];
             }
