@@ -27,6 +27,9 @@ trait AutoModel {
         if (is_string($data)) {
             list($key, $excludes, $data) = [$data, $key, null];
         }
+        if (is_array($key)) {
+            list($key, $excludes) = [null, $key];
+        }
         if (!is_array($data) && app('request')->isPost()) {
             $data = app('request')->get($key);
         }
