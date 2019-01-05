@@ -11,6 +11,9 @@ class Query extends Builder {
 
     protected $relations = [];
 
+    /**
+     * @var array [name => function($query) => void]
+     */
     protected $eagerLoad = [];
 
     protected $modelName;
