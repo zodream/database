@@ -3,6 +3,7 @@ namespace Zodream\Database\Model\Concerns;
 
 use Zodream\Database\Model\Model;
 use Zodream\Database\Model\Query;
+use Zodream\Database\Model\Relations\BelongsToMany;
 use Zodream\Database\Model\Relations\HasMany;
 use Zodream\Database\Model\Relations\HasOne;
 use Zodream\Database\Model\Relations\Relation;

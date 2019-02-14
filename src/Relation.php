@@ -195,12 +195,27 @@ class Relation {
     }
 
     /**
-     * 获取并绑定属性值
-     * @param array $data
-     * @return array
+     * 获取并绑定属性值(自动判断数组类型)
+     * @param array|Model $data
+     * @return array|Model
      * @throws \Exception
      */
-    public function get(array $data) {
+    public function get($data) {
+        $is_one = !is_array($data) || !is_array(reset($data));
+        if ($is_one) {
+            $data = [$data];
+        }
+        $data = $this->getWithMulti($data);
+        return $is_one ? reset($data) : $data;
+    }
+
+    /**
+     * 获取并绑定属性值（只接受二维数组）
+     * @param array $data [[],]
+     * @return array [[],]
+     * @throws \Exception
+     */
+    public function getWithMulti(array $data) {
         $results = $this->getQueryResults($data);
         return $this->buildRelation($data, $results);
     }
@@ -273,7 +288,7 @@ class Relation {
         }
         foreach ($relations as $key => $relation) {
             $relation = static::parse($relation, $key);
-            $models =  $relation->get($models);
+            $models =  $relation->getWithMulti($models);
         }
         return $is_one ? reset($models) : $models;
     }
