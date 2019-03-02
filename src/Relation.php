@@ -201,7 +201,7 @@ class Relation {
      * @throws \Exception
      */
     public function get($data) {
-        $is_one = !is_array($data) || !is_array(reset($data));
+        $is_one = !static::isSomeArr($data);;
         if ($is_one) {
             $data = [$data];
         }
@@ -282,7 +282,7 @@ class Relation {
      * @throws \Exception
      */
     public static function create($models, array $relations) {
-        $is_one = !is_array($models) || !is_array(reset($models));
+        $is_one = !static::isSomeArr($models);
         if ($is_one) {
             $models = [$models];
         }
@@ -291,6 +291,19 @@ class Relation {
             $models =  $relation->getWithMulti($models);
         }
         return $is_one ? reset($models) : $models;
+    }
+
+    /**
+     * 是否是多维数组
+     * @param $models
+     * @return bool
+     */
+    protected static function isSomeArr($models) {
+        if (!is_array($models)) {
+            return false;
+        }
+        $model = reset($models);
+        return is_array($model) || $model instanceof Model;
     }
 
     /**

@@ -49,6 +49,9 @@ trait HasAttributes {
         if ($this->has($key)) {
             return $this->__attributes[$key];
         }
+        if ($this->relationLoaded($key)) {
+            return $this->relations[$key];
+        }
         if (!method_exists($this, $key)) {
             return $default;
         }
