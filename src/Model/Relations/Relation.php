@@ -136,6 +136,9 @@ abstract class Relation {
      * @return array
      */
     public function get($columns = ['*']) {
+        if (count($columns) === 1 && isset($columns[0]) && $columns[0] === '*' && !empty($this->query->selects)) {
+            return $this->query->all();
+        }
         return $this->query->select($columns)->all();
     }
 

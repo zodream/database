@@ -348,9 +348,7 @@ class Query extends Builder {
         $relation = $this->getRelation($name);
 
         $relation->addEagerConstraints($models);
-
         $constraints($relation);
-
         // Once we have the results, we just match those back up to their parent models
         // using the relationship instance. Then we just return the finished arrays
         // of models which have been eagerly hydrated and are readied for return.

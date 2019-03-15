@@ -85,7 +85,7 @@ abstract class HasOneOrMany extends Relation {
      * @return string
      */
     public function getRelationCountHash() {
-        return 'laravel_reserved_'.static::$selfJoinCount++;
+        return 'zo_reserved_'.static::$selfJoinCount++;
     }
 
     /**

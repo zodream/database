@@ -55,16 +55,14 @@ trait HasRelation {
 
     /**
      * GET RELATION QUERY
-     * @param static $table
+     * @param string $table
      * @return Query
      */
     protected function getRelationQuery($table) {
-        $query = new Query();
         if (class_exists($table)) {
-            return $query->setModelName($table)
-                ->from(call_user_func($table.'::tableName'));
+            return call_user_func($table.'::query');
         }
-        return $query->from($table);
+        return (new Query())->from($table);
     }
 
     /**

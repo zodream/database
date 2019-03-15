@@ -37,9 +37,10 @@ trait SelectBuilder {
                 $this->selects[] = $value. ' AS '.$key;
                 continue;
             }
-            if (!is_null($value)) {
-                $this->selects[] = $value;
+            if (is_null($value)) {
+                continue;
             }
+            $this->selects[] = $value;
         }
         return $this;
     }
