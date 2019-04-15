@@ -6,23 +6,40 @@ namespace Zodream\Database\Engine;
  *
  * @author Jason
  */
+use Zodream\Infrastructure\Base\ConfigObject;
 use Zodream\Infrastructure\Error\Exception;
+use Redis as RedisClient;
 
-class Redis {
+class Redis extends ConfigObject {
 	/**
 	 * @var \Redis
 	 */
-	private $_redis;
+	private $driver;
 
-	/**
-	 * @param string $host
-	 * @param int $port
-	 */
-	public function __construct($host = '127.0.0.1', $port = 6379) {
-		$this->_redis = new \Redis();
-		$this->_redis->connect($host, $port);
-		return $this->_redis;
+    protected $configs = array(
+        'host'     => '127.0.0.1',                //服务器
+        'port'     => '6379',						//端口
+    );
+
+    public function __construct($config) {
+        if (is_array($config)) {
+            $this->setConfigs($config)->connect();
+            return;
+        }
+        $this->setDriver($config);
 	}
+
+    protected function connect() {
+        $this->driver = new RedisClient();
+        $this->driver->connect($this->configs['host'], $this->configs['port']);
+    }
+
+    /**
+     * @param mixed $driver
+     */
+    public function setDriver($driver) {
+        $this->driver = $driver;
+    }
 
 	/**
 	 * 设置值  构建一个字符串
@@ -32,11 +49,11 @@ class Redis {
 	 * @return bool
 	 */
 	public function set($key, $value, $timeOut=0) {
-		$retRes = $this->_redis->set($key, $value);
+		$retRes = $this->driver->set($key, $value);
 		if ($timeOut <= 0) {
 			return $retRes;
 		}
-		$this->_redis->expire($key, $timeOut);
+		$this->driver->expire($key, $timeOut);
 		return true;
 	}
 	
@@ -46,7 +63,7 @@ class Redis {
 	 * @param string|array $value  值
 	 */
 	public function sadd($key, $value) {
-		return $this->_redis->sadd($key, $value);
+		return $this->driver->sadd($key, $value);
 	}
 
 	/**
@@ -57,7 +74,7 @@ class Redis {
 	 * @return int
      */
 	public function zadd($key, $value, $score = 1) {
-		return $this->_redis->zadd($key, $score, $value);
+		return $this->driver->zadd($key, $score, $value);
 	}
 
 	/**
@@ -66,7 +83,7 @@ class Redis {
 	 * @return array
 	 */
 	public function smembers($setName){
-		return $this->_redis->smembers($setName);
+		return $this->driver->smembers($setName);
 	}
 
 	/**
@@ -76,7 +93,7 @@ class Redis {
 	 * @return int
 	 */
 	public function lpush($key, $value){
-		return $this->_redis->lPush($key, $value);
+		return $this->driver->lPush($key, $value);
 	}
 
 	/**
@@ -86,7 +103,7 @@ class Redis {
 	 * @return int
 	 */
 	public function rpush($key, $value){
-		return $this->_redis->rPush($key, $value);
+		return $this->driver->rPush($key, $value);
 	}
 
 	/**
@@ -97,7 +114,7 @@ class Redis {
 	 * @return array
 	 */
 	public function lranges($key, $head, $tail){
-		return $this->_redis->lrange($key, $head, $tail);
+		return $this->driver->lrange($key, $head, $tail);
 	}
 
 	/**
@@ -108,11 +125,15 @@ class Redis {
 	 * @return int
 	 */
 	public function hset($tableName, $field, $value){
-		return $this->_redis->hset($tableName, $field, $value);
+		return $this->driver->hset($tableName, $field, $value);
 	}
+
+	public function setex($key, $ttl, $value) {
+        return $this->driver->setex($key, $ttl, $value);
+    }
 	
 	public function hget($tableName, $field){
-		return $this->_redis->hget($tableName, $field);
+		return $this->driver->hget($tableName, $field);
 	}
 
 
@@ -127,12 +148,12 @@ class Redis {
 		if (!is_array($keyArray)) {
 			throw new Exception('Call  ' . __FUNCTION__ . ' method  parameter  Error !');
 		}
-		$retRes = $this->_redis->mset($keyArray);
+		$retRes = $this->driver->mset($keyArray);
 		if ($timeout <= 0) {
 			return $retRes;
 		}
 		foreach ($keyArray as $key => $value) {
-			$this->_redis->expire($key, $timeout);
+			$this->driver->expire($key, $timeout);
 		}
 		return true;
 	}
@@ -143,7 +164,7 @@ class Redis {
 	 * @return bool|string
 	 */
 	public function get($key) {
-		$result = $this->_redis->get($key);
+		$result = $this->driver->get($key);
 		return $result;
 	}
 
@@ -155,7 +176,7 @@ class Redis {
      */
 	public function gets(array $keyArray) {
 		if (is_array($keyArray)) {
-			return $this->_redis->mget($keyArray);
+			return $this->driver->mget($keyArray);
 		}
 		throw new Exception('Call  ' . __FUNCTION__ . ' method  parameter  Error !');
 	}
@@ -164,7 +185,7 @@ class Redis {
 	 * 获取所有key名，不是值
 	 */
 	public function keyAll() {
-		return $this->_redis->keys('*');
+		return $this->driver->keys('*');
 	}
 	
 	/**
@@ -172,7 +193,7 @@ class Redis {
 	 * @param string $key 删除KEY的名称
 	 */
 	public function del($key) {
-		$this->_redis->delete($key);
+		$this->driver->delete($key);
 	}
 
     /**
@@ -183,7 +204,7 @@ class Redis {
      */
 	public function dels(array $keyArray) {
 		if (is_array($keyArray)) {
-			return $this->_redis->del($keyArray);
+			return $this->driver->del($keyArray);
 		}
 		throw new Exception('Call  ' . __FUNCTION__ . ' method  parameter  Error !');
 	}
@@ -194,7 +215,7 @@ class Redis {
 	 * @return int
 	 */
 	public function increment($key) {
-		return $this->_redis->incr($key);
+		return $this->driver->incr($key);
 	}
 
 	/**
@@ -203,7 +224,7 @@ class Redis {
 	 * @return int
 	 */
 	public function decrement($key) {
-		return $this->_redis->decr($key);
+		return $this->driver->decr($key);
 	}
 
 
@@ -213,7 +234,7 @@ class Redis {
 	 * @return bool
 	 */
 	public function isExists($key){
-		return $this->_redis->exists($key);
+		return $this->driver->exists($key);
 	}
 
 	/**
@@ -224,7 +245,7 @@ class Redis {
 	 * @return bool
 	 */
 	public function updateName($key,$newKey){
-		return $this->_redis->RENAMENX($key,$newKey);
+		return $this->driver->RENAMENX($key,$newKey);
 	}
 
 	/**
@@ -234,7 +255,7 @@ class Redis {
 	 * @return int
 	 */
 	public function dataType($key){
-		return $this->_redis->type($key);
+		return $this->driver->type($key);
 	}
 	
 	
@@ -242,10 +263,12 @@ class Redis {
 	 * 清空数据
 	 */
 	public function flushAll() {
-		return $this->_redis->flushAll();
+		return $this->driver->flushAll();
 	}
-	
-	
+
+    public function flushDB() {
+        return $this->driver->flushDB();
+    }
 	
 	/**
 	 * 返回redis对象
@@ -253,7 +276,7 @@ class Redis {
 	 * 拿着这个对象就可以直接调用redis自身方法
 	 * eg:$redis->redisOtherMethods()->keys('*a*')   keys方法没封
 	 */
-	public function redisOtherMethods() {
-		return $this->_redis;
-	}
+    public function getDriver() {
+        return $this->driver;
+    }
 }

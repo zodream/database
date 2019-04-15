@@ -14,7 +14,7 @@ use Zodream\Service\Factory;
 use Zodream\Helpers\Str;
 use Zodream\Infrastructure\Traits\SingletonPattern;
 
-class Command extends ConfigObject {
+class Command extends Manager {
 
     use SingletonPattern;
 
@@ -33,108 +33,25 @@ class Command extends ConfigObject {
      */
     protected $engines = [];
 
-    protected $currentName = '__default__';
+    protected $defaultDriver = Pdo::class;
 
     public function __construct() {
-        $this->loadConfigs();
-        $this->getCurrentName();
+        parent::__construct();
         if (isset($this->table)) {
             $this->setTable($this->table);
         }
     }
 
-    /**
-     * ADD 2D ARRAY
-     * @param array $args
-     * @return $this
-     */
-    public function setConfigs(array $args) {
-        if (!is_array(current($args))) {
-            $args = [
-                $this->currentName => $args
-            ];
-        }
-        foreach ($args as $key => $item) {
-            if (array_key_exists($key, $this->configs)) {
-                $this->configs[$key] = array_merge($this->configs[$key], $item);
-            } else {
-                $this->configs[$key] = $item;
-            }
-        }
-        return $this;
-    }
-
-    /**
-     * @param string|array|BaseEngine $name
-     * @param array|BaseEngine|null $configs
-     * @return BaseEngine
-     * @throws \Exception
-     */
-    public function addEngine($name, $configs = null) {
-        if (!is_string($name) && !is_numeric($name)) {
-            $configs = $name;
-            $name = $this->currentName;
-        }
-        if (array_key_exists($name, $this->engines)) {
-            $this->engines[$name]->close();
-        }
-        if ($configs instanceof BaseEngine) {
-            return $this->engines[$name] = $configs;
-        }
-        if (!array_key_exists('driver', $configs) || !class_exists($configs['driver'])) {
-            $configs['driver'] = Pdo::class;
-        }
-        $class = $configs['driver'];
-        $this->engines[$name] = new $class($configs);
+    protected function initEngineEvent($engine) {
         Factory::timer()->record('db init end');
-        return $this->engines[$name];
     }
 
     /**
-     * GET DATABASE ENGINE
-     * @param string $name
-     * @return BaseEngine
-     * @throws \Exception
+     * @param BaseEngine $engine
      */
-    public function getEngine($name = null) {
-        if (is_null($name)) {
-            $name = $this->getCurrentName();
-        }
-        if (array_key_exists($name, $this->engines)) {
-            return $this->engines[$name];
-        }
-        if (!$this->hasConfig($name)) {
-            throw new \InvalidArgumentException(
-                sprintf(
-                __('%s DOES NOT HAVE CONFIG!')
-                , $name)
-            );
-        }
-        $engine = $this->addEngine($name, $this->getConfig($name));
+    protected function changeEngineEvent($engine) {
         // 改变缓存状态
         $this->openCache($engine->getConfig('cache_expire'));
-        return $engine;
-    }
-
-    public function getCurrentName() {
-        if (!array_key_exists($this->currentName, $this->configs)) {
-            $this->currentName = key($this->configs);
-        }
-        return $this->currentName;
-    }
-
-    public function getConfig($name = null) {
-        if (is_null($name)) {
-            $name = $this->getCurrentName();
-        }
-        return array_key_exists($name, $this->configs) ? $this->configs[$name] : [];
-    }
-
-    public function hasConfig($name = null) {
-        if (is_null($name)) {
-            return empty($this->configs);
-        }
-        return array_key_exists($name, $this->configs);
     }
 
     /**

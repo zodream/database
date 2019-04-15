@@ -145,7 +145,7 @@ class Builder extends BaseSchema {
     /**
      * ORDER SQL
      * @param array|string $args
-     * @return Query
+     * @return Builder
      */
     public function orderBy($args) {
         if (!is_array($args)) {
