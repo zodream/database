@@ -76,9 +76,13 @@ trait ExecBuilder {
         return current($result);
     }
 
+    protected function wrapField($field) {
+        return empty($field) ? $field : sprintf('`%s`', trim($field, '`'));
+    }
+
     public function pluck($column = null, $key = null): array {
         if (empty($this->selects)) {
-            $this->select($column, $key);
+            $this->select($this->wrapField($column), $this->wrapField($key));
         }
         $data = $this->all();
         if (empty($data)) {
