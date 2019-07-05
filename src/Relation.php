@@ -282,6 +282,9 @@ class Relation {
      * @throws \Exception
      */
     public static function create($models, array $relations) {
+        if (empty($models)) {
+            return $models;
+        }
         $is_one = !static::isSomeArr($models);
         if ($is_one) {
             $models = [$models];
