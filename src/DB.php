@@ -29,9 +29,10 @@ class DB {
     /**
      *
      * @param $table
+     * @param null $connection
      * @return Builder
      */
-    public static function table($table) {
+    public static function table($table, $connection = null) {
         return (new Builder())->from($table);
     }
 
