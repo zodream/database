@@ -441,7 +441,7 @@ class Grammar {
         // can get join statements to attach to other tables when they're needed.
         $joins = '';
 
-        if (isset($this->joins)) {
+        if (isset($query->joins)) {
             $joins = $this->compileJoins($query);
         }
 
@@ -455,14 +455,14 @@ class Grammar {
         // If the query has an order by clause we will compile it since MySQL supports
         // order bys on update statements. We'll compile them using the typical way
         // of compiling order bys. Then they will be appended to the SQL queries.
-        if (! empty($this->orders)) {
+        if (! empty($query->orders)) {
             $sql .= $this->compileOrders($query);
         }
 
         // Updates on MySQL also supports "limits", which allow you to easily update a
         // single record very easily. This is not supported by all database engines
         // so we have customized this update compiler here in order to add it in.
-        if (isset($this->limit)) {
+        if (isset($query->limit)) {
             $sql .= $this->compileLimit($query);
         }
 
@@ -474,7 +474,7 @@ class Grammar {
 
         $where = is_array($query->wheres) ? $this->compileWheres($query) : '';
 
-        return !empty($this->joins)
+        return !empty($query->joins)
             ? $this->compileDeleteWithJoins($query, $table, $where)
             : $this->compileDeleteWithoutJoins($query, $table, $where);
     }
@@ -484,7 +484,7 @@ class Grammar {
      *
      * @param Builder $query
      * @param  string $table
-     * @param  array $where
+     * @param  string $where
      * @return string
      */
     protected function compileDeleteWithoutJoins(Builder $query, $table, $where) {
@@ -493,11 +493,11 @@ class Grammar {
         // When using MySQL, delete statements may contain order by statements and limits
         // so we will compile both of those here. Once we have finished compiling this
         // we will return the completed SQL statement so it will be executed for us.
-        if (! empty($this->orders)) {
+        if (! empty($query->orders)) {
             $sql .= $this->compileOrders($query);
         }
 
-        if (isset($this->limit)) {
+        if (isset($query->limit)) {
             $sql .= $this->compileLimit($query);
         }
         return $sql;
@@ -508,7 +508,7 @@ class Grammar {
      *
      * @param Builder $query
      * @param  string $table
-     * @param  array $where
+     * @param  string $where
      * @return string
      */
     protected function compileDeleteWithJoins(Builder $query, $table, $where) {
