@@ -152,6 +152,16 @@ class Schema {
     }
 
     /**
+     * 重命名表
+     * @param $table
+     * @param $newName
+     * @return mixed
+     */
+    public static function renameTable($table, $newName) {
+        return (new Table($table))->rename($newName);
+    }
+
+    /**
      * 删除表
      * @param string $table
      * @return mixed

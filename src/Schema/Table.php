@@ -533,6 +533,12 @@ class Table extends BaseSchema {
         return (new Builder())->from($this->getTable());
     }
 
+    public function rename($name) {
+        $sql = sprintf('ALTER TABLE  %s RENAME TO %s', $this->getTable(), $this->addPrefix($name));
+        $this->setTableName($name);
+        return $this->command()->execute($sql);
+    }
+
     public function __call($name, $arguments) {
         $this->set($name, ...$arguments);
     }
