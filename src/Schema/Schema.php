@@ -163,10 +163,14 @@ class Schema {
 
     /**
      * 删除表
-     * @param string $table
-     * @return mixed
+     * @param string|array $tables
+     * @return bool
      */
-    public static function dropTable($table) {
-        return (new Table($table))->drop();
+    public static function dropTable($tables) {
+        $table = new Table('');
+        foreach ((array)$tables as $item) {
+            $table->setTableName($item)->drop();
+        }
+        return true;
     }
 }

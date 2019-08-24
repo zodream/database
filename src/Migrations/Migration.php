@@ -1,5 +1,8 @@
 <?php
 namespace Zodream\Database\Migrations;
+
+use Zodream\Database\Schema\Schema;
+
 /**
  * Created by PhpStorm.
  * User: ZoDream
@@ -8,9 +11,60 @@ namespace Zodream\Database\Migrations;
  */
 abstract class Migration {
 
-    public function up() {}
+    protected $tables = [];
+    private $mode = false;
 
-    public function down() {}
+    /**
+     * 追加数据
+     * @param $table
+     * @param null $func
+     * @return $this
+     */
+    public function append($table, $func = null) {
+        if (!is_array($table)) {
+            $table = [$table => $func];
+        }
+        foreach ($table as $key => $item) {
+            if (!is_callable($item)) {
+                continue;
+            }
+            if (strpos($key, '\\', 1) !== false && is_callable($key.'::tableName')) {
+                $key = call_user_func($key.'::tableName');
+            }
+            $this->tables[$key] = $item;
+        }
+        return $this;
+    }
+
+    public function up() {
+        if ($this->mode) {
+            return;
+        }
+        $this->createTable();
+    }
+
+    public function down() {
+        $this->mode = true;
+        $this->up();
+        $this->mode = false;
+        $this->dropTable();
+    }
+
+    /**
+     * 执行生成命令
+     */
+    public function createTable() {
+        foreach ($this->tables as $table => $func) {
+            Schema::createTable($table, $func);
+        }
+    }
+
+    /**
+     * 执行删除命令
+     */
+    public function dropTable() {
+        Schema::dropTable(array_keys($this->tables));
+    }
 
     /**
      * 生成测试数据
