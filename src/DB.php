@@ -2,6 +2,7 @@
 namespace Zodream\Database;
 
 
+use Zodream\Database\Events\QueryExecuted;
 use Zodream\Database\Query\Builder;
 
 class DB {
@@ -20,9 +21,16 @@ class DB {
         return self::$logs;
     }
 
-    public static function addQueryLog($sql, $bindings = []) {
+    /**
+     * @param $sql
+     * @param array $bindings
+     * @param null $time
+     * @throws \Exception
+     */
+    public static function addQueryLog($sql, $bindings = [], $time = null) {
+        event(new QueryExecuted($sql, $bindings, $time, Command::getInstance()->getCurrentName()));
         if (self::$enableLog) {
-            self::$logs[] = [$sql, $bindings];
+            self::$logs[] = compact('sql', 'bindings', 'time');
         }
     }
 

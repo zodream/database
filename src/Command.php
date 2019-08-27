@@ -6,13 +6,14 @@ namespace Zodream\Database;
  * Date: 2016/5/14
  * Time: 9:07
  */
-use Zodream\Infrastructure\Base\ConfigObject;
+use Zodream\Helpers\Time;
 use Zodream\Database\Engine\BaseEngine;
 use Zodream\Database\Engine\Pdo;
 use Zodream\Service\Config;
 use Zodream\Service\Factory;
 use Zodream\Helpers\Str;
 use Zodream\Infrastructure\Traits\SingletonPattern;
+use Closure;
 
 class Command extends Manager {
 
@@ -127,7 +128,7 @@ class Command extends Manager {
      * 拷贝（未实现）
      */
     public function copy() {
-        return $this->select(null, '* INTO table in db');
+        //return $this->select(null, '* INTO table in db');
     }
 
     /**
@@ -171,8 +172,7 @@ class Command extends Manager {
      * @return mixed
      * @throws \Exception
      */
-    public function select($sql, $parameters = array()) {
-        DB::addQueryLog($sql, $parameters);
+    public function select($sql, $parameters = []) {
         return $this->getArray($sql, $parameters);
     }
 
@@ -203,9 +203,10 @@ class Command extends Manager {
      * @return int
      * @throws \Exception
      */
-    public function insert($sql, $parameters = array()) {
-        DB::addQueryLog($sql, $parameters);
-        return $this->getEngine()->insert($sql, $parameters);
+    public function insert($sql, $parameters = []) {
+        return $this->run($sql, $parameters, function ($sql, $parameters) {
+            return $this->getEngine()->insert($sql, $parameters);
+        });
     }
 
     /**
@@ -254,9 +255,10 @@ class Command extends Manager {
      * @return int
      * @throws \Exception
      */
-    public function update($sql, $parameters = array()) {
-        DB::addQueryLog($sql, $parameters);
-        return $this->getEngine()->update($sql, $parameters);
+    public function update($sql, $parameters = []) {
+        return $this->run($sql, $parameters, function ($sql, $parameters) {
+            return $this->getEngine()->update($sql, $parameters);
+        });
     }
 
     /**
@@ -266,9 +268,10 @@ class Command extends Manager {
      * @return int
      * @throws \Exception
      */
-    public function delete($sql = null, $parameters = array()) {
-        DB::addQueryLog($sql, $parameters);
-        return $this->getEngine()->delete($sql, $parameters);
+    public function delete($sql = null, $parameters = []) {
+        return $this->run($sql, $parameters, function ($sql, $parameters) {
+            return $this->getEngine()->delete($sql, $parameters);
+        });
     }
 
     /**
@@ -277,18 +280,39 @@ class Command extends Manager {
      * @return mixed
      * @throws \Exception
      */
-    public function execute($sql, $parameters = array()) {
+    public function execute($sql, $parameters = []) {
         if (preg_match('/^(insert|delete|update|replace|drop|create)\s+/i', $sql)) {
-            return $this->getEngine()->execute($sql, $parameters);
+            return $this->run($sql, $parameters, function ($sql, $parameters) {
+                return $this->getEngine()->execute($sql, $parameters);
+            });
         }
         $args = empty($parameters) ? serialize($parameters) : null;
         if ($cache = $this->getCache($sql.$args)) {
             return $cache;
         }
-        DB::addQueryLog($sql, $parameters);
-        $result = $this->getEngine()->execute($sql, $parameters);
+        $result = $this->run($sql, $parameters, function ($sql, $parameters) {
+            return $this->getEngine()->execute($sql, $parameters);
+        });
         $this->setCache($sql.$args, $result);
         return $result;
+    }
+
+    /**
+     * @param $query
+     * @param $bindings
+     * @param Closure $callback
+     * @return mixed
+     * @throws \Exception
+     */
+    protected function run($query, $bindings, \Closure $callback) {
+        $start = Time::millisecond();
+        $result = $this->runQueryCallback($query, $bindings, $callback);
+        DB::addQueryLog($query, $bindings, Time::elapsedTime($start));
+        return $result;
+    }
+
+    protected function runQueryCallback($query, $bindings, Closure $callback) {
+        return $callback($query, $bindings);
     }
 
     /**
@@ -321,7 +345,9 @@ class Command extends Manager {
         if ($cache = $this->getCache($sql.$args)) {
             return $cache;
         }
-        $result = $this->getEngine()->getArray($sql, $parameters);
+        $result = $this->run($sql, $parameters, function ($sql, $parameters) {
+            return $this->getEngine()->getArray($sql, $parameters);
+        });
         $this->setCache($sql.$args, $result);
         return $result;
     }
@@ -337,7 +363,9 @@ class Command extends Manager {
         if ($cache = $this->getCache($sql.$args)) {
             return $cache;
         }
-        $result = $this->getEngine()->getObject($sql, $parameters);
+        $result = $this->run($sql, $parameters, function ($sql, $parameters) {
+            return $this->getEngine()->getObject($sql, $parameters);
+        });
         $this->setCache($sql.$args, $result);
         return $result;
     }
