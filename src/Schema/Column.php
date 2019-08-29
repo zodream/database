@@ -254,7 +254,7 @@ class Column {
     }
 
     public function enum(array $args) {
-        return $this->addData(self::_DEFAULT_, 'ENUM(\''.implode("', '", $args)."')");
+        return $this->addData(self::KIND, 'ENUM(\''.implode("', '", $args)."')");
     }
 
 
