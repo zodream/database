@@ -1,7 +1,6 @@
 <?php
 namespace Zodream\Database\Model\Relations;
 
-use Illuminate\Database\Eloquent\Collection;
 
 class MorphMany extends MorphOneOrMany
 {
@@ -35,11 +34,11 @@ class MorphMany extends MorphOneOrMany
      * Match the eagerly loaded results to their parents.
      *
      * @param  array   $models
-     * @param  \Illuminate\Database\Eloquent\Collection  $results
+     * @param  array $results
      * @param  string  $relation
      * @return array
      */
-    public function match(array $models, Collection $results, $relation)
+    public function match(array $models, $results, $relation)
     {
         return $this->matchMany($models, $results, $relation);
     }

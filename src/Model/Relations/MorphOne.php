@@ -1,9 +1,8 @@
 <?php
 namespace Zodream\Database\Model\Relations;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\Relations\Concerns\SupportsDefaultModels;
+
+use Zodream\Database\Model\Model;
 
 class MorphOne extends MorphOneOrMany
 {
@@ -39,11 +38,11 @@ class MorphOne extends MorphOneOrMany
      * Match the eagerly loaded results to their parents.
      *
      * @param  array   $models
-     * @param  \Illuminate\Database\Eloquent\Collection  $results
+     * @param    $results
      * @param  string  $relation
      * @return array
      */
-    public function match(array $models, Collection $results, $relation)
+    public function match(array $models, $results, $relation)
     {
         return $this->matchOne($models, $results, $relation);
     }
@@ -51,8 +50,8 @@ class MorphOne extends MorphOneOrMany
     /**
      * Make a new related instance for the given model.
      *
-     * @param  \Illuminate\Database\Eloquent\Model  $parent
-     * @return \Illuminate\Database\Eloquent\Model
+     * @param  \Zodream\Database\Model\Model  $parent
+     * @return \Zodream\Database\Model\Model
      */
     public function newRelatedInstanceFor(Model $parent)
     {

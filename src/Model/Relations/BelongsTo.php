@@ -164,11 +164,11 @@ class BelongsTo extends Relation
      * Match the eagerly loaded results to their parents.
      *
      * @param  array   $models
-     * @param  \Illuminate\Database\Eloquent\Collection  $results
+     * @param  array $results
      * @param  string  $relation
      * @return array
      */
-    public function match(array $models, Collection $results, $relation)
+    public function match(array $models, $results, $relation)
     {
         $foreign = $this->foreignKey;
 

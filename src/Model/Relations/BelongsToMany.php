@@ -191,11 +191,11 @@ class BelongsToMany extends Relation
      * Match the eagerly loaded results to their parents.
      *
      * @param  array   $models
-     * @param  \Illuminate\Database\Eloquent\Collection  $results
+     * @param   $results
      * @param  string  $relation
      * @return array
      */
-    public function match(array $models, Collection $results, $relation)
+    public function match(array $models, $results, $relation)
     {
         $dictionary = $this->buildDictionary($results);
 
@@ -216,10 +216,10 @@ class BelongsToMany extends Relation
     /**
      * Build model dictionary keyed by the relation's foreign key.
      *
-     * @param  \Illuminate\Database\Eloquent\Collection  $results
+     * @param    $results
      * @return array
      */
-    protected function buildDictionary(Collection $results)
+    protected function buildDictionary($results)
     {
         // First we will build a dictionary of child models keyed by the foreign key
         // of the relation so that we will easily and quickly match them to their
@@ -237,7 +237,7 @@ class BelongsToMany extends Relation
      * Specify the custom pivot model to use for the relationship.
      *
      * @param  string  $class
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     * @return BelongsToMany
      */
     public function using($class)
     {

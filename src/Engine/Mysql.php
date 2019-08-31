@@ -5,6 +5,7 @@ namespace Zodream\Database\Engine;
 * 
 * @author Jason
 */
+use Zodream\Database\Grammars\MySqlGrammar;
 use Zodream\Helpers\Str;
 use Zodream\Service\Factory;
 
@@ -175,5 +176,9 @@ class Mysql extends BaseEngine {
         $result = empty($arg);
         mysql_query('END', $this->driver);
         return $result;
+    }
+
+    public function getGrammar() {
+        return new MySqlGrammar();
     }
 }

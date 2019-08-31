@@ -1,6 +1,8 @@
 <?php 
 namespace Zodream\Database\Engine;
 
+use Zodream\Database\Grammars\Grammar;
+use Zodream\Database\Grammars\MySqlGrammar;
 use Zodream\Service\Factory;
 /**
 * mysqli 
@@ -217,4 +219,11 @@ class Mysqli extends BaseEngine {
 	public function rollBack() {
 		return $this->driver->rollback();
 	}
+
+    /**
+     * @return Grammar
+     */
+    public function getGrammar() {
+        return new MySqlGrammar();
+    }
 }

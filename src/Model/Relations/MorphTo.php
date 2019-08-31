@@ -158,11 +158,11 @@ class MorphTo extends BelongsTo
      * Match the eagerly loaded results to their parents.
      *
      * @param  array   $models
-     * @param  \Illuminate\Database\Eloquent\Collection  $results
+     * @param    $results
      * @param  string  $relation
      * @return array
      */
-    public function match(array $models, Collection $results, $relation)
+    public function match(array $models, $results, $relation)
     {
         return $models;
     }
@@ -171,10 +171,10 @@ class MorphTo extends BelongsTo
      * Match the results for a given type to their parents.
      *
      * @param  string  $type
-     * @param  \Illuminate\Database\Eloquent\Collection  $results
+     * @param   $results
      * @return void
      */
-    protected function matchToMorphParents($type, Collection $results)
+    protected function matchToMorphParents($type,  $results)
     {
         foreach ($results as $result) {
             if (isset($this->dictionary[$type][$result->getKey()])) {
