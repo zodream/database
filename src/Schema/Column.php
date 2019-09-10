@@ -67,7 +67,7 @@ class Column {
 
     /**
      * @param string $collate
-     * @return Table
+     * @return static
      */
     public function setCollate($collate) {
         $this->collate = $collate;
@@ -148,10 +148,16 @@ class Column {
         return $this->addData(self::KIND, 'DECIMAL('.intval($size).','.intval($d).')');
     }
 
-    public function int($arg = null) {
+    public function int($arg = null, $unsigned = false, $notNull = false) {
         $sql = 'INT';
         if (!empty($arg)) {
             $sql .= '('.intval($arg).')';
+        }
+        if ($unsigned) {
+            $this->unsigned();
+        }
+        if ($notNull) {
+            $this->notNull();
         }
         return $this->addData(self::KIND, $sql);
     }
@@ -278,11 +284,14 @@ class Column {
         return $this->addData(self::AI, 'AUTO_INCREMENT')->unsigned();
     }
 
-    public function pk() {
+    public function pk($ai = false) {
         if (!isset($this->data[self::KIND])) {
             $this->int();
         }
         $this->notNull()->table->pk($this->field);
+        if ($ai) {
+            $this->ai();
+        }
         return $this;
     }
 
