@@ -63,10 +63,12 @@ trait ValidateAttributes {
             $item = $validator->converterRule($item);
             // 增加必须判断
             if (!$this->hasAttribute($key)
+                    && !property_exists($this, $key)
                 && !isset($item['rules']['required'])) {
                 continue;
             }
-            $value = $this->getAttributeValue($key);
+            $value = $this->hasAttribute($key) ?
+                $this->getAttributeValue($key) : $this->$key;
             foreach ($item['rules'] as $rule => $args) {
                 if (is_callable($args)) {
                     if (false !== call_user_func($args, $value)) {
