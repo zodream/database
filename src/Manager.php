@@ -55,7 +55,7 @@ abstract class Manager extends ConfigObject {
         if (is_object($configs)) {
             return $this->engines[$name] = $configs;
         }
-        if (!array_key_exists('driver', $configs) || !class_exists($configs['driver'])) {
+        if (!empty($configs) && !array_key_exists('driver', $configs) || !class_exists($configs['driver'])) {
             $configs['driver'] = $this->defaultDriver;
         }
         $class = $configs['driver'];

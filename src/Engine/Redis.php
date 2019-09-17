@@ -74,7 +74,7 @@ class Redis extends ConfigObject {
 	 * @return int
      */
 	public function zadd($key, $value, $score = 1) {
-		return $this->driver->zadd($key, $score, $value);
+		return $this->driver->zAdd($key, $score, $value);
 	}
 
 	/**
