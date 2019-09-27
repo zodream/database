@@ -308,6 +308,10 @@ class Command extends Manager {
         $start = Time::millisecond();
         $result = $this->runQueryCallback($query, $bindings, $callback);
         DB::addQueryLog($query, $bindings, Time::elapsedTime($start));
+        $error = $this->getError();
+        if (!empty($error)) {
+            throw new \Exception($error);
+        }
         return $result;
     }
 
