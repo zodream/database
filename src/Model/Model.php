@@ -149,11 +149,13 @@ abstract class Model extends MagicObject {
 				'where' => $param
 			];
 		}
-		return static::query()
-			->load($param)
-			->select($field)
-			->addBinding($parameters)
-			->one();
+		$query = static::query()
+            ->load($param);
+		if ($field !== '*' || empty($query->selects)) {
+            $query->select($field);
+        }
+		return $query->addBinding($parameters)
+			->first();
 	}
 
     /**
