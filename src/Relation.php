@@ -4,6 +4,20 @@ namespace Zodream\Database;
 use Zodream\Database\Model\Model;
 use Zodream\Database\Query\Builder;
 
+/**
+ * Class Relation
+ * @package Zodream\Database
+ * @method Relation where($column, $operator = null, $value = null, $boolean = 'and')
+ * @method Relation orWhere($column, $operator = null, $value = null)
+ * @method Relation whereIn($column, $values, $boolean = 'and', $not = false)
+ * @method Relation orWhereIn($column, $values)
+ * @method Relation whereNotIn($column, $values, $boolean = 'and')
+ * @method Relation orWhereNotIn($column, $values)
+ * @method Relation having($column, $operator = null, $value = null, $boolean = 'and')
+ * @method Relation orHaving($column, $operator = null, $value = null)
+ * @method Relation join($table, $first, $operator = null, $second = null, $type = 'inner')
+ * @method Relation leftJoin($table, $first, $operator = null, $second = null)
+ */
 class Relation {
 
     const TYPE_ONE = 0;
@@ -271,6 +285,11 @@ class Relation {
             }
         }
         return true;
+    }
+
+    public function __call($name, $arguments) {
+        $this->query->$name(...$arguments);
+        return $this;
     }
 
 

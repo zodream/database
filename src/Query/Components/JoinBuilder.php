@@ -1,7 +1,7 @@
 <?php
 namespace Zodream\Database\Query\Components;
 
-use Zodream\Database\Query\Query;
+use Zodream\Database\Query\Builder;
 
 trait JoinBuilder {
 
@@ -33,7 +33,7 @@ trait JoinBuilder {
      * @param  string  $first
      * @param  string  $operator
      * @param  string  $second
-     * @return Query|static
+     * @return Builder|static
      */
     public function leftJoin($table, $first, $operator = null, $second = null) {
         return $this->join($table, $first, $operator, $second, 'left');
@@ -50,7 +50,7 @@ trait JoinBuilder {
      * @param  string  $first
      * @param  string  $operator
      * @param  string  $second
-     * @return Query|static
+     * @return Builder|static
      */
     public function rightJoin($table, $first, $operator = null, $second = null) {
         return $this->join($table, $first, $operator, $second, 'right');
@@ -67,14 +67,14 @@ trait JoinBuilder {
      * @param  string  $first
      * @param  string  $operator
      * @param  string  $second
-     * @return Query|static
+     * @return Builder|static
      */
     public function crossJoin($table, $first = null, $operator = null, $second = null) {
         return $this->join($table, $first, $operator, $second, 'cross');
     }
 
     public function cross($table, $first = null, $operator = null, $second = null) {
-        return $this->crossJoin($table, $first, $operator, $second, 'cross');
+        return $this->crossJoin($table, $first, $operator, $second);
     }
 
     public function inner($table, $first = null, $operator = null, $second = null) {

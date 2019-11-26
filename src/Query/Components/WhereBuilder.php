@@ -2,7 +2,7 @@
 namespace Zodream\Database\Query\Components;
 
 use Zodream\Database\Query\Expression;
-use Zodream\Database\Query\Query;
+use Zodream\Database\Query\Builder;
 use Zodream\Helpers\Str;
 use Closure;
 use Zodream\Infrastructure\Interfaces\ArrayAble;
@@ -105,7 +105,7 @@ trait WhereBuilder {
      * @param  string|array  $first
      * @param  string|null  $operator
      * @param  string|null  $second
-     * @return Query|static
+     * @return Builder|static
      */
     public function orWhereColumn($first, $operator = null, $second = null) {
         return $this->whereColumn($first, $operator, $second, 'or');
@@ -132,7 +132,7 @@ trait WhereBuilder {
      *
      * @param  string  $sql
      * @param  array   $bindings
-     * @return Query|static
+     * @return Builder|static
      */
     public function orWhereRaw($sql, array $bindings = []) {
         return $this->whereRaw($sql, $bindings, 'or');
@@ -192,7 +192,7 @@ trait WhereBuilder {
      *
      * @param  string  $column
      * @param  mixed   $values
-     * @return Query|static
+     * @return Builder|static
      */
     public function orWhereIn($column, $values) {
         return $this->whereIn($column, $values, 'or');
@@ -204,7 +204,7 @@ trait WhereBuilder {
      * @param  string  $column
      * @param  mixed   $values
      * @param  string  $boolean
-     * @return Query|static
+     * @return Builder|static
      */
     public function whereNotIn($column, $values, $boolean = 'and') {
         return $this->whereIn($column, $values, $boolean, true);
@@ -215,7 +215,7 @@ trait WhereBuilder {
      *
      * @param  string  $column
      * @param  mixed   $values
-     * @return Query|static
+     * @return Builder|static
      */
     public function orWhereNotIn($column, $values) {
         return $this->whereNotIn($column, $values, 'or');
@@ -249,7 +249,7 @@ trait WhereBuilder {
      * Add an external sub-select to the query.
      *
      * @param  string   $column
-     * @param  Query|static  $query
+     * @param  Builder|static  $query
      * @param  string   $boolean
      * @param  bool     $not
      * @return $this
@@ -284,7 +284,7 @@ trait WhereBuilder {
      * Add an "or where null" clause to the query.
      *
      * @param  string  $column
-     * @return Query|static
+     * @return Builder|static
      */
     public function orWhereNull($column) {
         return $this->whereNull($column, 'or');
@@ -325,7 +325,7 @@ trait WhereBuilder {
      *
      * @param  string  $column
      * @param  array   $values
-     * @return Query|static
+     * @return Builder|static
      */
     public function orWhereBetween($column, array $values) {
         return $this->whereBetween($column, $values, 'or');
@@ -337,7 +337,7 @@ trait WhereBuilder {
      * @param  string  $column
      * @param  array   $values
      * @param  string  $boolean
-     * @return Query|static
+     * @return Builder|static
      */
     public function whereNotBetween($column, array $values, $boolean = 'and') {
         return $this->whereBetween($column, $values, $boolean, true);
@@ -348,7 +348,7 @@ trait WhereBuilder {
      *
      * @param  string  $column
      * @param  array   $values
-     * @return Query|static
+     * @return Builder|static
      */
     public function orWhereNotBetween($column, array $values) {
         return $this->whereNotBetween($column, $values, 'or');
@@ -358,7 +358,7 @@ trait WhereBuilder {
      * Add an "or where not null" clause to the query.
      *
      * @param  string  $column
-     * @return Query|static
+     * @return Builder|static
      */
     public function orWhereNotNull($column) {
         return $this->whereNotNull($column, 'or');
@@ -369,7 +369,7 @@ trait WhereBuilder {
      *
      * @param  \Closure $callback
      * @param  string   $boolean
-     * @return Query|static
+     * @return Builder|static
      */
     public function whereNested(Closure $callback, $boolean = 'and') {
         call_user_func($callback, $query = $this->forNestedWhere());
@@ -381,7 +381,7 @@ trait WhereBuilder {
     /**
      * Create a new query instance for nested where condition.
      *
-     * @return Query
+     * @return Builder
      */
     public function forNestedWhere() {
         return (new static())->from($this->from);
@@ -390,7 +390,7 @@ trait WhereBuilder {
     /**
      * Add another query builder as a nested where to the query builder.
      *
-     * @param  Query|static $query
+     * @param  Builder|static $query
      * @param  string  $boolean
      * @return $this
      */
