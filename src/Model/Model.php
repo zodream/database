@@ -141,7 +141,7 @@ abstract class Model extends MagicObject {
 	        return false;
         }
 		$model = new static;
-		if (is_numeric($param)) {
+		if (!is_array($param)) {
 			$param = [$model->getKeyName() => $param];
 		}
 		if (!is_array($param) || !array_key_exists('where', $param)) {
