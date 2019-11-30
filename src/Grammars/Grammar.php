@@ -32,7 +32,7 @@ class Grammar {
                 $result[] = "{$item} AS {$key}";
             }
         }
-        return implode($result, ',');
+        return implode(',', $result);
     }
 
     public function compileFrom(Builder $query): string {
@@ -51,7 +51,7 @@ class Grammar {
             }
             $result[] = $query->addPrefix($item).' ' .$key;
         }
-        return ' FROM '.implode($result, ',');
+        return ' FROM '.implode(',', $result);
     }
 
     /**
@@ -272,7 +272,7 @@ class Grammar {
             }
             $result[] = $sql;
         }
-        return ' ORDER BY '.implode($result, ',');
+        return ' ORDER BY '.implode(',', $result);
     }
 
     protected function compileLimit(Builder $query): string {
