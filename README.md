@@ -1,6 +1,12 @@
 # database
 SQL Builder With PDO, ORM etc
 
+## 提前预知为空不进行真实数据请求
+
+```php
+$query->isEmpty();
+```
+
 ## 关联的特殊用法
 
 根据商品获取商品属性及属性名

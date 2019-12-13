@@ -1,7 +1,7 @@
 <?php
 namespace Zodream\Database\Model;
 
-use Zodream\Database\Model\Relations\Relation;
+use Zodream\Database\Relation;
 use Zodream\Database\Query\Builder;
 use Zodream\Helpers\Arr;
 use Zodream\Helpers\Str;
@@ -114,9 +114,7 @@ class Query extends Builder {
      * @return Relation
      */
     protected function getRelationWithoutConstraints($relation) {
-        return Relation::noConstraints(function () use ($relation) {
-            return $this->getModel()->{$relation}();
-        });
+        return $this->getModel()->{$relation}();
     }
 
     /**
@@ -347,15 +345,9 @@ class Query extends Builder {
         // query back to it in order that any where conditions might be specified.
         $relation = $this->getRelation($name);
 
-        $relation->addEagerConstraints($models);
         $constraints($relation);
-        // Once we have the results, we just match those back up to their parent models
-        // using the relationship instance. Then we just return the finished arrays
-        // of models which have been eagerly hydrated and are readied for return.
-        return $relation->match(
-            $relation->initRelation($models, $name),
-            $relation->getEager(), $name
-        );
+        $relation->setKey($name);
+        return $relation->get($models);
     }
 
     /**
@@ -368,13 +360,12 @@ class Query extends Builder {
         // We want to run a relationship query without any constrains so that we will
         // not have to remove these where clauses manually which gets really hacky
         // and error prone. We don't want constraints because we add eager ones.
-        $relation = Relation::noConstraints(function () use ($name) {
-            try {
-                return $this->getModel()->{$name}();
-            } catch (\Exception $e) {
-                throw $e;//RelationNotFoundException::make($this->getModel(), $name);
-            }
-        });
+        try {
+            /** @var Relation $relation */
+            $relation = $this->getModel()->{$name}();
+        } catch (\Exception $e) {
+            throw $e;
+        };
 
         $nested = $this->relationsNestedUnder($name);
 

@@ -1,7 +1,7 @@
 <?php
 namespace Zodream\Database\Model\Concerns;
 
-use Zodream\Database\Model\Relations\Relation;
+use Zodream\Database\Relation;
 use Zodream\Helpers\Arr;
 use Zodream\Helpers\Str;
 use LogicException;
@@ -121,7 +121,7 @@ trait HasAttributes {
                 __('Relationship method must return an object of type ')
             );
         }
-        $results = $relation->getResults();
+        $results = $relation->getResults($this);
         $this->setRelation($method, $results);
         return $results;
     }

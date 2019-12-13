@@ -3,10 +3,7 @@ namespace Zodream\Database\Model\Concerns;
 
 use Zodream\Database\Model\Model;
 use Zodream\Database\Model\Query;
-use Zodream\Database\Model\Relations\BelongsToMany;
-use Zodream\Database\Model\Relations\HasMany;
-use Zodream\Database\Model\Relations\HasOne;
-use Zodream\Database\Model\Relations\Relation;
+use Zodream\Database\Relation;
 
 /**
  * Created by PhpStorm.
@@ -31,7 +28,13 @@ trait HasRelation {
         if ($table instanceof Model) {
             $table = $table->className();
         }
-        return new HasOne($this->getRelationQuery($table), $this,  $foreignKey, $localKey);
+        return Relation::parse([
+            'query' => $this->getRelationQuery($table),
+            'type' => Relation::TYPE_ONE,
+            'link' => [
+                $localKey => $foreignKey
+            ]
+        ]);
     }
 
     /**
@@ -75,7 +78,13 @@ trait HasRelation {
         if ($table instanceof Model) {
             $table = $table->className();
         }
-        return new HasMany($this->getRelationQuery($table), $this, $link, $key);
+        return Relation::parse([
+            'query' => $this->getRelationQuery($table),
+            'type' => Relation::TYPE_MANY,
+            'link' => [
+                $key => $link
+            ]
+        ]);
     }
 
     public function belongsToMany($dist, $middle, $currentForeignKey, $distForeignKey) {

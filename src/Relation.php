@@ -2,6 +2,7 @@
 namespace Zodream\Database;
 
 use Zodream\Database\Model\Model;
+use Zodream\Database\Model\Query;
 use Zodream\Database\Query\Builder;
 
 /**
@@ -285,6 +286,13 @@ class Relation {
             }
         }
         return true;
+    }
+
+    /**
+     * @return Builder| Query
+     */
+    public function getQuery() {
+        return $this->query;
     }
 
     public function __call($name, $arguments) {
