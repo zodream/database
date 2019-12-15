@@ -25,6 +25,8 @@ class Relation {
 
     const TYPE_MANY = 1;
 
+    const EMPTY_RELATION_KEY = '__relation_key__';
+
     /**
      * @var string
      */
@@ -53,9 +55,11 @@ class Relation {
 
     /**
      * @param string $key
+     * @return Relation
      */
     public function setKey($key) {
         $this->key = $key;
+        return $this;
     }
 
     /**
@@ -67,13 +71,23 @@ class Relation {
 
     /**
      * @param int $type
+     * @return Relation
      */
     public function setType($type) {
         $this->type = $type;
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getType(): int {
+        return $this->type;
     }
 
     /**
      * @param array $maps
+     * @return Relation
      */
     public function setLinks(array $maps) {
         foreach ($maps as $key => $val) {
@@ -89,10 +103,12 @@ class Relation {
             }
             $this->appendLink($maps[$key -1], $val);
         }
+        return $this;
     }
 
     public function appendLink($foreignKey, $localKey) {
         $this->links[$foreignKey] = $localKey;
+        return $this;
     }
 
     /**
@@ -108,23 +124,27 @@ class Relation {
 
     /**
      * @param Builder $query
+     * @return Relation
      */
     public function setQuery($query) {
         $this->query = $query;
+        return $this;
     }
 
     /**
      * @param Relation[] $relations
+     * @return Relation
      */
     public function setRelations(array $relations) {
         foreach ($relations as $key => $relation) {
             $this->appendRelation($relation, is_int($key) ? null : $key);
         }
-
+        return $this;
     }
 
     public function appendRelation($relation, $key = null) {
         $this->relations[] = static::parse($relation, $key);
+        return $this;
     }
 
     /**
@@ -184,9 +204,11 @@ class Relation {
         }
         foreach ($this->relations as $relation) {
             if (empty($relation->getKey())) {
-                return $relation->getResults($data);
+                // 如果为key空 表示把结果作为替换
+                $relation->setKey(self::EMPTY_RELATION_KEY);
+                return $relation->get($data);
             }
-            $data = $relation->getResults($data);
+            $data = $relation->get($data);
         }
         return $data;
     }
@@ -198,7 +220,7 @@ class Relation {
      * @throws \Exception
      */
     public function getResults($models) {
-        $is_one = !is_array($models) || !is_array(reset($models));
+        $is_one = !static::isSomeArr($models);
         if ($is_one) {
             $models = [$models];
         }
@@ -266,11 +288,32 @@ class Relation {
                 continue;
             }
             if ($this->type == self::TYPE_ONE) {
-                return $item;
+                return $this->hasEmptyRelationKey($item)
+                    ? $item[self::EMPTY_RELATION_KEY] : $item;
             }
-            $data[] = $item;
+            if (!$this->hasEmptyRelationKey($item)) {
+                $data[] = $item;
+                continue;
+            }
+            $args = $item[self::EMPTY_RELATION_KEY];
+            if (empty($args)) {
+                continue;
+            }
+            if (!self::isSomeArr($args)) {
+                $data[] = $args;
+                continue;
+            }
+            $data = array_merge($data, $args);
         }
         return $data;
+    }
+
+    protected function hasEmptyRelationKey($item) {
+        if (is_array($item) || !$item instanceof Model) {
+            return isset($item[self::EMPTY_RELATION_KEY])
+                || array_key_exists(self::EMPTY_RELATION_KEY, $item);
+        }
+        return $item->relationLoaded(self::EMPTY_RELATION_KEY);
     }
 
     /**
@@ -293,6 +336,22 @@ class Relation {
      */
     public function getQuery() {
         return $this->query;
+    }
+
+    public function getRelationExistenceCountQuery(Query $query, Query $parentQuery) {
+        return $this->getRelationExistenceQuery(
+            $query, $parentQuery, 'count(*)'
+        );
+    }
+
+    public function getRelationExistenceQuery(Query $query, Query $parentQuery, $columns = ['*']) {
+        foreach ($this->links as $fk => $lk) {
+            $query->whereColumn(
+                $parentQuery->getModel()->qualifyColumn($fk), '=',
+                $lk
+            );
+        }
+        return $query->select($columns);
     }
 
     public function __call($name, $arguments) {
@@ -343,6 +402,9 @@ class Relation {
      */
     public static function parse($data, $key = null) {
         if ($data instanceof Relation) {
+            if (!empty($key)) {
+                $data->setKey($key);
+            }
             return $data;
         }
         $relation = new static();

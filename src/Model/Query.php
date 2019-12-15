@@ -63,8 +63,9 @@ class Query extends Builder {
     /**
      * Add subselect queries to count the relations.
      *
-     * @param  mixed  $relations
+     * @param mixed $relations
      * @return $this
+     * @throws \Exception
      */
     public function withCount($relations) {
         if (empty($relations)) {
@@ -95,7 +96,7 @@ class Query extends Builder {
             // as a sub-select. First, we'll get the "has" query and use that to get the relation
             // count query. We will normalize the relation name then append _count as the name.
             $query = $relation->getRelationExistenceCountQuery(
-                $relation->getRelated()->query(), $this
+                $relation->getQuery(), $this
             );
 
             // Finally we will add the proper result column alias to the query and run the subselect
@@ -104,6 +105,7 @@ class Query extends Builder {
             $column = $alias ?: strtolower($name.'_count');
 
             $this->selectSub($query->getSql(), $column);
+            $this->addBinding($query->getBindings(), 'select');
         }
 
         return $this;
@@ -178,7 +180,6 @@ class Query extends Builder {
         // on the relationships. We will only set the ones that are not specified.
         foreach (explode('.', $name) as $segment) {
             $progress[] = $segment;
-
             if (! isset($results[$last = implode('.', $progress)])) {
                 $results[$last] = function () {
                     //
@@ -340,11 +341,7 @@ class Query extends Builder {
      * @return array
      */
     protected function eagerLoadRelation(array $models, $name, Closure $constraints) {
-        // First we will "back up" the existing where conditions on the query so we can
-        // add our eager constraints. Then we will merge the wheres that were on the
-        // query back to it in order that any where conditions might be specified.
         $relation = $this->getRelation($name);
-
         $constraints($relation);
         $relation->setKey($name);
         return $relation->get($models);
