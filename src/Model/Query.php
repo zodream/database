@@ -104,8 +104,7 @@ class Query extends Builder {
             // to the developer for further constraint chaining that needs to take place on it.
             $column = $alias ?: strtolower($name.'_count');
 
-            $this->selectSub($query->getSql(), $column);
-            $this->addBinding($query->getBindings(), 'select');
+            $this->selectSub($query, $column);
         }
 
         return $this;

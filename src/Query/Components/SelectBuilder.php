@@ -2,6 +2,8 @@
 namespace Zodream\Database\Query\Components;
 
 
+use Zodream\Database\Query\Builder;
+
 trait SelectBuilder {
 
     public $selects = [];
@@ -77,14 +79,15 @@ trait SelectBuilder {
     /**
      * Parse the sub-select query into SQL and bindings.
      *
-     * @param  mixed  $query
+     * @param mixed $query
      * @return array
+     * @throws \Exception
      */
     protected function parseSubSelect($query) {
-        if ($query instanceof self) {
-            $query->columns = [$query->columns[0]];
+        if ($query instanceof Builder) {
+            $query->selects = [$query->selects[0]];
 
-            return [$query->toSql(), $query->getBindings()];
+            return [$query->getSql(), $query->getBindings()];
         } elseif (is_string($query)) {
             return [$query, []];
         } else {

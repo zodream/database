@@ -273,11 +273,12 @@ class Builder extends BaseSchema {
     /**
      * Set the bindings on the query builder.
      *
-     * @param  array   $bindings
-     * @param  string  $type
+     * @param array $bindings
+     * @param string $type
      * @return $this
      *
      * @throws \InvalidArgumentException
+     * @throws \Exception
      */
     public function setBindings(array $bindings, $type = 'where') {
         if (! array_key_exists($type, $this->bindings)) {
@@ -294,11 +295,12 @@ class Builder extends BaseSchema {
     /**
      * Add a binding to the query.
      *
-     * @param  mixed   $value
-     * @param  string  $type
+     * @param mixed $value
+     * @param string $type
      * @return $this
      *
      * @throws \InvalidArgumentException
+     * @throws \Exception
      */
     public function addBinding($value, $type = 'where') {
         if (! array_key_exists($type, $this->bindings)) {
@@ -319,7 +321,7 @@ class Builder extends BaseSchema {
     /**
      * Merge an array of bindings into our bindings.
      *
-     * @param  BaseQuery  $query
+     * @param  Builder  $query
      * @return $this
      */
     public function mergeBindings(Builder $query) {

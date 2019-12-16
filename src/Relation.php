@@ -338,6 +338,11 @@ class Relation {
         return $this->query;
     }
 
+    /**
+     * @param Query $query
+     * @param Query $parentQuery
+     * @return Query
+     */
     public function getRelationExistenceCountQuery(Query $query, Query $parentQuery) {
         return $this->getRelationExistenceQuery(
             $query, $parentQuery, 'count(*)'
