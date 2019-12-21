@@ -29,7 +29,7 @@ class Table extends BaseSchema {
 
     protected $collate = 'utf8mb4_general_ci';
 
-    protected $engine = 'MyIAM';
+    protected $engine = self::MyISAM;
 
     protected $foreignKey = [];
 
