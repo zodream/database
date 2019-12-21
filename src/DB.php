@@ -2,9 +2,22 @@
 namespace Zodream\Database;
 
 
+use Zodream\Database\Engine\BaseEngine;
 use Zodream\Database\Events\QueryExecuted;
 use Zodream\Database\Query\Builder;
 
+/**
+ * Class DB
+ * @package Zodream\Database
+ * @method static bool transaction($args)
+ * @method static BaseEngine beginTransaction()
+ * @method static array select($sql, $parameters = [])
+ * @method static int insert($sql, $parameters = [])
+ * @method static int insertOrUpdate($columns, $tags, $update, $parameters = array())
+ * @method static int insertOrReplace($columns, $tags, $parameters = array())
+ * @method static int update($sql, $parameters = [])
+ * @method static int delete($sql = null, $parameters = [])
+ */
 class DB {
 
     protected static $enableLog = false;

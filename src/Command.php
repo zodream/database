@@ -15,6 +15,11 @@ use Zodream\Helpers\Str;
 use Zodream\Infrastructure\Traits\SingletonPattern;
 use Closure;
 
+/**
+ * Class Command
+ * @package Zodream\Database
+ * @method BaseEngine getEngine($name = null)
+ */
 class Command extends Manager {
 
     use SingletonPattern;
@@ -178,7 +183,7 @@ class Command extends Manager {
 
     /**
      * 执行事务
-     * @param array $args sql语句的数组
+     * @param array|callable $args sql语句的数组
      * @return bool
      * @throws \Exception
      */

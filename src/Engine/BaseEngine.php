@@ -59,7 +59,10 @@ abstract class BaseEngine extends ConfigObject {
     }
 	
 	protected abstract function connect();
-	
+
+    /**
+     * @return resource|\mysqli|\PDO
+     */
 	public function getDriver() {
 		return $this->driver;
 	}
@@ -146,12 +149,16 @@ abstract class BaseEngine extends ConfigObject {
 
 	/**
 	 * 执行事务
-	 * @param array $args
+	 * @param array|callable $args
 	 * @return bool
 	 */
 	public function transaction($args) {
 		$this->begin();
 		try {
+		    if (is_callable($args)) {
+		        call_user_func($args, $this);
+                $args = [];
+            }
 			$this->commit($args);
 			return true;
 		} catch (\Exception $ex) {
