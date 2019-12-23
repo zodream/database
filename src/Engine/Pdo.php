@@ -179,16 +179,21 @@ class Pdo extends BaseEngine {
 		$result = array();
 		while (!!$objects = $this->result->fetchObject()) {
 			$result[] = $objects;
-			
 		}
 		return $result;
 	}
 
-	public function row($isArray = true) {
-		if (is_bool($isArray)) {
-			$isArray = $isArray ? \PDO::FETCH_ASSOC : \PDO::FETCH_CLASS;
-		}
-		return $this->result->fetch($isArray);
+	public function row($isArray = true, $link = null) {
+		if (is_null($link)) {
+		    $link = $this->result;
+        }
+		if (empty($link)) {
+		    return false;
+        }
+        if (is_bool($isArray)) {
+            $isArray = $isArray ? \PDO::FETCH_ASSOC : \PDO::FETCH_CLASS;
+        }
+		return $link->fetch($isArray);
 	}
 
 	/**
@@ -252,5 +257,14 @@ class Pdo extends BaseEngine {
      */
     public function getGrammar() {
         return new MySqlGrammar();
+    }
+
+    public function close($link = null) {
+        if (!is_null($link)) {
+            unset($link);
+            return;
+        }
+        unset($this->result);
+        $this->driver = null;
     }
 }

@@ -4,6 +4,8 @@ declare(strict_types = 1);
 namespace Zodream\Database\Query\Components;
 
 
+use Zodream\Database\Command;
+use Zodream\Database\Model\Model;
 use Zodream\Html\Page;
 
 trait ExecBuilder {
@@ -25,6 +27,33 @@ trait ExecBuilder {
             $this->select(...func_get_args());
         }
         return $this->all();
+    }
+
+    public function each(callable $cb, ...$fields) {
+        if (func_num_args() > 1) {
+            $this->select(...$fields);
+        }
+        /** @var Command $command */
+        $command = $this->command();
+        $result = $command->execute($this->getSql(), $this->getBindings());
+        $items = [];
+        while (!!$res = $command->getEngine()->row(true, $result)) {
+            $item = call_user_func($cb, $res);
+            if (empty($item)) {
+                continue;
+            }
+            if (!is_array($item)) {
+                $items[] = $item;
+                continue;
+            }
+            $val = current($item);
+            if (is_array($val) || $val instanceof Model) {
+                $items = array_merge($items, $item);
+                continue;
+            }
+            $items[] = $item;
+        }
+        return $items;
     }
 
     /**

@@ -121,9 +121,13 @@ class Mysql extends BaseEngine {
      *
      * @access public
      *
-     *
+     * @param null $link
      */
-    public function close() {
+    public function close($link = null) {
+        if (!is_null($link)) {
+            mysql_free_result($link);
+            return;
+        }
         if (!empty($this->result) && !is_bool($this->result)) {
             mysql_free_result($this->result);
         }
@@ -180,5 +184,18 @@ class Mysql extends BaseEngine {
 
     public function getGrammar() {
         return new MySqlGrammar();
+    }
+
+    public function row($isArray = true, $link = null) {
+        if (is_null($link)) {
+            $link = $this->result;
+        }
+        if (empty($link)) {
+            return false;
+        }
+        if ($isArray) {
+            return mysql_fetch_assoc($link);
+        }
+        return mysql_fetch_object($link);
     }
 }

@@ -212,7 +212,7 @@ abstract class BaseEngine extends ConfigObject {
 	
 	abstract public function execute($sql = null, $parameters = array());
 	
-	
+	abstract public function row($isArray = true, $link = null);
 	
 	/**
 	 * 得到当前执行语句的错误信息
@@ -225,7 +225,10 @@ abstract class BaseEngine extends ConfigObject {
 		return $this->error;
 	}
 	
-	public function close() {
+	public function close($link = null) {
+	    if (!empty($link)) {
+	        return;
+        }
 		$this->driver = null;
 	}
 	

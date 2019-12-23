@@ -127,7 +127,7 @@ class Mysqli extends BaseEngine {
 	 *
 	 * @param string $sql 多行查询语句
 	 * @param array $parameters
-	 * @return bool|null
+	 * @return \mysqli_stmt
 	 */
 	public function execute($sql = null, $parameters = array()) {
 		if (empty($sql)) {
@@ -137,7 +137,8 @@ class Mysqli extends BaseEngine {
 		$this->bind($parameters);
         Factory::log()->info(sprintf('MYSQLI: %s => %s', $sql,
             $this->getError()));
-		return $this->result->execute();
+        $this->result->execute();
+		return $this->result;
 	}
 
 	/**
@@ -164,15 +165,32 @@ class Mysqli extends BaseEngine {
 		$this->close();
 		return $result;
 	}
-	
-	/**
-	 * 关闭和清理
-	 *
-	 * @access public
-	 *
-	 *
-	 */
-	public function close() {
+
+	public function row($isArray = true, $link = null) {
+        if (is_null($link)) {
+            $link = $this->result;
+        }
+        if (empty($link)) {
+            return false;
+        }
+        if ($isArray) {
+            return mysqli_fetch_assoc($link);
+        }
+        return mysqli_fetch_object($link);
+    }
+
+    /**
+     * 关闭和清理
+     *
+     * @access public
+     *
+     * @param null $link
+     */
+	public function close($link = null) {
+	    if (!is_null($link)) {
+            mysqli_free_result($link);
+            return;
+        }
 		if (!empty($this->result) && !is_bool($this->result)) {
 			mysqli_free_result($this->result);
 		}
