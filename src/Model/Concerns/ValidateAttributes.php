@@ -45,7 +45,7 @@ trait ValidateAttributes {
         if ($this->validateAttribute($rules)) {
             return true;
         }
-        Factory::log()->error('model validate error', $this->getError());
+        Factory::log()->error(sprintf('%s model validate error', static::class), $this->getError());
         return false;
     }
 
