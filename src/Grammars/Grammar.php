@@ -6,6 +6,7 @@ namespace Zodream\Database\Grammars;
 
 use Zodream\Database\Query\Builder;
 use Zodream\Database\Query\Expression;
+use Zodream\Helpers\Arr;
 
 class Grammar {
 
@@ -350,7 +351,8 @@ class Grammar {
             } elseif (is_null($values)) {
                 list($values, $columns) = [$columns, array_keys($columns)];
             }
-            if (is_array($values) && is_array(reset($values))){
+            if (is_array($values) && Arr::isAssoc(reset($values))){
+                // 如果值是关联数组则接着下来会进行排序
                 sort($columns);
             }
         }
