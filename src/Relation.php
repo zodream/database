@@ -4,6 +4,7 @@ namespace Zodream\Database;
 use Zodream\Database\Model\Model;
 use Zodream\Database\Model\Query;
 use Zodream\Database\Query\Builder;
+use Zodream\Html\Page;
 
 /**
  * Class Relation
@@ -385,6 +386,42 @@ class Relation {
             $models =  $relation->getWithMulti($models);
         }
         return $is_one ? reset($models) : $models;
+    }
+
+    /**
+     * 绑定已有数据
+     * @param mixed $models 主数据
+     * @param array $items 附加数据
+     * @param string $key 附加key
+     * @param array $links 关联
+     * @param int $type 附加形式
+     * @return array
+     * @throws \Exception
+     */
+    public static function bindRelation($models, array $items, string $key, array $links, $type = self::TYPE_ONE) {
+        if (empty($models)) {
+            return $models;
+        }
+        if ($models instanceof Page) {
+            return $models->setPage(static::bindRelationArr($models->getPage(), $items, $key, $links, $type));
+        }
+        $is_one = !static::isSomeArr($models);
+        if ($is_one) {
+            $models = [$models];
+        }
+        $models = static::bindRelationArr($models, $items, $key, $links, $type);
+        return $is_one ? reset($models) : $models;
+    }
+
+    public static function bindRelationArr($models, array $items, string $key, array $links, $type = self::TYPE_ONE) {
+        if (empty($models)) {
+            return $models;
+        }
+        $relation = new static();
+        $relation->setKey($key);
+        $relation->setLinks($links);
+        $relation->setType($type);
+        return $relation->buildRelation($models, $items);
     }
 
     /**
