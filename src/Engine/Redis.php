@@ -32,6 +32,10 @@ class Redis extends ConfigObject {
     protected function connect() {
         $this->driver = new RedisClient();
         $this->driver->connect($this->configs['host'], $this->configs['port']);
+        if (isset($this->configs['password']) && !$this->driver->auth($this->configs['password'])) {
+            throw new \Exception('redis password error!');
+        }
+        $this->driver->select(isset($this->configs['db']) ? intval($this->configs['db']) : 0);
     }
 
     /**

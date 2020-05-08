@@ -14,6 +14,8 @@ class RedisManager extends Manager {
 
     protected $defaultDriver = Redis::class;
 
+    protected $configKey = 'redis';
+
     /**
      * @param string $name
      * @return Redis
