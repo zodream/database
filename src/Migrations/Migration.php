@@ -37,10 +37,7 @@ abstract class Migration {
     }
 
     public function up() {
-        if ($this->mode) {
-            return;
-        }
-        $this->createTable();
+        $this->autoUp();
     }
 
     public function down() {
@@ -48,6 +45,16 @@ abstract class Migration {
         $this->up();
         $this->mode = false;
         $this->dropTable();
+    }
+
+    /**
+     * 自动确定是否为创建表
+     */
+    public function autoUp() {
+        if ($this->mode) {
+            return;
+        }
+        $this->createTable();
     }
 
     /**
