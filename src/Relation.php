@@ -395,7 +395,7 @@ class Relation {
      * @param string $key 附加key
      * @param array $links 关联
      * @param int $type 附加形式
-     * @return array
+     * @return array|Page
      * @throws \Exception
      */
     public static function bindRelation($models, array $items, string $key, array $links, $type = self::TYPE_ONE) {
