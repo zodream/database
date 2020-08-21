@@ -80,7 +80,7 @@ trait SaveModel {
             $pk = $this->primaryKey;
             // 插入空主键自动设置
             if ($this->isEmpty($pk)) {
-                $this->set($pk, $row);
+                $this->set($pk, is_numeric($row) ? intval($row) : $row);
             }
             $this->setOldAttribute();
         }
