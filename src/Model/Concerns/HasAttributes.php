@@ -59,7 +59,7 @@ trait HasAttributes {
     }
 
     public function getAllAttributes() {
-        $data = [];
+        $data = property_exists($this, 'relations') ? $this->relations : [];
         foreach ($this->__attributes as $key => $value) {
             $data[$key] = $this->getAttribute($key);
         }
