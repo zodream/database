@@ -1,7 +1,6 @@
 <?php
 namespace Zodream\Database\Model\Concerns;
 
-use Zodream\Service\Factory;
 use Zodream\Validate\Validator;
 use Exception;
 
@@ -45,7 +44,7 @@ trait ValidateAttributes {
         if ($this->validateAttribute($rules)) {
             return true;
         }
-        Factory::log()->error(sprintf('%s model validate error', static::class), $this->getError());
+        logger()->error(sprintf('%s model validate error', static::class), $this->getError());
         return false;
     }
 

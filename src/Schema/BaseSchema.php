@@ -6,23 +6,17 @@ namespace Zodream\Database\Schema;
  * Date: 2016/6/25
  * Time: 9:38
  */
+
 use Zodream\Database\Command;
+use Zodream\Infrastructure\Contracts\Database;
 
 abstract class BaseSchema {
 
     /**
-     * @var Command
-     */
-    private $_command;
-
-    /**
-     * @return Command
+     * @return Database|Command
      */
     protected function command() {
-        if (!$this->_command instanceof Command) {
-            $this->_command = Command::getInstance();
-        }
-        return $this->_command;
+        return app('db');
     }
 
     public function addPrefix($table) {

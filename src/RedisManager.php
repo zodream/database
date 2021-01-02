@@ -2,9 +2,10 @@
 namespace Zodream\Database;
 
 use Zodream\Database\Engine\Redis;
-use Zodream\Infrastructure\Traits\SingletonPattern;
+use Zodream\Infrastructure\Concerns\SingletonPattern;
 
 class RedisManager extends Manager {
+
     use SingletonPattern;
 
     /**

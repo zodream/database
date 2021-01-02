@@ -13,11 +13,22 @@
         }
     ],
     "require": {
-        "php": ">=7.1.0"
+        "php": ">=8.0"
+    },
+    "suggest": {
+        "ext-pdo_mysql": "*",
+        "ext-redis": "*"
     },
     "autoload": {
         "psr-4": {
             "Zodream\\Database\\": "src/"
+        }
+    },
+    "extra": {
+        "zodream": {
+            "providers": [
+                "Zodream\\Database\\DatabaseServiceProvider"
+            ]
         }
     }
 }

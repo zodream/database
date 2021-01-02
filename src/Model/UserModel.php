@@ -1,13 +1,8 @@
 <?php
+declare(strict_types=1);
 namespace Zodream\Database\Model;
-/**
- * Created by PhpStorm.
- * User: zx648
- * Date: 2016/7/12
- * Time: 16:13
- */
-use Zodream\Domain\Access\Auth;
-use Zodream\Infrastructure\Interfaces\UserObject;
+
+use Zodream\Infrastructure\Contracts\UserObject;
 
 abstract class UserModel extends Model implements UserObject {
 

@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 namespace Zodream\Database;
 /**
  * Created by PhpStorm.
@@ -9,20 +10,17 @@ namespace Zodream\Database;
 use Zodream\Helpers\Time;
 use Zodream\Database\Engine\BaseEngine;
 use Zodream\Database\Engine\Pdo;
-use Zodream\Service\Config;
-use Zodream\Service\Factory;
+use Zodream\Infrastructure\Concerns\SingletonPattern;
 use Zodream\Helpers\Str;
-use Zodream\Infrastructure\Traits\SingletonPattern;
 use Closure;
+use Zodream\Infrastructure\Contracts\Database;
 
 /**
  * Class Command
  * @package Zodream\Database
  * @method BaseEngine getEngine($name = null)
  */
-class Command extends Manager {
-
-    use SingletonPattern;
+class Command extends Manager implements Database {
 
     protected $table;
 
@@ -32,7 +30,7 @@ class Command extends Manager {
 
     protected $cacheLife = 3600;
 
-    protected $configKey = 'db';
+    protected $configKey = 'database.connections';
 
     /**
      * @var BaseEngine[]
@@ -49,7 +47,7 @@ class Command extends Manager {
     }
 
     protected function initEngineEvent($engine) {
-        Factory::timer()->record('db init end');
+        timer('db init end');
     }
 
     /**
@@ -66,8 +64,9 @@ class Command extends Manager {
      * @return string
      * @throws \Exception
      */
-    public function addPrefix($table) {
-        if (strpos($table, '`') !== false) {
+    public function addPrefix(string $table): string
+    {
+        if (str_contains($table, '`')) {
             return $table;
         }
         preg_match('/([\w_\.]+)( (as )?[\w_]+)?/i', $table, $match);
@@ -76,11 +75,11 @@ class Command extends Manager {
         if (count($match) > 2) {
             $alias = $match[2];
         }
-        if (strpos($table, '.') !== false) {
+        if (str_contains($table, '.')) {
             list($schema, $table) = explode('.', $table);
             return sprintf('`%s`.`%s`%s', $schema, $table, $alias);
         }
-        if (strpos($table, '!') === 0) {
+        if (str_starts_with($table, '!')) {
             return sprintf('`%s`%s', substr($table, 1), $alias);
         }
         $prefix = $this->getEngine()->getConfig('prefix');
@@ -97,7 +96,7 @@ class Command extends Manager {
      * @return $this
      * @throws \Exception
      */
-    public function setTable($table) {
+    public function setTable(string $table) {
         $this->table = $this->addPrefix($table);
         return $this;
     }
@@ -114,7 +113,7 @@ class Command extends Manager {
      * GET TABLE
      * @return string
      */
-    public function getTable() {
+    public function getTable(): string {
         return $this->table;
     }
 
@@ -124,7 +123,7 @@ class Command extends Manager {
      * @return $this
      * @throws \Exception
      */
-    public function changedDatabase($database) {
+    public function changedSchema(string $database): Database {
         $this->getEngine()->execute('use '.$database);
         return $this;
     }
@@ -138,7 +137,7 @@ class Command extends Manager {
 
     /**
      * 开启缓存
-     * @param int $expire
+     * @param int|bool $expire
      * @return $this
      */
     public function openCache($expire = 3600) {
@@ -152,22 +151,22 @@ class Command extends Manager {
      * @return array null
      * @throws \Exception
      */
-    public function getCache($sql) {
+    public function getCache(string $sql) {
         if (!$this->allowCache) {
             return null;
         }
-        $cache = Factory::cache()->get($this->currentName.$sql);
+        $cache = cache()->get($this->currentName.$sql);
         if (empty($cache)) {
             return null;
         }
         return unserialize($cache);
     }
 
-    public function setCache($sql, $data) {
-        if (!$this->allowCache || Config::isDebug()) {
+    public function setCache(string $sql, $data) {
+        if (!$this->allowCache || app()->isDebug()) {
             return;
         }
-        Factory::cache()->set($this->currentName.$sql, serialize($data), $this->cacheLife);
+        cache()->set($this->currentName.$sql, serialize($data), $this->cacheLife);
     }
 
     /**
@@ -177,7 +176,12 @@ class Command extends Manager {
      * @return mixed
      * @throws \Exception
      */
-    public function select($sql, $parameters = []) {
+    public function fetch(string $sql, array $parameters = []) {
+        return $this->getArray($sql, $parameters);
+    }
+
+    public function fetchMultiple(string $sql, array $parameters = [])
+    {
         return $this->getArray($sql, $parameters);
     }
 
@@ -208,7 +212,7 @@ class Command extends Manager {
      * @return int
      * @throws \Exception
      */
-    public function insert($sql, $parameters = []) {
+    public function insert(string $sql, array $parameters = []) {
         return $this->run($sql, $parameters, function ($sql, $parameters) {
             return $this->getEngine()->insert($sql, $parameters);
         });
@@ -260,23 +264,25 @@ class Command extends Manager {
      * @return int
      * @throws \Exception
      */
-    public function update($sql, $parameters = []) {
-        return $this->run($sql, $parameters, function ($sql, $parameters) {
+    public function update(string $sql, array $parameters = []): int {
+        $res = $this->run($sql, $parameters, function ($sql, $parameters) {
             return $this->getEngine()->update($sql, $parameters);
         });
+        return is_integer($res) ? $res : intval($res);
     }
 
     /**
      * 删除
-     * @param null $sql
+     * @param string $sql
      * @param array $parameters
      * @return int
      * @throws \Exception
      */
-    public function delete($sql = null, $parameters = []) {
-        return $this->run($sql, $parameters, function ($sql, $parameters) {
+    public function delete(string $sql, array $parameters = []): int {
+        $res = $this->run($sql, $parameters, function ($sql, $parameters) {
             return $this->getEngine()->delete($sql, $parameters);
         });
+        return is_integer($res) ? $res : intval($res);
     }
 
     /**
@@ -285,7 +291,7 @@ class Command extends Manager {
      * @return mixed
      * @throws \Exception
      */
-    public function execute($sql, $parameters = []) {
+    public function execute(string $sql, array $parameters = []) {
         if (preg_match('/^(insert|delete|update|replace|drop|create)\s+/i', $sql)) {
             return $this->run($sql, $parameters, function ($sql, $parameters) {
                 return $this->getEngine()->execute($sql, $parameters);
@@ -331,7 +337,7 @@ class Command extends Manager {
      * @throws \Exception
      */
     public function lastInsertId(): int {
-        return $this->getEngine()->lastInsertId();
+        return intval($this->getEngine()->lastInsertId());
     }
 
     /**
@@ -385,5 +391,27 @@ class Command extends Manager {
      */
     public function getError() {
         return $this->getEngine()->getError();
+    }
+
+    public function insertBatch(string $sql, array $parameters = [])
+    {
+        return $this->insert($sql, $parameters);
+    }
+
+    public function updateBatch(string $sql, array $parameters = [])
+    {
+        return $this->insert($sql, $parameters);
+    }
+
+    public function executeScalar(string $sql, array $parameters = [])
+    {
+        $items = $this->first($sql, $parameters);
+        return empty($items) ? [] : current($items);
+    }
+
+    public function first(string $sql, array $parameters = [])
+    {
+        $items = $this->fetch($sql, $parameters);
+        return empty($items) ? [] : current($items);
     }
 }

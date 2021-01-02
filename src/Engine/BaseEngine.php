@@ -8,7 +8,6 @@ namespace Zodream\Database\Engine;
  */
 use Zodream\Database\Grammars\Grammar;
 use Zodream\Infrastructure\Base\ConfigObject;
-use Zodream\Service\Factory;
 
 abstract class BaseEngine extends ConfigObject {
 	
@@ -46,9 +45,9 @@ abstract class BaseEngine extends ConfigObject {
      */
 	public function __construct($config) {
         if (is_array($config)) {
-            Factory::timer()->record('db engine init');
+            timer('db engine init');
             $this->setConfigs($config)->connect();
-            Factory::timer()->record('db engine end');
+            timer('db engine end');
             return;
         }
         $this->setDriver($config);

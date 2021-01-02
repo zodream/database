@@ -3,8 +3,6 @@ namespace Zodream\Database\Engine;
 
 use Zodream\Database\Grammars\Grammar;
 use Zodream\Database\Grammars\MySqlGrammar;
-use Zodream\Service\Config;
-use Zodream\Service\Factory;
 /**
 * pdo
 * 
@@ -148,8 +146,8 @@ class Pdo extends BaseEngine {
 			}
 			$this->result->execute();
 		} catch (\PDOException  $ex) {
-            if (Config::isDebug()) {
-                Factory::log()->info(sprintf('PDO: %s => %s', $sql, $this->error), $parameters);
+            if (app()->isDebug()) {
+                logger()->info(sprintf('PDO: %s => %s', $sql, $this->error), $parameters);
                 throw $ex;
             }
 			$this->error = $ex->getMessage();

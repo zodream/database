@@ -19,7 +19,7 @@ trait ExecBuilder {
         if ($this->isEmpty) {
             return null;
         }
-        return $this->command()->select($this->getSql(), $this->getBindings());
+        return $this->command()->fetch($this->getSql(), $this->getBindings());
     }
 
     public function get($fields = null): ?array {

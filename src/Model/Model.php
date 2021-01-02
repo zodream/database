@@ -14,8 +14,8 @@ use Zodream\Database\Model\Concerns\SaveModel;
 use Zodream\Database\Model\Concerns\ValidateAttributes;
 use Zodream\Helpers\Str;
 use Zodream\Infrastructure\Base\MagicObject;
-use Zodream\Infrastructure\Traits\ErrorTrait;
-use Zodream\Infrastructure\Traits\EventTrait;
+use Zodream\Infrastructure\Concerns\ErrorTrait;
+use Zodream\Infrastructure\Concerns\EventTrait;
 
 abstract class Model extends MagicObject {
 

@@ -8,13 +8,11 @@ namespace Zodream\Database\Schema;
  * Date: 2016/6/25
  * Time: 9:19
  */
+
 use Zodream\Database\Command;
+use Zodream\Infrastructure\Contracts\Database;
 
 class Schema {
-    /**
-     * @var Command
-     */
-    private $_command;
 
     protected $schema = 'zodream';
 
@@ -27,13 +25,10 @@ class Schema {
     }
 
     /**
-     * @return Command
+     * @return Database|Command
      */
     protected function command() {
-        if (!$this->_command instanceof Command) {
-            $this->_command = Command::getInstance();
-        }
-        return $this->_command;
+        return app('db');
     }
 
     public function setSchema($schema = null) {
@@ -97,7 +92,7 @@ class Schema {
      * @return array
      */
     public static function getAllDatabase() {
-        return Command::getInstance()->select('SHOW DATABASES');
+        return db()->fetch('SHOW DATABASES');
     }
 
     /**
@@ -107,7 +102,7 @@ class Schema {
      */
     public function getAllTable($hasStatus = false) {
         $this->command()
-            ->changedDatabase($this->schema);
+            ->changedSchema($this->schema);
         if ($hasStatus) {
             return $this->command()
                 ->select('SHOW TABLE STATUS');

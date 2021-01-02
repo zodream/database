@@ -11,7 +11,7 @@ use Zodream\Database\Query\Builder;
  * @package Zodream\Database
  * @method static bool transaction($args)
  * @method static BaseEngine beginTransaction()
- * @method static array select($sql, $parameters = [])
+ * @method static array fetch($sql, $parameters = [])
  * @method static int insert($sql, $parameters = [])
  * @method static int insertOrUpdate($columns, $tags, $update, $parameters = array())
  * @method static int insertOrReplace($columns, $tags, $parameters = array())
@@ -41,7 +41,7 @@ class DB {
      * @throws \Exception
      */
     public static function addQueryLog($sql, $bindings = [], $time = null) {
-        event(new QueryExecuted($sql, $bindings, $time, Command::getInstance()->getCurrentName()));
+        event(new QueryExecuted($sql, $bindings, $time, app('db')->getCurrentName()));
         if (self::$enableLog) {
             self::$logs[] = compact('sql', 'bindings', 'time');
         }
@@ -58,6 +58,6 @@ class DB {
     }
 
     public static function __callStatic($name, $arguments) {
-        return call_user_func_array([Command::getInstance(), $name], $arguments);
+        return call_user_func_array([app('db'), $name], $arguments);
     }
 }

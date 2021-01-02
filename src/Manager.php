@@ -1,7 +1,6 @@
 <?php
 namespace Zodream\Database;
 
-
 use Zodream\Infrastructure\Base\ConfigObject;
 
 abstract class Manager extends ConfigObject {
