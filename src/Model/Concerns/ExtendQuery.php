@@ -129,7 +129,7 @@ trait ExtendQuery {
      *
      * @return Query 返回查询结果,
      */
-    public static function query(): Query {
+    public static function query() {
         return (new Query())
             ->setModelName(static::className())
             ->from(static::tableName());
