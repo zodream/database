@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 namespace Zodream\Database\Model\Concerns;
 
 use Zodream\Database\Relation;
@@ -18,13 +19,13 @@ trait HasAttributes {
      * 动态获取数据缓存
      * @var array
      */
-    protected $dynamic_attributes = [];
+    protected array $dynamic_attributes = [];
 
-    protected $hidden = []; //隐藏
+    protected array $hidden = []; //隐藏
 
-    protected $visible = [];  //显示
+    protected array $visible = [];  //显示
 
-    protected $append = []; //追加
+    protected array $append = []; //追加
 
     /**
      * 获取信息

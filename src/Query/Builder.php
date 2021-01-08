@@ -1,6 +1,5 @@
 <?php
 declare(strict_types = 1);
-
 namespace Zodream\Database\Query;
 
 
@@ -23,7 +22,7 @@ class Builder extends BaseSchema {
      *
      * @var array
      */
-    protected $bindings = [
+    protected array $bindings = [
         'select' => [],
         'join'   => [],
         'where'  => [],
@@ -32,21 +31,21 @@ class Builder extends BaseSchema {
         'union'  => [],
     ];
 
-    public $from = [];
+    public array|string $from = [];
 
     public $limit;
 
     public $offset;
 
-    public $groups = [];
+    public array $groups = [];
 
-    public $having = [];
+    public array $having = [];
 
-    public $orders = [];
+    public array $orders = [];
 
-    public $unions = [];
+    public array $unions = [];
 
-    protected $sequence = [
+    protected array $sequence = [
         'select',
         'from',
         'join',
@@ -61,7 +60,7 @@ class Builder extends BaseSchema {
         'offset'
     ];
 
-    protected $operators = [
+    const OPERATORS = [
         '=', '<', '>', '<=', '>=', '<>', '!=',
         'in', 'not in', 'is', 'is not',
         'like', 'like binary', 'not like', 'between', 'not between', 'ilike',

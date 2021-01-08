@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 namespace Zodream\Database;
 
 use Zodream\Database\Engine\Redis;
@@ -11,7 +12,7 @@ class RedisManager extends Manager {
     /**
      * @var Redis[]
      */
-    protected $engines = [];
+    protected array $engines = [];
 
     protected $defaultDriver = Redis::class;
 

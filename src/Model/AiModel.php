@@ -1,8 +1,8 @@
 <?php
+declare(strict_types=1);
 namespace Zodream\Database\Model;
 
 use Zodream\Database\Schema\Table;
-use Zodream\Service\Factory;
 
 /**
  * Created by PhpStorm.
@@ -21,7 +21,7 @@ class AiModel extends Model {
         return new static($table);
     }
 
-    public function __construct($table = null) {
+    public function __construct($table = '') {
         if (empty($table)) {
             return;
         }
@@ -30,13 +30,14 @@ class AiModel extends Model {
 
     public function getTableFields() {
         $key = 'table_'.static::tableName();
-        $data = Factory::cache()->get($key);
+        $driver = cache()->store('tables');
+        $data = $driver->get($key);
         if (!empty($data)) {
             return unserialize($data);
         }
         $data = (new Table(static::tableName()))->getAllColumn();
         $data = array_column($data, 'Field');
-        Factory::cache()->set($key, serialize($data));
+        $driver->set($key, serialize($data));
         return $data;
     }
 

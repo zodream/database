@@ -1,12 +1,12 @@
 <?php
+declare(strict_types=1);
 namespace Zodream\Database\Query\Components;
-
 
 use Zodream\Database\Query\Builder;
 
 trait SelectBuilder {
 
-    public $selects = [];
+    public array $selects = [];
 
 
     /**

@@ -1,11 +1,12 @@
 <?php
+declare(strict_types=1);
 namespace Zodream\Database\Query\Components;
 
 use Zodream\Database\Query\Builder;
 
 trait JoinBuilder {
 
-    public $joins = [];
+    public array $joins = [];
 
     /**
      * Add a join clause to the query.

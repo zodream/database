@@ -1,11 +1,12 @@
 <?php
+declare(strict_types=1);
 namespace Zodream\Database;
 
 use Zodream\Infrastructure\Base\ConfigObject;
 
 abstract class Manager extends ConfigObject {
 
-    protected $engines = [];
+    protected array $engines = [];
 
     protected $currentName = '__default__';
 

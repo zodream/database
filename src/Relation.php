@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 namespace Zodream\Database;
 
 use Zodream\Database\Model\Model;
@@ -10,6 +11,7 @@ use Zodream\Html\Page;
  * Class Relation
  * @package Zodream\Database
  * @method Relation where($column, $operator = null, $value = null, $boolean = 'and')
+ * @method Relation with(...$args)
  * @method Relation orWhere($column, $operator = null, $value = null)
  * @method Relation whereIn($column, $values, $boolean = 'and', $not = false)
  * @method Relation orWhereIn($column, $values)

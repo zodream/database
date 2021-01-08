@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 namespace Zodream\Database\Model;
 
 use Zodream\Database\Relation;
@@ -9,12 +10,12 @@ use Closure;
 
 class Query extends Builder {
 
-    protected $relations = [];
+    protected array $relations = [];
 
     /**
      * @var array [name => function($query) => void]
      */
-    protected $eagerLoad = [];
+    protected array $eagerLoad = [];
 
     protected $modelName;
 
@@ -23,7 +24,7 @@ class Query extends Builder {
      */
     protected $model;
 
-    protected $isArray = false;
+    protected bool $isArray = false;
 
     public function getModel() {
         if (!$this->model instanceof Model) {

@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 namespace Zodream\Database\Schema;
 
 
@@ -105,10 +106,10 @@ class Schema {
             ->changedSchema($this->schema);
         if ($hasStatus) {
             return $this->command()
-                ->select('SHOW TABLE STATUS');
+                ->fetch('SHOW TABLE STATUS');
         }
         $tables = $this->command()
-            ->select('SHOW TABLES');
+            ->fetch('SHOW TABLES');
         foreach ($tables as &$table) {
             $table = current($table);
         }
@@ -127,11 +128,11 @@ class Schema {
     /**
      * 合并多个表， 请保证没有重复字段
      * @param string $table
-     * @param string|Query $sql
+     * @param string $sql
      * @return mixed
      */
     public function mergeTable($table, $sql) {
-        return $this->command()->execute('CREATE TABLE '.$this->addPrefix($table).' AS '.$sql);
+        return $this->command()->execute('CREATE TABLE '.$this->command()->addPrefix($table).' AS '.$sql);
     }
 
     /**

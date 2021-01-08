@@ -1,9 +1,9 @@
 <?php
+declare(strict_types=1);
 namespace Zodream\Database\Model\Concerns;
 
-use Zodream\Infrastructure\Http\Request;
 use Zodream\Helpers\Str;
-use Zodream\Infrastructure\Interfaces\ArrayAble;
+use Zodream\Infrastructure\Contracts\ArrayAble;
 
 /**
  * Created by PhpStorm.
@@ -13,7 +13,7 @@ use Zodream\Infrastructure\Interfaces\ArrayAble;
  */
 trait AutoModel {
 
-    protected $__oldAttributes = [];
+    protected array $__oldAttributes = [];
 
     /**
      * 转载数据

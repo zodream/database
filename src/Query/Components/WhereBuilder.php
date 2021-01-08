@@ -65,7 +65,7 @@ trait WhereBuilder {
     }
 
     protected function invalidOperator($operator) {
-        return !is_string($operator) || !in_array(strtolower($operator), $this->operators, true);
+        return !is_string($operator) || !in_array(strtolower($operator), Builder::OPERATORS, true);
     }
 
     public function orWhere($column, $operator = null, $value = null) {

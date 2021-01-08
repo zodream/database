@@ -35,7 +35,7 @@ class Command extends Manager implements Database {
     /**
      * @var BaseEngine[]
      */
-    protected $engines = [];
+    protected array $engines = [];
 
     protected $defaultDriver = Pdo::class;
 

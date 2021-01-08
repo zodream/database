@@ -1,6 +1,6 @@
 <?php
+declare(strict_types=1);
 namespace Zodream\Database\Model\Concerns;
-
 
 use Zodream\Database\Model\Query;
 

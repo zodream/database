@@ -1,7 +1,7 @@
 <?php
+declare(strict_types=1);
 namespace Zodream\Database\Model\Concerns;
 
-use Zodream\Database\Model\Model;
 use Zodream\Database\Model\Query;
 use Zodream\Database\Relation;
 
@@ -16,18 +16,16 @@ trait HasRelation {
      * GET RELATION
      * @var array
      */
-    protected $relations = [];
+    protected array $relations = [];
 
     /**
-     * @param string $table
-     * @param string $foreignKey $table.$link
-     * @param string $localKey $this.$key
+     * 1对1关联
+     * @param string $table 目标表
+     * @param string $foreignKey $table.$link 目标表字段
+     * @param string $localKey $this.$key 当前表字段
      * @return Relation
      */
-    public function hasOne($table, $foreignKey, $localKey = null) {
-        if ($table instanceof Model) {
-            $table = $table->className();
-        }
+    public function hasOne(string $table, string $foreignKey, string $localKey = '') {
         return Relation::parse([
             'query' => $this->getRelationQuery($table),
             'type' => Relation::TYPE_ONE,
@@ -38,30 +36,11 @@ trait HasRelation {
     }
 
     /**
-     * GET RELATION WHERE SQL
-     * @param string|array $links
-     * @param string $key
-     * @return array
-     */
-    protected function getRelationWhere($links, $key = null) {
-        if (is_null($key) && !is_array($links)) {
-            $key = in_array('id', $this->primaryKey) ? 'id' : reset($this->primaryKey);
-        }
-        if (!is_array($links)) {
-            $links = [$links => $key];
-        }
-        foreach ($links as &$item) {
-            $item = $this->get($item);
-        }
-        return $links;
-    }
-
-    /**
      * GET RELATION QUERY
      * @param string $table
      * @return Query
      */
-    protected function getRelationQuery($table) {
+    protected function getRelationQuery(string $table) {
         if (class_exists($table)) {
             return call_user_func($table.'::query');
         }
@@ -69,15 +48,13 @@ trait HasRelation {
     }
 
     /**
-     * @param string $table
-     * @param string $link $table.$link
-     * @param string $key $this.$key
+     * 关联多条数据
+     * @param string $table 目标表
+     * @param string $link $table.$link 目标表的字段
+     * @param string $key $this.$key 当前表的字段
      * @return Relation
      */
-    public function hasMany($table, $link, $key = 'id') {
-        if ($table instanceof Model) {
-            $table = $table->className();
-        }
+    public function hasMany(string $table, string $link, string $key = 'id') {
         return Relation::parse([
             'query' => $this->getRelationQuery($table),
             'type' => Relation::TYPE_MANY,
@@ -87,8 +64,36 @@ trait HasRelation {
         ]);
     }
 
-    public function belongsToMany($dist, $middle, $currentForeignKey, $distForeignKey) {
-
+    /**
+     * 通过中间表获取目标表数据
+     * @param string $dist 目标表
+     * @param string $middle 中间表
+     * @param string $middleKeyLinkCurrent 中间表字段能链接当前表
+     * @param string $middleKeyLinkDist 中间表字段能链接目标表
+     * @param string $currentKey 当前表的字段
+     * @param string $distKey 目标表的字段
+     * @return Relation
+     */
+    public function belongsToMany(
+        string $dist, string $middle,
+        string $middleKeyLinkCurrent,
+        string $middleKeyLinkDist, string $currentKey = 'id', string $distKey = 'id') {
+        return Relation::parse([
+            'query' => $this->getRelationQuery($middle),
+            'type' => Relation::TYPE_MANY,
+            'link' => [
+                $currentKey => $middleKeyLinkCurrent
+            ],
+            'relation' => [
+                [
+                    'query' => $this->getRelationQuery($dist),
+                    'type' => Relation::TYPE_ONE,
+                    'link' => [
+                        $middleKeyLinkDist => $distKey
+                    ],
+                ]
+            ]
+        ]);
     }
 
     /**
@@ -107,7 +112,7 @@ trait HasRelation {
      * @param  string  $key
      * @return bool
      */
-    public function relationLoaded($key) {
+    public function relationLoaded(string $key) {
         return array_key_exists($key, $this->relations);
     }
 
@@ -119,7 +124,7 @@ trait HasRelation {
      * @param  mixed  $value
      * @return $this
      */
-    public function setRelation($relation, $value) {
+    public function setRelation(string $relation, $value) {
         $this->relations[$relation] = $value;
         return $this;
     }

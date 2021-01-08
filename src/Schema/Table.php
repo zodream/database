@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 namespace Zodream\Database\Schema;
 
 /**
@@ -385,9 +386,9 @@ class Table extends BaseSchema {
      */
     public function getAllColumn($isFull = false) {
         if ($isFull) {
-            return $this->command()->select('SHOW FULL COLUMNS FROM '.$this->getTable());
+            return $this->command()->fetch('SHOW FULL COLUMNS FROM '.$this->getTable());
         }
-        return $this->command()->select('SHOW COLUMNS FROM '.$this->getTable());
+        return $this->command()->fetch('SHOW COLUMNS FROM '.$this->getTable());
     }
 
     /**
