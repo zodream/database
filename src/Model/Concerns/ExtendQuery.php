@@ -81,7 +81,7 @@ trait ExtendQuery {
      * Set not found default data
      * @param $param
      * @param array $attributes
-     * @return bool|Model
+     * @return bool|Model|static
      * @throws Exception
      */
     public static function findOrDefault($param, array $attributes) {
@@ -96,7 +96,7 @@ trait ExtendQuery {
      * Set new attr
      * @param $param
      * @param array $attributes
-     * @return bool|Model
+     * @return bool|Model|static
      * @throws Exception
      */
     public static function findWithReplace($param, array $attributes) {
@@ -109,7 +109,7 @@ trait ExtendQuery {
      * 查找或报错
      * @param $param
      * @param string $message
-     * @return bool|Model
+     * @return bool|Model|static
      * @throws Exception
      */
     public static function findOrThrow($param, string $message = 'model find error') {
