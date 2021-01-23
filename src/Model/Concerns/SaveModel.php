@@ -2,6 +2,7 @@
 declare(strict_types=1);
 namespace Zodream\Database\Model\Concerns;
 
+use Exception;
 use Zodream\Database\Model\Query;
 
 /**
@@ -91,12 +92,26 @@ trait SaveModel {
     /**
      * 初始化并保存到数据库
      * @param array $data
-     * @return static
+     * @return static|bool
      */
     public static function create(array $data) {
         $model = new static($data);
         if (!$model->save()) {
             return false;
+        }
+        return $model;
+    }
+
+    /**
+     * 初始化并保存到数据库
+     * @param array $data
+     * @return static
+     * @throws Exception
+     */
+    public static function createOrThrow(array $data) {
+        $model = new static($data);
+        if (!$model->save()) {
+            throw new Exception($model->getFirstError());
         }
         return $model;
     }
