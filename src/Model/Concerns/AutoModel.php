@@ -23,15 +23,15 @@ trait AutoModel {
      * @return bool
      * @throws \Exception
      */
-    public function load($data = null, $key = null, $excludes = []) {
+    public function load($data = null, $key = '', $excludes = []) {
         if (is_string($data)) {
             list($key, $excludes, $data) = [$data, $key, null];
         }
         if (is_array($key)) {
-            list($key, $excludes) = [null, $key];
+            list($key, $excludes) = ['', $key];
         }
-        if (!is_array($data) && app('request')->isPost()) {
-            $data = app('request')->get($key);
+        if (!is_array($data) && request()->isPost()) {
+            $data = request($key);
         }
         if (empty($data)) {
             return false;

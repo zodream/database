@@ -109,7 +109,7 @@ trait ExecBuilder {
     }
 
     public function pluck($column = null, $key = null): array {
-        if (empty($this->selects)) {
+        if (empty($this->selects) && !empty($column)) {
             $this->select($this->wrapField($column), $this->wrapField($key));
         }
         $data = $this->all();
