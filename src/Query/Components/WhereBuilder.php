@@ -5,7 +5,7 @@ use Zodream\Database\Query\Expression;
 use Zodream\Database\Query\Builder;
 use Zodream\Helpers\Str;
 use Closure;
-use Zodream\Infrastructure\Interfaces\ArrayAble;
+use Zodream\Infrastructure\Contracts\ArrayAble;
 
 trait WhereBuilder {
 
