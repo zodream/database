@@ -1,7 +1,9 @@
 <?php
+declare(strict_types=1);
 namespace Zodream\Database\Migrations;
 
 use Zodream\Database\Schema\Schema;
+use Zodream\Database\Concerns\Migration as MigrationInterface;
 
 /**
  * Created by PhpStorm.
@@ -9,7 +11,7 @@ use Zodream\Database\Schema\Schema;
  * Date: 2017/7/27
  * Time: 22:20
  */
-abstract class Migration {
+abstract class Migration implements MigrationInterface {
 
     protected $tables = [];
     private $mode = false;
@@ -62,7 +64,7 @@ abstract class Migration {
      */
     public function createTable() {
         foreach ($this->tables as $table => $func) {
-            Schema::createTable($table, $func);
+            Schema::createOrUpdateTable($table, $func);
         }
     }
 

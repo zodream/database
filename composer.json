@@ -17,6 +17,7 @@
     },
     "suggest": {
         "ext-pdo_mysql": "*",
+        "ext-mysqli": "*",
         "ext-redis": "*"
     },
     "autoload": {

@@ -1,14 +1,14 @@
 <?php
 declare(strict_types = 1);
-namespace Zodream\Database\Grammars;
+namespace Zodream\Database\Adapters\MySql;
 
-
+use Zodream\Database\Concerns\BuilderGrammar as GrammarInterface;
+use Zodream\Database\Concerns\SqlBuilder;
 use Zodream\Database\Query\Builder;
 use Zodream\Database\Query\Expression;
 use Zodream\Helpers\Arr;
 
-class Grammar {
-
+class BuilderGrammar implements GrammarInterface {
     public function compileSelects(Builder $query): string {
         return 'SELECT '.$this->getField($query->selects);
     }
@@ -563,5 +563,25 @@ class Grammar {
      */
     public function getValue($expression) {
         return $expression->getValue();
+    }
+
+    public function compileQuery(SqlBuilder $builder): string
+    {
+        // TODO: Implement compileQuery() method.
+    }
+
+    public function compileInsertOrUpdate(SqlBuilder|string $builder, array $insertData, array $updateData): string
+    {
+        // TODO: Implement compileInsertOrUpdate() method.
+    }
+
+    public function compileInsertOrReplace(SqlBuilder|string $builder, array $data): string
+    {
+        // TODO: Implement compileInsertOrReplace() method.
+    }
+
+    public function cacheable(string $sql): bool
+    {
+        // TODO: Implement cacheable() method.
     }
 }

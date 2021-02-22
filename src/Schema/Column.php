@@ -329,8 +329,8 @@ class Column {
             $sql = "`{$this->field}` ".$sql;
         }
         if ($this->table->getCharset() == $this->getCharset() ||
-            (strpos($this->data[self::KIND], 'CHAR') === false
-            && strpos($this->data[self::KIND], 'TEXT') === false)) {
+            (!str_contains($this->data[self::KIND], 'CHAR')
+            && !str_contains($this->data[self::KIND], 'TEXT'))) {
             return $sql;
         }
         return $sql.sprintf(' CHARACTER SET \'%s\' COLLATE \'%s\'', $this->getCharset(), $this->getCollate());

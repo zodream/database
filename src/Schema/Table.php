@@ -22,7 +22,7 @@ class Table extends BaseSchema {
     /**
      * @var Column[]
      */
-    protected $_data = array();
+    protected $data = [];
 
     protected $tableName;
 
@@ -42,7 +42,7 @@ class Table extends BaseSchema {
 
     protected $primaryKey;
 
-    protected $comment = null;
+    protected $comment = '';
 
     /**
      * @var Schema
@@ -56,7 +56,7 @@ class Table extends BaseSchema {
         $charset = 'utf8mb4'
     ) {
         $this->setTableName($table);
-        $this->_data = $data;
+        $this->data = $data;
         $this->engine = $engine;
         $this->charset = $charset;
     }
@@ -78,11 +78,11 @@ class Table extends BaseSchema {
      * 正式表名，添加前缀
      * @return string
      */
-    public function getTable() {
+    public function getTable(): string {
         return $this->addPrefix($this->tableName);
     }
 
-    public function setTableName($table) {
+    public function setTableName(string $table) {
         $this->tableName = $table;
         return $this;
     }
@@ -92,7 +92,7 @@ class Table extends BaseSchema {
      * @param string $arg
      * @return $this
      */
-    public function setCharset($arg) {
+    public function setCharset(string $arg) {
         $this->charset = $arg;
         return $this;
     }
@@ -100,7 +100,7 @@ class Table extends BaseSchema {
     /**
      * @return string
      */
-    public function getCharset() {
+    public function getCharset(): string {
         return $this->charset;
     }
 
@@ -108,7 +108,7 @@ class Table extends BaseSchema {
      * @param string $collate
      * @return Table
      */
-    public function setCollate($collate) {
+    public function setCollate(string $collate) {
         $this->collate = $collate;
         return $this;
     }
@@ -116,7 +116,7 @@ class Table extends BaseSchema {
     /**
      * @return string
      */
-    public function getCollate() {
+    public function getCollate(): string {
         return $this->collate;
     }
 
@@ -125,7 +125,7 @@ class Table extends BaseSchema {
      * @param string $arg
      * @return $this
      */
-    public function setComment($arg) {
+    public function setComment(string $arg) {
         $this->comment = $arg;
         return $this;
     }
@@ -135,7 +135,7 @@ class Table extends BaseSchema {
      * @param string $field
      * @return $this
      */
-    public function pk($field) {
+    public function pk(string $field) {
         $this->primaryKey = $field;
         return $this;
     }
@@ -145,7 +145,7 @@ class Table extends BaseSchema {
      * @param string $arg
      * @return $this
      */
-    public function setEngine($arg) {
+    public function setEngine(string $arg) {
         $this->engine = $arg;
         return $this;
     }
@@ -416,8 +416,8 @@ class Table extends BaseSchema {
      * @param string $offset
      * @return bool|Column
      */
-    public function get($offset = null) {
-        return isset($this->_data[$offset]) ? $this->_data[$offset] : null;
+    public function get($offset = '') {
+        return isset($this->data[$offset]) ? $this->data[$offset] : null;
     }
 
     /**
@@ -429,7 +429,7 @@ class Table extends BaseSchema {
         if (!$column instanceof Column) {
             $column = new Column($this, $offset);
         }
-        return $this->_data[$offset] = $column;
+        return $this->data[$offset] = $column;
     }
 
     /**
@@ -454,7 +454,7 @@ class Table extends BaseSchema {
      */
     public function getAlertSql() {
         $sql = [];
-        foreach ($this->_data as $item) {
+        foreach ($this->data as $item) {
             $sql[] = $item->getAlterSql();
         }
         return sprintf('ALTER TABLE %s %s;',
@@ -465,7 +465,7 @@ class Table extends BaseSchema {
     //DROP COLUMN
     public function getDropColumnSql() {
         $sql = [];
-        foreach ($this->_data as $item) {
+        foreach ($this->data as $item) {
             $sql[] = $item->getDropSql();
         }
         return sprintf('ALTER TABLE %s %s;',
@@ -494,7 +494,7 @@ class Table extends BaseSchema {
      */
     public function getSql() {
         $sql = "CREATE TABLE IF NOT EXISTS {$this->getTable()} (";
-        $column = $this->_data;
+        $column = $this->data;
         if (!empty($this->primaryKey)) {
             $column[] = "PRIMARY KEY (`{$this->primaryKey}`)";
         }

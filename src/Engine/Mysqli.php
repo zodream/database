@@ -1,16 +1,17 @@
-<?php 
+<?php
+declare(strict_types=1);
 namespace Zodream\Database\Engine;
 
-use Zodream\Database\Grammars\Grammar;
-use Zodream\Database\Grammars\MySqlGrammar;
-use Zodream\Service\Factory;
-/**
-* mysqli 
-* 
-* @author Jason
-*/
+use Exception;
+use Zodream\Database\Adapters\MySql\BuilderGrammar;
+use Zodream\Database\Adapters\MySql\Information;
+use Zodream\Database\Adapters\MySql\SchemaGrammar;
+use Zodream\Database\Concerns\BuilderGrammar as BuilderInterface;
+use Zodream\Database\Concerns\Engine;
+use Zodream\Database\Concerns\Information as InformationInterface;
+use Zodream\Database\Concerns\SchemaGrammar as SchemaInterface;
 
-class Mysqli extends BaseEngine {
+class Mysqli extends BaseEngine implements Engine {
 
 	/**
 	 * @var \mysqli
@@ -22,226 +23,236 @@ class Mysqli extends BaseEngine {
 	 */
 	protected $result;
 
-	/**
-	 * 连接数据库
-	 *
-	 */
-	protected function connect() {
-		if (empty($this->configs)) {
-			die ('Mysql host is not set');
-		}
-		$host = $this->configs['host'];
-		if ($this->configs['persistent'] === true) {
-			$host = 'p:'.$host;
-		}
-		$this->driver = new \mysqli(
-				$host,
-				$this->configs['user'], 
-				$this->configs['password'], 
-				$this->configs['database'], 
-				$this->configs['port']
-		)
-		or die('There was a problem connecting to the database');
-		/* check connection */
-		/*if (mysqli_connect_errno()) {
-		 printf("Connect failed: %s\n", mysqli_connect_error());
-		 exit();
-		}*/
-		if (isset($this->configs['encoding'])) {
-			$this->driver->set_charset($this->configs['encoding']);
-		}
-	}
-	
-	/**
-	 * 预处理
-	 * @param string $sql
-*/
-	public function prepare($sql) {
-		$this->result = $this->driver->prepare($sql);
-	}
-	
-	/**
-	 * 绑定值 只支持 ？ 绑定
-	 * @param array $param
-	 */
-	public function bind(array $param) {
-		$ref    = new \ReflectionClass('mysqli_stmt');
-		$method = $ref->getMethod("bind_param");
-		$method->invokeArgs($this->result, $param);
-	}
+	protected $version;
 
-	/**
-	 * 获取Object结果集
-	 * @param string $sql
-	 * @param array $parameters
-	 * @return object
-	 */
-	public function getObject($sql = null, $parameters = array()) {
-		$this->execute($sql);
-		$result = array();
-		while (!!$objs = mysqli_fetch_object($this->result) ) {
-			$result[] = $objs;
-		}
-		return $result;
-	}
-
-	/**
-	 * 获取关联数组
-	 * @param string $sql
-	 * @param array $parameters
-	 * @return array
-	 */
-	public function getArray($sql = null, $parameters = array()) {
-		$this->execute($sql);
-		$result = array();
-		while (!!$objs = mysqli_fetch_assoc($this->result) ) {
-			$result[] = $objs;
-		}
-		return $result;
-	}
-	
-	/**
-	 * 返回上一步执行受影响的行数
-	 *
-	 * @access public
-	 *
-	 */
-	public function rowCount() {
-		return mysqli_affected_rows($this->driver);
-	}
-	
-	/**
-	 * 返回上一步执行INSERT生成的id
-	 *
-	 * @access public
-	 *
-	 */
-	public function lastInsertId() {
-		return mysqli_insert_id($this->driver);
-	}
-
-	/**
-	 * 执行SQL语句
-	 *
-	 * @access public
-	 *
-	 * @param string $sql 多行查询语句
-	 * @param array $parameters
-	 * @return \mysqli_stmt
-	 */
-	public function execute($sql = null, $parameters = array()) {
-		if (empty($sql)) {
-			return null;
-		}
-		$this->prepare($sql);
-		$this->bind($parameters);
-        Factory::log()->info(sprintf('MYSQLI: %s => %s', $sql,
-            $this->getError()));
-        $this->result->execute();
-		return $this->result;
-	}
-
-	/**
-	 * 执行多行SQL语句
-	 *
-	 * @access public
-	 *
-	 * @param string $query 多行查询语句
-	 * @return array
-	 */
-	public function multi_query($query)  {
-		$result = array();
-		if (mysqli_multi_query($this->driver, $query)) {                                           //执行多个查询
-			do {
-				if ($this->result = mysqli_store_result($this->driver)) {
-					$result[] = $this->getList();
-					mysqli_free_result($this->result);
-				}
-				/*if (mysqli_more_results($this_mysqli)) {
-				 echo ("-----------------<br>");                   //连个查询之间的分割线
-				 }*/
-			} while (mysqli_next_result($this->driver));
-		}
-		$this->close();
-		return $result;
-	}
-
-	public function row($isArray = true, $link = null) {
-        if (is_null($link)) {
-            $link = $this->result;
+	public function open(): bool
+    {
+        if (empty($this->configs)) {
+            throw new Exception('Mysql host is not set');
         }
-        if (empty($link)) {
-            return false;
+        $host = $this->configs['host'];
+        if ($this->configs['persistent'] === true) {
+            $host = 'p:'.$host;
         }
-        if ($isArray) {
-            return mysqli_fetch_assoc($link);
+        $this->driver = new \mysqli(
+            $host,
+            $this->configs['user'],
+            $this->configs['password'],
+            $this->configs['database'],
+            $this->configs['port']
+        )
+        or throw new Exception('There was a problem connecting to the database');
+        /* check connection */
+        /*if (mysqli_connect_errno()) {
+         printf("Connect failed: %s\n", mysqli_connect_error());
+         exit();
+        }*/
+        if (isset($this->configs['encoding'])) {
+            $this->driver->set_charset($this->configs['encoding']);
         }
-        return mysqli_fetch_object($link);
+    }
+
+    public function insertBatch(string $sql, array $parameters = [])
+    {
+        $this->execute($sql, $parameters);
+        return $this->rowCount();
+    }
+
+    public function updateBatch(string $sql, array $parameters = [])
+    {
+        return $this->update($sql, $parameters);
+    }
+
+    public function executeScalar(string $sql, array $parameters = [])
+    {
+        $res = $this->execute($sql, $parameters);
+        $result = $res->result_metadata();
+        $item = $result->fetch_assoc();
+        mysqli_free_result($result);
+        return empty($item) ? null : current($item);
+    }
+
+    public function fetch(string $sql, array $parameters = [])
+    {
+        $res = $this->execute($sql, $parameters);
+        $result = $res->result_metadata();
+        $items = $this->readRows($result);
+        mysqli_free_result($result);
+        return $items;
+    }
+
+    public function fetchMultiple(string $sql, array $parameters = [])
+    {
+        $items = [];
+        if (mysqli_multi_query($this->driver, $sql)) {                                           //执行多个查询
+            do {
+                if ($res = mysqli_store_result($this->driver)) {
+                    $items[] = $this->readRows($res);
+                    mysqli_free_result($res);
+                }
+                /*if (mysqli_more_results($this_mysqli)) {
+                 echo ("-----------------<br>");                   //连个查询之间的分割线
+                 }*/
+            } while (mysqli_next_result($this->driver));
+        }
+        return $items;
+    }
+
+    public function first(string $sql, array $parameters = [])
+    {
+        $res = $this->execute($sql, $parameters);
+        $result = $res->result_metadata();
+        $item = $this->readRow($result);
+        mysqli_free_result($result);
+        return $item;
+    }
+
+    public function fetchRow(string $sql = '', array $parameters = [])
+    {
+        if (!empty($sql)) {
+            $this->execute($sql, $parameters);
+            return true;
+        }
+        if ($this->result instanceof \mysqli_stmt) {
+            $this->result = $this->result->result_metadata();
+        }
+        return $this->readRow($this->result);
+    }
+
+    protected function readRows(\mysqli_result $res): array {
+        $items = [];
+        while (!!$item = $this->readRow($res)) {
+            $items[] = $item;
+        }
+        return $items;
+    }
+
+    protected function readRow(\mysqli_result $res) {
+        if (!$this->isObject()) {
+            return mysqli_fetch_assoc($res);
+        }
+        return mysqli_fetch_object($res);
+    }
+
+    public function transactionBegin(): bool
+    {
+        return $this->driver->autocommit(false);
+    }
+
+    public function transactionCommit(array $args = []): bool
+    {
+        foreach ($args as $item) {
+            $this->driver->query($item);
+        }
+        if ($this->driver->errno > 0) {
+            throw new \Exception('事务执行失败!');
+        }
+        return $this->driver->commit();
+    }
+
+    public function transactionRollBack(): bool
+    {
+        return $this->driver->rollback();
+    }
+
+    public function close(): bool
+    {
+        if (!empty($this->result) && !is_bool($this->result)) {
+            if ($this->result instanceof \mysqli_result) {
+                mysqli_free_result($this->result);
+            } else {
+                mysqli_stmt_free_result($this->result);
+            }
+        }
+        mysqli_close($this->driver);
+        $this->result = null;
+        $this->driver = null;
+        return true;
+    }
+
+    public function version(): string
+    {
+        if (empty($this->version)) {
+            $this->version = $this->information()->version();
+        }
+        return $this->version;
+    }
+
+    public function insert(string $sql, array $parameters = [])
+    {
+        $this->execute($sql, $parameters);
+        return $this->lastInsertId();
+    }
+
+    public function update(string $sql, array $parameters = []): int
+    {
+        $this->execute($sql, $parameters);
+        return $this->rowCount();
+    }
+
+    public function delete(string $sql, array $parameters = []): int
+    {
+        $this->execute($sql, $parameters);
+        return $this->rowCount();
+    }
+
+    public function execute(string $sql, array $parameters = [])
+    {
+        if (empty($sql)) {
+            throw new Exception('sql is empty');
+        }
+        $this->prepare($sql);
+        $this->bind($parameters);
+        $error = mysqli_error($this->driver);
+        if (!empty($error)) {
+            throw new Exception($error);
+        }
+        logger()->info(sprintf('MYSQLI: %s => %s', $sql, $error));
+        if (!$this->result->execute()) {
+            throw new Exception(mysqli_error($this->driver));
+        }
+        return $this->result;
     }
 
     /**
-     * 关闭和清理
-     *
-     * @access public
-     *
-     * @param null $link
+     * 预处理
+     * @param string $sql
      */
-	public function close($link = null) {
-	    if (!is_null($link)) {
-            mysqli_free_result($link);
-            return;
-        }
-		if (!empty($this->result) && !is_bool($this->result)) {
-			mysqli_free_result($this->result);
-		}
-		mysqli_close($this->driver);
-		parent::close();
-	}
-	
-	public function getError() {
-		return mysqli_error($this->driver);
-	}
-	
-	public function __destruct() {
-		$this->close();
-	}
-
-	/**
-	 * 事务开始
-	 * @return bool
-	 */
-	public function begin() {
-		return $this->driver->autocommit(false);
-	}
-
-	/**
-	 * 执行事务
-	 * @param array $args
-	 * @return bool
-	 * @throws \Exception
-	 */
-	public function commit($args = array()) {
-		foreach ($args as $item) {
-			$this->driver->query($item);
-		}
-		if ($this->driver->errno > 0) {
-			throw new \Exception('事务执行失败!');
-		}
-		return $this->driver->commit();
-	}
-
-	/**
-	 * 事务回滚
-	 * @return bool
-	 */
-	public function rollBack() {
-		return $this->driver->rollback();
-	}
+    public function prepare(string $sql) {
+        $this->result = $this->driver->prepare($sql);
+    }
 
     /**
-     * @return Grammar
+     * 绑定值 只支持 ？ 绑定
+     * @param array $params
+     * @throws \ReflectionException
      */
-    public function getGrammar() {
-        return new MySqlGrammar();
+    public function bind(array $params) {
+        mysqli_stmt_bind_param($this->result, str_repeat('s', count($params)), ...$params);
+    }
+
+    public function lastInsertId(): int|string
+    {
+        return mysqli_insert_id($this->driver);
+    }
+
+    public function rowCount(): int
+    {
+        return mysqli_affected_rows($this->driver);
+    }
+
+    public function grammar(): BuilderInterface
+    {
+        return new BuilderGrammar();
+    }
+
+    public function schemaGrammar(): SchemaInterface
+    {
+        return new SchemaGrammar();
+    }
+
+    public function information(): InformationInterface
+    {
+        return new Information();
     }
 }

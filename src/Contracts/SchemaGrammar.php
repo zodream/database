@@ -1,0 +1,33 @@
+<?php
+declare(strict_types=1);
+namespace Zodream\Database\Concerns;
+
+interface SchemaGrammar {
+
+    public function compileSchemaAll(): string;
+    public function compileTableAll(bool $full = false): string;
+    public function compileColumnAll(Table|string $table, bool $full = false): string;
+    public function compileTableSql(Table|string $table): string;
+
+    public function compileSchemaCreate(Schema $schema): string;
+    public function compileSchemaUpdate(Schema $schema): string;
+    public function compileSchemaDelete(Schema|string $schema): string;
+    public function compileSchemaUse(Schema|string $schema): string;
+
+    public function compileTableMerge(Table|string $table, SqlBuilder|string $builder): string;
+    public function compileTableCreate(Table $table): string;
+    public function compileTableUpdate(Table $table): string;
+    public function compileTableDelete(Table|string $table): string;
+    public function compileTableTruncate(Table|string $table): string;
+    public function compileTableLock(Table|string $table): string;
+    public function compileTableUnlock(Table|string $table): string;
+    public function compileTableAnalyze(Table|string $table): string;
+    public function compileTableCheck(Table|string $table): string;
+    public function compileTableOptimize(Table|string $table): string;
+    public function compileTableRepair(Table|string $table): string;
+    public function compileTableRename(Table|string $table, string $newName): string;
+
+    public function compileColumnCreate(Column $column): string;
+    public function compileColumnUpdate(Column $column): string;
+    public function compileColumnDelete(Column|string $column): string;
+}

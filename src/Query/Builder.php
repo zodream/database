@@ -3,7 +3,7 @@ declare(strict_types = 1);
 namespace Zodream\Database\Query;
 
 
-use Zodream\Database\Grammars\Grammar;
+use Zodream\Database\Concerns\SqlBuilder;
 use Zodream\Database\Query\Components\ExecBuilder;
 use Zodream\Database\Query\Components\JoinBuilder;
 use Zodream\Database\Query\Components\RecordBuilder;
@@ -13,7 +13,7 @@ use Zodream\Database\Schema\BaseSchema;
 use Closure;
 use InvalidArgumentException;
 
-class Builder extends BaseSchema {
+class Builder extends BaseSchema implements SqlBuilder {
 
     use SelectBuilder, JoinBuilder, WhereBuilder, ExecBuilder, RecordBuilder;
 
@@ -350,7 +350,7 @@ class Builder extends BaseSchema {
     }
 
     /**
-     * @return Grammar
+     * @return G
      * @throws \Exception
      */
     protected function grammar() {

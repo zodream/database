@@ -148,6 +148,18 @@ class Schema {
     }
 
     /**
+     * 创建表或修改表
+     * @param $table
+     * @param callable $callback
+     * @return mixed
+     */
+    public static function createOrUpdateTable($table, callable $callback) {
+        $table = new Table($table);
+        call_user_func($callback, $table);
+        return $table->update();
+    }
+
+    /**
      * 重命名表
      * @param $table
      * @param $newName
