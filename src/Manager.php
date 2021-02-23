@@ -8,9 +8,9 @@ abstract class Manager extends ConfigObject {
 
     protected array $engines = [];
 
-    protected $currentName = '__default__';
+    protected string|int $currentName = '__default__';
 
-    protected $defaultDriver;
+    protected string $defaultDriver;
 
     public function __construct() {
         $this->loadConfigs();
@@ -70,8 +70,8 @@ abstract class Manager extends ConfigObject {
      * @return mixed
      * @throws \Exception
      */
-    public function getEngine($name = null) {
-        if (is_null($name)) {
+    public function getEngine(string|int $name = '') {
+        if ($name === '') {
             $name = $this->getCurrentName();
         }
         if (array_key_exists($name, $this->engines)) {

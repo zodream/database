@@ -8,34 +8,19 @@ use Zodream\Helpers\Str;
 
 trait RecordBuilder {
 
-    /**
-     * SET TABLE
-     * @param $table
-     * @return Builder
-     * @throws \Exception
-     */
-    public function setTable(string $table): Builder {
-        $this->from = $table;
-        return $this;
-    }
-
-    public function getTable(): string {
-        return $this->addPrefix(is_array($this->from) ? reset($this->from) : $this->from);
-    }
-
 
     /**
      * INSERT RECORD
      *
      * @access public
      *
-     * @param null $columns
-     * @param array $data
-     * @return int 返回最后插入的ID,
+     * @param array|string $columns
+     * @param array|string $values
+     * @return int|string 返回最后插入的ID,
      * @throws \Exception
      */
-    public function insert($columns = null, $data = null) {
-        $sql = $this->grammar()->compileInsert($this, $columns, $data);
+    public function insert(array|string $columns = '', array|string $values = ''): int|string {
+        $sql = $this->grammar()->compileInsert($this, $columns, $values);
         return $this->command()
             ->insert($sql, $this->getBindings());
     }
@@ -46,7 +31,7 @@ trait RecordBuilder {
      * @return mixed
      * @throws \Exception
      */
-    public function update(array $data) {
+    public function update(array $data): int {
         $sql = $this->grammar()->compileUpdate($this, $data);
         return $this->command()
             ->update($sql, $this->getBindings());
@@ -59,7 +44,7 @@ trait RecordBuilder {
      * @return int
      * @throws \Exception
      */
-    public function updateBool($filed) {
+    public function updateBool($filed): int {
         return $this->update([
             "{$filed} = CASE WHEN {$filed} = 1 THEN 0 ELSE 1 END"
         ]);
@@ -68,18 +53,30 @@ trait RecordBuilder {
     /**
      * int加减
      *
-     * @param string|string $filed
-     * @param integer $num
+     * @param string|array $column
+     * @param int|float $value
      * @return int
      * @throws \Exception
      */
-    public function updateOne($filed, $num = 1) {
-        $sql = array();
-        foreach ((array)$filed as $key => $item) {
+    public function updateIncrement(string|array $column, int|float $value = 1): int {
+        $sql = [];
+        foreach ((array)$column as $key => $item) {
             if (is_numeric($key)) {
-                $sql[] = "`$item` = `$item` ".$this->_getNumber($num);
+                $sql[] = "`$item` = `$item` ".$this->formatIncrement($value);
             } else {
-                $sql[] = "`$key` = `$key` ".$item;
+                $sql[] = "`$key` = `$key` ".$this->formatIncrement($item);
+            }
+        }
+        return $this->update($sql);
+    }
+
+    public function updateDecrement(string|array $column, int|float $value = 1): int {
+        $sql = [];
+        foreach ((array)$column as $key => $item) {
+            if (is_numeric($key)) {
+                $sql[] = "`$item` = `$item` ".$this->formatIncrement(- $value);
+            } else {
+                $sql[] = "`$key` = `$key` ".$this->formatIncrement(- $item);
             }
         }
         return $this->update($sql);
@@ -90,7 +87,7 @@ trait RecordBuilder {
      * @param string|int $num
      * @return string
      */
-    private function _getNumber($num) {
+    protected function formatIncrement($num): string {
         if ($num >= 0) {
             $num = '+'.$num;
         }
@@ -98,15 +95,27 @@ trait RecordBuilder {
     }
 
     /**
-     * INSERT OR REPLACE
+     * 如果行作为新记录被insert，则受影响行的值为1；如果原有的记录被更新，则受影响行的值为2。 如果有多条存在则只更新最后一条
+     * @param array $insertData
+     * @param array $updateData
+     * @return int
+     * @throws \Exception
+     */
+    public function insertOrUpdate(array $insertData, array $updateData): int {
+        return $this->command()->update(
+            $this->grammar()->compileInsertOrUpdate($this, $insertData, $updateData)
+        );
+    }
+
+    /**
+     * INSERT OR REPLACE 在执行REPLACE后，系统返回了所影响的行数，如果返回1，说明在表中并没有重复的记录，如果返回2，说明有一条重复记录，系统自动先调用了
      * @param array $data
      * @return mixed
      */
-    public function replace(array $data) {
-        $addFields = implode('`,`', array_keys($data));
-        return $this->command()
-            ->insertOrReplace("`{$addFields}`", Str::repeat('?', $data),
-                array_values($data));
+    public function replace(array $data): int {
+        return $this->command()->update(
+            $this->grammar()->compileInsertOrReplace($this, $data)
+        );
     }
 
     /**
@@ -114,7 +123,7 @@ trait RecordBuilder {
      * @return mixed
      * @throws \Exception
      */
-    public function delete() {
+    public function delete(): int {
         $sql = $this->grammar()->compileDelete($this);
         return $this->command()
             ->delete($sql, $this->getBindings());

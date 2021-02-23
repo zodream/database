@@ -3,7 +3,8 @@ declare(strict_types = 1);
 namespace Zodream\Database\Query;
 
 
-use Zodream\Database\Concerns\SqlBuilder;
+use Zodream\Database\Contracts\BuilderGrammar;
+use Zodream\Database\Contracts\SqlBuilder;
 use Zodream\Database\Query\Components\ExecBuilder;
 use Zodream\Database\Query\Components\JoinBuilder;
 use Zodream\Database\Query\Components\RecordBuilder;
@@ -80,7 +81,22 @@ class Builder extends BaseSchema implements SqlBuilder {
         $this->load($args);
     }
 
-    public function isEmpty() {
+    /**
+     * SET TABLE
+     * @param $table
+     * @return Builder
+     * @throws \Exception
+     */
+    public function table(string $table): SqlBuilder {
+        $this->from = $table;
+        return $this;
+    }
+
+    public function getTable(): string {
+        return $this->addPrefix(is_array($this->from) ? reset($this->from) : $this->from);
+    }
+
+    public function isEmpty(): SqlBuilder {
         $this->isEmpty = true;
         return $this;
     }
@@ -114,7 +130,7 @@ class Builder extends BaseSchema implements SqlBuilder {
         return $this;
     }
 
-    public function groupBy($groups) {
+    public function groupBy(string $column, ...$args): SqlBuilder {
         foreach (func_get_args() as $group) {
             $this->groups = array_merge(
                 (array) $this->groups,
@@ -134,7 +150,7 @@ class Builder extends BaseSchema implements SqlBuilder {
      * @param string $key
      * @return static
      */
-    public function alias($key) {
+    public function alias(string $key): SqlBuilder {
         if (count($this->from) == 1) {
             $this->from = array($key => current($this->from));
         }
@@ -143,10 +159,12 @@ class Builder extends BaseSchema implements SqlBuilder {
 
     /**
      * ORDER SQL
-     * @param array|string $args
+     * @param array|string $column
+     * @param string $order
+     * @param mixed ...$args
      * @return Builder
      */
-    public function orderBy($args) {
+    public function orderBy(array|string $column, string $order = '', ...$args): SqlBuilder {
         if (!is_array($args)) {
             $args = func_get_args();
         }
@@ -177,7 +195,7 @@ class Builder extends BaseSchema implements SqlBuilder {
         return $this;
     }
 
-    public function union($sql, $all = false) {
+    public function union(SqlBuilder|string $sql, bool $all = false): SqlBuilder {
         $this->unions[] = ['query' => $sql, 'all' => $all];
         return $this;
     }
@@ -186,11 +204,11 @@ class Builder extends BaseSchema implements SqlBuilder {
      * @param string|array $tables
      * @return static
      */
-    public function from($tables) {
-        if (!is_array($tables)) {
-            $tables = func_get_args();
+    public function from(string|array $table, string $alias = ''): SqlBuilder {
+        if (!is_array($table)) {
+            $table = func_get_args();
         }
-        $this->from = array_merge($this->from, $tables);
+        $this->from = array_merge($this->from, $table);
         return $this;
     }
 
@@ -200,7 +218,7 @@ class Builder extends BaseSchema implements SqlBuilder {
      * @param  \Closure  $callback
      * @return $this
      */
-    public function tap($callback) {
+    public function tap($callback): SqlBuilder {
         return $this->when(true, $callback);
     }
 
@@ -211,7 +229,7 @@ class Builder extends BaseSchema implements SqlBuilder {
      * @param Closure|null $falseFunc
      * @return $this
      */
-    public function when($condition, Closure $trueFunc, Closure $falseFunc = null) {
+    public function when($condition, Closure $trueFunc, Closure $falseFunc = null): SqlBuilder {
         if ($condition) {
             $trueFunc($this);
             return $this;
@@ -222,24 +240,24 @@ class Builder extends BaseSchema implements SqlBuilder {
         return $this;
     }
 
-    public function take($value) {
+    public function take(int $value): SqlBuilder {
         return $this->limit($value);
     }
 
-    public function limit($limit, $length = null) {
-        if (is_string($limit) && strpos($limit, ',') !== false) {
-            list($limit, $length) = explode(',', $limit);
+    public function limit(string|int $offset, int $length = 0): SqlBuilder {
+        if (is_string($offset) && str_contains($offset, ',')) {
+            list($offset, $length) = explode(',', $offset);
         }
         if (empty($length)) {
-            $this->limit = $limit;
+            $this->limit = $offset;
             return $this;
         }
         $this->limit = $length;
-        return $this->offset($limit);
+        return $this->offset($offset);
     }
 
-    public function offset($offset) {
-        $this->offset = intval($offset);
+    public function offset(int $offset): SqlBuilder {
+        $this->offset = $offset;
         return $this;
     }
 
@@ -301,7 +319,7 @@ class Builder extends BaseSchema implements SqlBuilder {
      * @throws \InvalidArgumentException
      * @throws \Exception
      */
-    public function addBinding($value, $type = 'where') {
+    public function addBinding($value, string $type = 'where'): SqlBuilder {
         if (! array_key_exists($type, $this->bindings)) {
             throw new InvalidArgumentException(
                 __('Invalid binding type: ').$type
@@ -345,15 +363,15 @@ class Builder extends BaseSchema implements SqlBuilder {
      * @return string
      * @throws \Exception
      */
-    public function getSql(): string {
-        return $this->grammar()->compileSelect($this);
+    public function getSQL(): string {
+        return $this->grammar()->compileQuery($this);
     }
 
     /**
-     * @return G
+     * @return BuilderGrammar
      * @throws \Exception
      */
     protected function grammar() {
-        return $this->command()->grammar();
+        return $this->command()->engine()->grammar();
     }
 }

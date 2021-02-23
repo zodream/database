@@ -2,8 +2,10 @@
 declare(strict_types=1);
 namespace Zodream\Database\Migrations;
 
-use Zodream\Database\Schema\Schema;
-use Zodream\Database\Concerns\Migration as MigrationInterface;
+use Zodream\Database\Contracts\SchemaGrammar;
+use Zodream\Database\Contracts\Migration as MigrationInterface;
+use Zodream\Database\Schema\Table;
+use Zodream\Infrastructure\Contracts\Database;
 
 /**
  * Created by PhpStorm.
@@ -13,8 +15,11 @@ use Zodream\Database\Concerns\Migration as MigrationInterface;
  */
 abstract class Migration implements MigrationInterface {
 
-    protected $tables = [];
-    private $mode = false;
+    /**
+     * @var callable[]
+     */
+    protected array $tables = [];
+    private bool $mode = false;
 
     /**
      * 追加数据
@@ -22,7 +27,7 @@ abstract class Migration implements MigrationInterface {
      * @param null $func
      * @return $this
      */
-    public function append($table, $func = null) {
+    public function append(string|array $table, callable $func = null) {
         if (!is_array($table)) {
             $table = [$table => $func];
         }
@@ -50,9 +55,14 @@ abstract class Migration implements MigrationInterface {
     }
 
     /**
+     * 生成测试数据
+     */
+    public function seed() {}
+
+    /**
      * 自动确定是否为创建表
      */
-    public function autoUp() {
+    protected function autoUp() {
         if ($this->mode) {
             return;
         }
@@ -62,22 +72,32 @@ abstract class Migration implements MigrationInterface {
     /**
      * 执行生成命令
      */
-    public function createTable() {
+    protected function createTable() {
+        $help = $this->db()->engine()->information();
         foreach ($this->tables as $table => $func) {
-            Schema::createOrUpdateTable($table, $func);
+            $item = new Table($table);
+            call_user_func($func, $item);
+            $help->updateTable($item, autoLoad: true);
         }
     }
 
     /**
      * 执行删除命令
      */
-    public function dropTable() {
-        Schema::dropTable(array_keys($this->tables));
+    protected function dropTable() {
+        $db = $this->db();
+        $grammar = $this->grammar();
+        foreach ($this->tables as $table => $_) {
+            /** @var string $table */
+            $db->execute($grammar->compileTableDelete($table));
+        }
     }
 
-    /**
-     * 生成测试数据
-     */
-    public function seed() {}
+    protected function db(): Database {
+        return app('db');
+    }
 
+    protected function grammar(): SchemaGrammar {
+        return $this->db()->engine()->schemaGrammar();
+    }
 }

@@ -2,15 +2,12 @@
 declare(strict_types=1);
 namespace Zodream\Database\Schema;
 
-/**
- * Created by PhpStorm.
- * User: zx648
- * Date: 2016/8/11
- * Time: 14:50
- */
-use Zodream\Database\Query\Builder;
+use Zodream\Database\Contracts\Schema as SchemaInterface;
+use Zodream\Database\Contracts\Table as TableInterface;
+use Zodream\Database\Contracts\Column as ColumnInterface;
+use Zodream\Database\Utils;
 
-class Table extends BaseSchema {
+class Table implements TableInterface {
 
     const MyISAM = 'MyISAM';
     const HEAP = 'HEAP';
@@ -19,227 +16,271 @@ class Table extends BaseSchema {
     const MRG_MYISAM = 'MRG_MYISAM';
     const InnoDB = 'InnoDB';
     const INNOBASE = 'INNOBASE';
-    /**
-     * @var Column[]
-     */
-    protected $data = [];
 
-    protected $tableName;
+    protected string $collation = 'utf8mb4_general_ci';
 
-    protected $charset = 'utf8mb4';
+    protected array $foreignKey = [];
 
-    protected $collate = 'utf8mb4_general_ci';
+    protected array $checkItems = [];
 
-    protected $engine = self::MyISAM;
+    protected int $aiBegin = 1;
 
-    protected $foreignKey = [];
+    protected array $indexItems = [];
 
-    protected $checks = [];
+    protected string $primaryKey;
 
-    protected $aiBegin = 1;
-
-    protected $index = [];
-
-    protected $primaryKey;
-
-    protected $comment = '';
+    protected string $comment = '';
 
     /**
-     * @var Schema
+     * @var SchemaInterface
      */
-    protected $schema;
+    protected SchemaInterface $schema;
 
     public function __construct(
-        $table,
-        $data = [],
-        $engine = self::MyISAM,
-        $charset = 'utf8mb4'
+        protected string $name,
+        /** @var ColumnInterface[] */
+        protected array $items = [],
+        protected string $engine = self::MyISAM,
+        protected string $charset = 'utf8mb4'
     ) {
-        $this->setTableName($table);
-        $this->data = $data;
-        $this->engine = $engine;
-        $this->charset = $charset;
     }
 
-    public function setSchema(Schema $schema) {
+    public function setSchema(SchemaInterface $schema): TableInterface {
         $this->schema = $schema;
         return $this;
     }
 
-    /**
-     * 原始
-     * @return mixed
-     */
-    public function getTableName() {
-        return $this->tableName;
+    public function schema(): SchemaInterface
+    {
+        return $this->schema;
     }
 
-    /**
-     * 正式表名，添加前缀
-     * @return string
-     */
-    public function getTable(): string {
-        return $this->addPrefix($this->tableName);
-    }
-
-    public function setTableName(string $table) {
-        $this->tableName = $table;
+    public function name(string $name): TableInterface
+    {
+        $this->name = $name;
         return $this;
     }
 
-    /**
-     * TABLE CHARSET, DEFAULT UTF8
-     * @param string $arg
-     * @return $this
-     */
-    public function setCharset(string $arg) {
-        $this->charset = $arg;
+    public function getName(): string
+    {
+        return $this->name;
+    }
+
+    public function charset(string $charset): TableInterface
+    {
+        $this->charset = $charset;
         return $this;
     }
 
-    /**
-     * @return string
-     */
-    public function getCharset(): string {
+    public function getCharset(): string
+    {
         return $this->charset;
     }
 
-    /**
-     * @param string $collate
-     * @return Table
-     */
-    public function setCollate(string $collate) {
-        $this->collate = $collate;
+    public function getCollation(): string
+    {
+        return $this->collation;
+    }
+
+    public function collation(string $collation): TableInterface
+    {
+        $this->collation = $collation;
         return $this;
     }
 
-    /**
-     * @return string
-     */
-    public function getCollate(): string {
-        return $this->collate;
-    }
-
-    /**
-     * TABLE COMMENT
-     * @param string $arg
-     * @return $this
-     */
-    public function setComment(string $arg) {
-        $this->comment = $arg;
+    public function comment(string $comment): TableInterface
+    {
+        $this->comment = $comment;
         return $this;
     }
 
-    /**
-     * SET PRIMARY KEY
-     * @param string $field
-     * @return $this
-     */
-    public function pk(string $field) {
-        $this->primaryKey = $field;
+    public function getComment(): string
+    {
+        return $this->comment;
+    }
+
+    public function engine(string $engine): TableInterface
+    {
+        $this->engine = $engine;
         return $this;
     }
 
-    /**
-     * SET TABLE ENGINE
-     * @param string $arg
-     * @return $this
-     */
-    public function setEngine(string $arg) {
-        $this->engine = $arg;
+    public function getEngine(): string
+    {
+        return $this->engine;
+    }
+
+    public function getPrimaryKey(): string {
+        return $this->primaryKey;
+    }
+    public function getForeignKeys(): array {
+        return $this->foreignKey;
+    }
+    public function getChecks(): array {
+        return $this->checkItems;
+    }
+    public function getIndexes(): array {
+        return $this->indexItems;
+    }
+    public function getAiBegin(): int {
+        return $this->aiBegin;
+    }
+
+    public function ai(ColumnInterface|string $column, int $begin = 1): TableInterface
+    {
+        $this->aiBegin = max($this->aiBegin, $begin);
+        $this->pk($column);
         return $this;
     }
 
-    /**
-     * SET AUTO_INCREMENT BEGIN
-     * @param string $arg
-     * @return $this
-     */
-    public function setAI($arg) {
-        $this->aiBegin = max($this->aiBegin, intval($arg));
+    public function pk(ColumnInterface|string $column): TableInterface
+    {
+        $this->primaryKey = Utils::formatName($column);
         return $this;
     }
 
-    /**
-     * SET FOREIGN KEY
-     * @param string $name
-     * @param string $field
-     * @param string $table
-     * @param string $fkField
-     * @param string $delete
-     * @param string $update
-     * @return $this
-     */
-    public function fk($name, $field, $table, $fkField, $delete = 'NO ACTION', $update = 'NO ACTION') {
-        $this->foreignKey[$name] = [$field, $table, $fkField, $delete, $update];
+    public function fk(string $name, ColumnInterface|string $column, ColumnInterface $fkColumn, string $delete = 'NO ACTION', string $update = 'NO ACTION'): TableInterface
+    {
+        $this->foreignKey[$name] = [Utils::formatName($column), Utils::formatName($fkColumn->table()), Utils::formatName($fkColumn), $delete, $update];
         return $this;
     }
 
-    /**
-     * SET INDEX
-     * @param string $name
-     * @param string $field
-     * @param string $order asc or desc
-     * @return $this
-     */
-    public function index($name, $field, $order = null) {
-        $this->index[$name] = [$field, $order];
+    public function index(string $name, ColumnInterface|string $column, string $order = ''): TableInterface
+    {
+        $this->indexItems[$name] = [Utils::formatName($column), $order];
         return $this;
     }
 
-    /**
-     * SET UNIQUE
-     * @param string $name
-     * @param string $field
-     * @param string $order
-     * @return $this
-     */
-    public function unique($name, $field, $order = null) {
-        $this->index[$name] = [$field, $order, 'UNIQUE'];
+    public function unique(string $name, ColumnInterface|string $column, string $order = ''): TableInterface
+    {
+        $this->indexItems[$name] = [Utils::formatName($column), $order, __FUNCTION__];
         return $this;
     }
 
-
-    /**
-     * SET CHECK
-     * @param string $name
-     * @param string $arg
-     * @return $this
-     */
-    public function checks($name, $arg = null) {
-        if (empty($arg)) {
-            $this->checks[] = $name;
+    public function check(string $name, string $constraint = ''): TableInterface
+    {
+        if (empty($constraint)) {
+            $this->checkItems[] = $name;
         } else {
-            $this->checks[$name] = $arg;
+            $this->checkItems[$name] = $constraint;
         }
         return $this;
     }
 
-    /**
-     * GET TABLE NAME
-     * @return string
-     */
-    public function getName() {
-        return $this->tableName;
+    public function columns(): array
+    {
+        return $this->items;
     }
 
-    /**
-     * Add nullable creation and update timestamps to the table.
-     *
-     * @return void
-     */
+    public function column(ColumnInterface|string $column): ColumnInterface
+    {
+        if ($column instanceof ColumnInterface) {
+            $this->items[$column->getName()] = $column->setTable($this);
+            return $column;
+        }
+        if (isset($this->items[$column])) {
+            return $this->items[$column];
+        }
+        return $this->items[$column] = (new Column($column))->setTable($this);
+    }
+
+    public function bool(string $name): ColumnInterface
+    {
+        return $this->column($name)->bool();
+    }
+
+    public function enum(string $name, array $items = []): ColumnInterface
+    {
+        return $this->column($name)->enum($items);
+    }
+
+    public function int(string $name, int $length = 11): ColumnInterface
+    {
+        $column = $this->column($name);
+        if ($length < 3) {
+            return $column->tinyint(1);
+        }
+        return $column->int($length);
+    }
+
+    public function uint(string $name, int $length = 11): ColumnInterface
+    {
+        $column = $this->column($name);
+        if ($length < 3) {
+            return $column->tinyint(1)->unsigned();
+        }
+        if ($length < 6) {
+            return $column->short($length)->unsigned();
+        }
+        if ($length > 19) {
+            return $column->long($length)->unsigned();
+        }
+        return $column->uint($length);
+    }
+
+    public function short(string $name, int $length = 4): ColumnInterface
+    {
+        return $this->column($name)->short($length);
+    }
+
+    public function long(string $name, int $length = 20): ColumnInterface
+    {
+        return $this->column($name)->long($length);
+    }
+
+    public function float(string $name, int $length = 8, int $d = 2): ColumnInterface
+    {
+        return $this->column($name)->float($length, $d);
+    }
+
+    public function double(string $name, int $length = 16, int $d = 10): ColumnInterface
+    {
+        return $this->column($name)->double($length, $d);
+    }
+
+    public function decimal(string $name, int $length = 16, int $d = 10): ColumnInterface
+    {
+        return $this->column($name)->decimal($length, $d);
+    }
+
+    public function string(string $name, int $length = 255): ColumnInterface
+    {
+        return $this->column($name)->string($length);
+    }
+
+    public function char(string $name, int $length = 10): ColumnInterface
+    {
+        return $this->column($name)->char($length);
+    }
+
+    public function blob(string $name): ColumnInterface
+    {
+        return $this->column($name)->blob();
+    }
+
+    public function date(string $name): ColumnInterface
+    {
+        return $this->column($name)->date();
+    }
+
+    public function datetime(string $name): ColumnInterface
+    {
+        return $this->column($name)->datetime();
+    }
+
+    public function time(string $name): ColumnInterface
+    {
+        return $this->column($name)->time();
+    }
+
+    public function timestamp(string $name): ColumnInterface
+    {
+        return $this->column($name)->timestamp();
+    }
+
     public function timestamps() {
-        $this->timestamp('created_at');
         $this->timestamp('updated_at');
-    }
-
-    /**
-     * 设置为 PHP 版时间戳
-     * @param string $column
-     * @return Column
-     */
-    public function timestamp($column) {
-        return $this->set($column)->int(10)->unsigned()->defaultVal(0);
+        $this->timestamp('created_at');
     }
 
     /**
@@ -248,327 +289,7 @@ class Table extends BaseSchema {
      * @param  string  $column
      * @return Column
      */
-    public function softDeletes($column = 'deleted_at') {
+    public function softDeletes(string $column = 'deleted_at'): ColumnInterface {
         return $this->timestamp($column);
-    }
-
-    /**
-     * Indicate that the timestamp columns should be dropped.
-     *
-     * @return void
-     */
-    public function dropTimestamps() {
-        $this->dropColumn('created_at', 'updated_at');
-    }
-
-    /**
-     * Indicate that the soft delete column should be dropped.
-     *
-     * @return void
-     */
-    public function dropSoftDeletes() {
-        $this->dropColumn('deleted_at');
-    }
-
-    /**
-     * DROP TABLE
-     * @return mixed
-     */
-    public function drop() {
-        return $this->command()->execute($this->getDropSql());
-    }
-
-    /**
-     * CREATE TABLE
-     * @return mixed
-     * @throws \Exception
-     */
-    public function create() {
-        return $this->command()->execute($this->getSql());
-    }
-
-    /**
-     * DROP AND CREATE TABLE
-     * @return mixed
-     * @throws \Exception
-     */
-    public function replace() {
-        $this->drop();
-        return $this->create();
-    }
-
-    /**
-     * TRUNCATE TABLE
-     * @return mixed
-     * @throws \Exception
-     */
-    public function truncate() {
-        return $this->command()->execute($this->getTruncateSql());
-    }
-
-    /**
-     * ALERT TABLE
-     * @return mixed
-     * @throws \Exception
-     */
-    public function alert() {
-        return $this->command()->execute($this->getAlertSql());
-    }
-
-    /**
-     * DROP COLUMN
-     * @return mixed
-     * @throws \Exception
-     */
-    public function dropColumn() {
-        $columns = func_get_args();
-        foreach ($columns as $column) {
-            $this->set($column);
-        }
-        return $this->command()->execute($this->getDropColumnSql());
-    }
-
-    /**
-     * 检查表
-     * @return mixed
-     * @throws \Exception
-     */
-    public function check() {
-        return $this->command()->execute($this->getCheckSql());
-    }
-
-    /**
-     * 优化表
-     * @return mixed
-     * @throws \Exception
-     */
-    public function optimize() {
-        return $this->command()->execute($this->getOptimizeSql());
-    }
-
-    /**
-     * 修复表
-     * @return mixed
-     * @throws \Exception
-     */
-    public function repair() {
-        return $this->command()->execute($this->getRepairSql());
-    }
-
-    /**
-     * 分析表
-     * @return mixed
-     * @throws \Exception
-     */
-    public function analyze() {
-        return $this->command()->execute($this->getAnalyzeSql());
-    }
-
-    /**
-     * 锁定
-     * @return mixed
-     */
-    public function lockTable() {
-        return $this->command()->execute($this->getLockSql());
-    }
-
-    /**
-     * 解锁
-     * @return mixed
-     */
-    public function unlockTable() {
-        return $this->command()->execute($this->getUnLockSql());
-    }
-
-    /**
-     * @param bool $isFull 是否包含完整信息
-     * @return array
-     */
-    public function getAllColumn($isFull = false) {
-        if ($isFull) {
-            return $this->command()->fetch('SHOW FULL COLUMNS FROM '.$this->getTable());
-        }
-        return $this->command()->fetch('SHOW COLUMNS FROM '.$this->getTable());
-    }
-
-    /**
-     * 获取列名
-     * @return array
-     */
-    public function getColumnKeys() {
-        return array_column($this->getAllColumn(), 'Field');
-    }
-
-    /**
-     * 系统生成的创建表的语句
-     * @return string
-     */
-    public function getCreateTableSql() {
-        $data = $this->command()->select('SHOW CREATE TABLE '.$this->getTable());
-        if (empty($data)) {
-            return null;
-        }
-        return $data[0]['Create Table'].';';
-    }
-
-
-    /**
-     * @param string $offset
-     * @return bool|Column
-     */
-    public function get($offset = '') {
-        return isset($this->data[$offset]) ? $this->data[$offset] : null;
-    }
-
-    /**
-     * @param $offset
-     * @param $column
-     * @return Column
-     */
-    public function set($offset, $column = null) {
-        if (!$column instanceof Column) {
-            $column = new Column($this, $offset);
-        }
-        return $this->data[$offset] = $column;
-    }
-
-    /**
-     * GET DROP AND CREATE TABLE SQL
-     * @return string
-     */
-    public function getReplaceSql() {
-        return $this->getDropSql().$this->getSql();
-    }
-
-    /**
-     * GET TRUNCATE TABLE SQL
-     * @return string
-     */
-    public function getTruncateSql() {
-        return sprintf('TRUNCATE %s;', $this->getTable());
-    }
-
-    /**
-     * GET ALERT TABLE SQL
-     * @return string
-     */
-    public function getAlertSql() {
-        $sql = [];
-        foreach ($this->data as $item) {
-            $sql[] = $item->getAlterSql();
-        }
-        return sprintf('ALTER TABLE %s %s;',
-            $this->getTable(),
-            implode(',', $sql));
-    }
-
-    //DROP COLUMN
-    public function getDropColumnSql() {
-        $sql = [];
-        foreach ($this->data as $item) {
-            $sql[] = $item->getDropSql();
-        }
-        return sprintf('ALTER TABLE %s %s;',
-            $this->getTable(),
-            implode(',', $sql));
-    }
-    /**
-     * GET DROP TABLE SQL
-     * @return string
-     */
-    public function getDropSql() {
-        return sprintf('DROP TABLE IF EXISTS %s;', $this->getTable());
-    }
-
-    public function getLockSql() {
-        return sprintf('LOCK TABLES %s WRITE;', $this->getTable());
-    }
-
-    public function getUnLockSql() {
-        return 'UNLOCK TABLES;';
-    }
-
-    /**
-     * GET CREATE TABLE SQL
-     * @return string
-     */
-    public function getSql() {
-        $sql = "CREATE TABLE IF NOT EXISTS {$this->getTable()} (";
-        $column = $this->data;
-        if (!empty($this->primaryKey)) {
-            $column[] = "PRIMARY KEY (`{$this->primaryKey}`)";
-        }
-        foreach ($this->checks as $key => $item) {
-            $column[] = (!is_integer($key) ? "CONSTRAINT `{$key}` " : null)." CHECK ({$item})";
-        }
-        foreach ($this->index as $key => $item) {
-            $column[] = (count($item) > 2 ? 'UNIQUE ': null). "INDEX `{$key}` (`{$item[0]}` {$item['1']})";
-        }
-        foreach ($this->foreignKey as $key => $item) {
-            $column[] = "CONSTRAINT `{$key}` FOREIGN KEY (`{$item[0]}`) REFERENCES `{$item[1]}` (`{$item[2]}`) ON DELETE {$item[2]} ON UPDATE {$item[3]}";
-        }
-        $sql .= implode(',', $column).") ENGINE={$this->engine}";
-        if ($this->aiBegin > 1) {
-            $sql .= ' AUTO_INCREMENT='.$this->aiBegin;
-        }
-        return $sql." DEFAULT CHARSET={$this->charset} COMMENT='{$this->comment}';";
-    }
-
-    /**
-     * @return array
-     */
-    public function getForeignKeys() {
-        return (new Builder())
-            ->from('information_schema.key_column_usage')
-            ->where([
-                'CONSTRAINT_SCHEMA' => $this->schema->getSchema(),
-                'TABLE_NAME' => $this->getTable()
-            ])->all();
-    }
-
-
-    /**
-     * @return Builder
-     */
-    public function query() {
-        return (new Builder())->from($this->getTable());
-    }
-
-    public function rename($name) {
-        $sql = sprintf('ALTER TABLE  %s RENAME TO %s', $this->getTable(), $this->addPrefix($name));
-        $this->setTableName($name);
-        return $this->command()->execute($sql);
-    }
-
-    public function __call($name, $arguments) {
-        $this->set($name, ...$arguments);
-    }
-
-    /**
-     * @return string
-     */
-    public function getAnalyzeSql() {
-        return sprintf('ANALYZE TABLE %s;', $this->getTable());
-    }
-
-    /**
-     * @return string
-     */
-    public function getCheckSql() {
-        return sprintf('CHECK TABLE %s;', $this->getTable());
-    }
-
-    /**
-     * @return string
-     */
-    public function getOptimizeSql() {
-        return sprintf('OPTIMIZE TABLE %s;', $this->getTable());
-    }
-
-    /**
-     * @return string
-     */
-    public function getRepairSql() {
-        return sprintf('REPAIR TABLE %s;', $this->getTable());
     }
 }

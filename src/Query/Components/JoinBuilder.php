@@ -2,6 +2,7 @@
 declare(strict_types=1);
 namespace Zodream\Database\Query\Components;
 
+use Zodream\Database\Contracts\SqlBuilder;
 use Zodream\Database\Query\Builder;
 
 trait JoinBuilder {
@@ -18,7 +19,7 @@ trait JoinBuilder {
      * @param  string  $type
      * @return $this
      */
-    public function join($table, $first, $operator = null, $second = null, $type = 'inner') {
+    public function join(string $table, $first, $operator = null, $second = null, string $type = 'inner'): SqlBuilder {
         $on = $first;
         if (!empty($operator)) {
             $on .= is_null($second) ? ' = '.$operator : sprintf(' %s %s', $operator, $second);
@@ -36,7 +37,7 @@ trait JoinBuilder {
      * @param  string  $second
      * @return Builder|static
      */
-    public function leftJoin($table, $first, $operator = null, $second = null) {
+    public function leftJoin(string $table, $first, $operator = null, $second = null): SqlBuilder {
         return $this->join($table, $first, $operator, $second, 'left');
     }
 
@@ -53,7 +54,7 @@ trait JoinBuilder {
      * @param  string  $second
      * @return Builder|static
      */
-    public function rightJoin($table, $first, $operator = null, $second = null) {
+    public function rightJoin(string $table, $first, $operator = null, $second = null): SqlBuilder {
         return $this->join($table, $first, $operator, $second, 'right');
     }
 
@@ -70,7 +71,7 @@ trait JoinBuilder {
      * @param  string  $second
      * @return Builder|static
      */
-    public function crossJoin($table, $first = null, $operator = null, $second = null) {
+    public function crossJoin(string $table, $first, $operator = null, $second = null): SqlBuilder {
         return $this->join($table, $first, $operator, $second, 'cross');
     }
 
@@ -79,6 +80,10 @@ trait JoinBuilder {
     }
 
     public function inner($table, $first = null, $operator = null, $second = null) {
+        return $this->innerJoin($table, $first, $operator, $second);
+    }
+
+    public function innerJoin(string $table, $first, $operator = null, $second = null): SqlBuilder {
         return $this->join($table, $first, $operator, $second);
     }
 

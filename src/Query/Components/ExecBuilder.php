@@ -14,27 +14,27 @@ trait ExecBuilder {
      * @return array
      * @throws \Exception
      */
-    public function all(): ?array {
+    public function all() {
         if ($this->isEmpty) {
             return null;
         }
-        return $this->command()->fetch($this->getSql(), $this->getBindings());
+        return $this->command()->fetch($this->getSQL(), $this->getBindings());
     }
 
-    public function get($fields = null): ?array {
+    public function get(...$columns) {
         if (func_num_args() > 0) {
             $this->select(...func_get_args());
         }
         return $this->all();
     }
 
-    public function each(callable $cb, ...$fields) {
+    public function each(callable $cb, ...$fields): array {
         if (func_num_args() > 1) {
             $this->select(...$fields);
         }
         /** @var Command $command */
         $command = $this->command();
-        $result = $command->execute($this->getSql(), $this->getBindings());
+        $result = $command->execute($this->getSQL(), $this->getBindings());
         $items = [];
         while (!!$res = $command->getEngine()->row(true, $result)) {
             $item = call_user_func($cb, $res);
@@ -57,17 +57,17 @@ trait ExecBuilder {
 
     /**
      *
-     * @param int $size
-     * @param string $key
+     * @param int $perPage
+     * @param string $pageKey
      * @return Page
      * @throws \Exception
      */
-    public function page($size = 20, $key = 'page'): Page {
+    public function page(int $perPage, string $pageKey = 'page'): Page {
         $countQuery = clone $this;
         $countQuery->selects = [];
         $countQuery->orders = [];
         $countQuery->limit = null;
-        $page = new Page($countQuery, $size, $key);
+        $page = new Page($countQuery, $perPage, $pageKey);
         return $page->setPage($this->limit($page->getLimit())->all());
     }
 
@@ -84,7 +84,7 @@ trait ExecBuilder {
         return current($result);
     }
 
-    public function first($fields = null) {
+    public function first(...$columns) {
         if (func_num_args() > 0) {
             $this->select(...func_get_args());
         }
@@ -96,7 +96,7 @@ trait ExecBuilder {
      * @return bool|string|int
      * @throws \Exception
      */
-    public function scalar(): ?string {
+    public function scalar() {
         $result = $this->one();
         if (empty($result)) {
             return null;
@@ -108,7 +108,7 @@ trait ExecBuilder {
         return empty($field) ? $field : sprintf('`%s`', trim($field, '`'));
     }
 
-    public function pluck($column = null, $key = null): array {
+    public function pluck(?string $column = null, ?string $key = null): array {
         if (empty($this->selects) && !empty($column)) {
             $this->select($this->wrapField($column), $this->wrapField($key));
         }
@@ -132,7 +132,7 @@ trait ExecBuilder {
      * @return bool|int|string
      * @throws \Exception
      */
-    public function value($column): ?string {
+    public function value(string $column) {
         return $this->select($column)->scalar();
     }
 }

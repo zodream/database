@@ -27,13 +27,9 @@ abstract class BaseSchema {
     /**
      * @return string
      */
-    abstract public function getSql();
+    abstract public function getSQL(): string;
 
     public function __toString() {
-        return $this->getSql();
-    }
-
-    public function getError() {
-        return $this->command()->getError();
+        return $this->getSQL();
     }
 }

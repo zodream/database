@@ -1,6 +1,7 @@
 <?php
 namespace Zodream\Database\Query\Components;
 
+use Zodream\Database\Contracts\SqlBuilder;
 use Zodream\Database\Query\Expression;
 use Zodream\Database\Query\Builder;
 use Zodream\Helpers\Str;
@@ -11,7 +12,7 @@ trait WhereBuilder {
 
     public $wheres = [];
 
-    public function where($column, $operator = null, $value = null, $boolean = 'and') {
+    public function where($column, $operator = null, $value = null, string $boolean = 'and'): SqlBuilder {
         if (is_array($column)) {
             return $this->addArrayOfWheres($column, $boolean);
         }
@@ -68,7 +69,7 @@ trait WhereBuilder {
         return !is_string($operator) || !in_array(strtolower($operator), Builder::OPERATORS, true);
     }
 
-    public function orWhere($column, $operator = null, $value = null) {
+    public function orWhere($column, $operator = null, $value = null): SqlBuilder {
         return $this->where($column, $operator, $value, 'or');
     }
 
@@ -119,7 +120,7 @@ trait WhereBuilder {
      * @param  string  $boolean
      * @return $this
      */
-    public function whereRaw($sql, $bindings = [], $boolean = 'and') {
+    public function whereRaw(SqlBuilder|string $sql, array $bindings = [], string $boolean = 'and'): SqlBuilder {
         $this->wheres[] = ['type' => 'raw', 'sql' => $sql, 'boolean' => $boolean];
 
         $this->addBinding((array) $bindings, 'where');
@@ -134,7 +135,7 @@ trait WhereBuilder {
      * @param  array   $bindings
      * @return Builder|static
      */
-    public function orWhereRaw($sql, array $bindings = []) {
+    public function orWhereRaw(SqlBuilder|string$sql, array $bindings = []): SqlBuilder {
         return $this->whereRaw($sql, $bindings, 'or');
     }
 
@@ -147,7 +148,7 @@ trait WhereBuilder {
      * @param  bool    $not
      * @return $this
      */
-    public function whereIn($column, $values, $boolean = 'and', $not = false) {
+    public function whereIn(string $column, array $values, string $boolean = 'and', bool $not = false): SqlBuilder {
         $type = $not ? 'NotIn' : 'In';
 
         // If the value is a query builder instance we will assume the developer wants to
@@ -194,7 +195,7 @@ trait WhereBuilder {
      * @param  mixed   $values
      * @return Builder|static
      */
-    public function orWhereIn($column, $values) {
+    public function orWhereIn(string $column, array $values): SqlBuilder {
         return $this->whereIn($column, $values, 'or');
     }
 
@@ -206,7 +207,7 @@ trait WhereBuilder {
      * @param  string  $boolean
      * @return Builder|static
      */
-    public function whereNotIn($column, $values, $boolean = 'and') {
+    public function whereNotIn(string $column, array $values, string $boolean = 'and'): SqlBuilder {
         return $this->whereIn($column, $values, $boolean, true);
     }
 
@@ -272,7 +273,7 @@ trait WhereBuilder {
      * @param  bool    $not
      * @return $this
      */
-    public function whereNull($column, $boolean = 'and', $not = false) {
+    public function whereNull(string $column, string $boolean = 'and', bool $not = false): SqlBuilder {
         $type = $not ? 'NotNull' : 'Null';
 
         $this->wheres[] = compact('type', 'column', 'boolean');
@@ -286,7 +287,7 @@ trait WhereBuilder {
      * @param  string  $column
      * @return Builder|static
      */
-    public function orWhereNull($column) {
+    public function orWhereNull(string $column): SqlBuilder {
         return $this->whereNull($column, 'or');
     }
 
@@ -295,9 +296,9 @@ trait WhereBuilder {
      *
      * @param  string  $column
      * @param  string  $boolean
-     * @return Query|static
+     * @return SqlBuilder|static
      */
-    public function whereNotNull($column, $boolean = 'and') {
+    public function whereNotNull(string $column, string $boolean = 'and'): SqlBuilder {
         return $this->whereNull($column, $boolean, true);
     }
 
@@ -310,7 +311,7 @@ trait WhereBuilder {
      * @param  bool  $not
      * @return $this
      */
-    public function whereBetween($column, array $values, $boolean = 'and', $not = false) {
+    public function whereBetween(string $column, array $values, string $boolean = 'and', bool $not = false): SqlBuilder {
         $type = 'between';
 
         $this->wheres[] = compact('column', 'type', 'boolean', 'not');
@@ -327,7 +328,7 @@ trait WhereBuilder {
      * @param  array   $values
      * @return Builder|static
      */
-    public function orWhereBetween($column, array $values) {
+    public function orWhereBetween(string $column, array $values): SqlBuilder {
         return $this->whereBetween($column, $values, 'or');
     }
 
@@ -339,7 +340,7 @@ trait WhereBuilder {
      * @param  string  $boolean
      * @return Builder|static
      */
-    public function whereNotBetween($column, array $values, $boolean = 'and') {
+    public function whereNotBetween(string $column, array $values, string $boolean = 'and'): SqlBuilder {
         return $this->whereBetween($column, $values, $boolean, true);
     }
 
@@ -350,7 +351,7 @@ trait WhereBuilder {
      * @param  array   $values
      * @return Builder|static
      */
-    public function orWhereNotBetween($column, array $values) {
+    public function orWhereNotBetween(string $column, array $values): SqlBuilder {
         return $this->whereNotBetween($column, $values, 'or');
     }
 
@@ -360,7 +361,7 @@ trait WhereBuilder {
      * @param  string  $column
      * @return Builder|static
      */
-    public function orWhereNotNull($column) {
+    public function orWhereNotNull(string $column): SqlBuilder {
         return $this->whereNotNull($column, 'or');
     }
 
@@ -406,7 +407,7 @@ trait WhereBuilder {
         return $this;
     }
 
-    public function having($column, $operator = null, $value = null, $boolean = 'and') {
+    public function having($column, $operator = null, $value = null, string $boolean = 'and'): SqlBuilder {
         $type = 'Basic';
 
         // If the given operator is not found in the list of valid operators we will
@@ -433,7 +434,7 @@ trait WhereBuilder {
      * @param  string  $value
      * @return static
      */
-    public function orHaving($column, $operator = null, $value = null) {
+    public function orHaving($column, $operator = null, $value = null): SqlBuilder {
         return $this->having($column, $operator, $value, 'or');
     }
 }

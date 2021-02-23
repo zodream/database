@@ -1,8 +1,10 @@
 <?php
 declare(strict_types=1);
-namespace Zodream\Database\Concerns;
+namespace Zodream\Database\Contracts;
 
 interface Engine {
+
+    public function config(string $name = '');
 
     public function grammar(): BuilderGrammar;
     public function schemaGrammar(): SchemaGrammar;
@@ -15,9 +17,37 @@ interface Engine {
     public function updateBatch(string $sql, array $parameters = []);
     public function delete(string $sql, array $parameters = []): int;
     public function execute(string $sql, array $parameters = []);
+
+    /**
+     * 获取第一行第一列
+     * @param string $sql
+     * @param array $parameters
+     * @return mixed
+     */
     public function executeScalar(string $sql, array $parameters = []);
+
+    /**
+     * 获取所有的查询结果 [一行]
+     * @param string $sql
+     * @param array $parameters
+     * @return mixed
+     */
     public function fetch(string $sql, array $parameters = []);
+
+    /**
+     * 执行多个查询结果，返回 [[一行]]
+     * @param string $sql
+     * @param array $parameters
+     * @return mixed
+     */
     public function fetchMultiple(string $sql, array $parameters = []);
+
+    /**
+     * 获取第一行结果
+     * @param string $sql
+     * @param array $parameters
+     * @return mixed
+     */
     public function first(string $sql, array $parameters = []);
 
     /**

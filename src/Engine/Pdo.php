@@ -5,10 +5,10 @@ use Exception;
 use Zodream\Database\Adapters\MySql\BuilderGrammar;
 use Zodream\Database\Adapters\MySql\Information;
 use Zodream\Database\Adapters\MySql\SchemaGrammar;
-use Zodream\Database\Concerns\BuilderGrammar as BuilderInterface;
-use Zodream\Database\Concerns\Engine;
-use Zodream\Database\Concerns\Information as InformationInterface;
-use Zodream\Database\Concerns\SchemaGrammar as SchemaInterface;
+use Zodream\Database\Contracts\BuilderGrammar as BuilderInterface;
+use Zodream\Database\Contracts\Engine;
+use Zodream\Database\Contracts\Information as InformationInterface;
+use Zodream\Database\Contracts\SchemaGrammar as SchemaInterface;
 
 class Pdo extends BaseEngine implements Engine {
 

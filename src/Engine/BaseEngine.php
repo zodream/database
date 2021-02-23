@@ -2,9 +2,7 @@
 declare(strict_types=1);
 namespace Zodream\Database\Engine;
 
-use Zodream\Infrastructure\Base\ConfigObject;
-
-abstract class BaseEngine extends ConfigObject {
+abstract class BaseEngine {
 	
 	protected $driver = null;
 	protected $result;
@@ -35,15 +33,19 @@ abstract class BaseEngine extends ConfigObject {
 	public function __construct($config) {
         if (is_array($config)) {
             timer('db engine init');
-            $this->setConfigs($config)->open();
+            $this->configs = array_merge($this->configs, $config);
+            $this->open();
             timer('db engine end');
             return;
         }
         $this->setDriver($config);
 	}
 
-	public function getConfig($key, $default = null) {
-	    return array_key_exists($key, $this->configs) ? $this->configs[$key] : $default;
+	public function config(string $name = '') {
+	    if (empty($name)) {
+	        return $this->configs;
+        }
+	    return array_key_exists($name, $this->configs) ? $this->configs[$name] : null;
     }
 	
 	abstract public function open(): bool;

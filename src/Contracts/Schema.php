@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-namespace Zodream\Database\Concerns;
+namespace Zodream\Database\Contracts;
 
 interface Schema {
 
@@ -11,5 +11,6 @@ interface Schema {
     public function getCollation(): string;
     public function collation(string $collation): Schema;
 
+    public function tables(): array;
     public function table(Table|string $table): Table;
 }

@@ -2,7 +2,9 @@
 declare(strict_types=1);
 namespace Zodream\Database\Query\Components;
 
+use Zodream\Database\Contracts\SqlBuilder;
 use Zodream\Database\Query\Builder;
+use Zodream\Database\Utils;
 
 trait SelectBuilder {
 
@@ -13,7 +15,7 @@ trait SelectBuilder {
      * @param string|array $field
      * @return static
      */
-    public function select($field = '*') {
+    public function select(array|string $field = '*', ...$args): SqlBuilder {
         if (func_num_args() < 1) {
             return $this->andSelect($field);
         }
@@ -47,7 +49,7 @@ trait SelectBuilder {
         return $this;
     }
 
-    public function selectRaw($expression, array $bindings = []) {
+    public function selectRaw($expression, array $bindings = []): SqlBuilder {
         $this->selects[] = $expression;
         if ($bindings) {
             $this->addBinding($bindings, 'select');
@@ -87,7 +89,7 @@ trait SelectBuilder {
         if ($query instanceof Builder) {
             $query->selects = [$query->selects[0]];
 
-            return [$query->getSql(), $query->getBindings()];
+            return [$query->getSQL(), $query->getBindings()];
         } elseif (is_string($query)) {
             return [$query, []];
         } else {
@@ -101,8 +103,8 @@ trait SelectBuilder {
      * @return integer
      * @throws \Exception
      */
-    public function count($column = '*') {
-        return (int)$this->_selectFunction(__FUNCTION__, $column)->scalar();
+    public function count(string $column = '*'): int {
+        return (int)$this->selectFuncName(__FUNCTION__, $column)->scalar();
     }
 
     /**
@@ -111,8 +113,8 @@ trait SelectBuilder {
      * @return bool|string
      * @throws \Exception
      */
-    public function max($column)  {
-        return $this->_selectFunction(__FUNCTION__, $column)->scalar();
+    public function max(string $column)  {
+        return $this->selectFuncName(__FUNCTION__, $column)->scalar();
     }
 
     /**
@@ -121,8 +123,8 @@ trait SelectBuilder {
      * @return bool|int|string
      * @throws \Exception
      */
-    public function min($column)  {
-        return $this->_selectFunction(__FUNCTION__, $column)->scalar();
+    public function min(string $column)  {
+        return $this->selectFuncName(__FUNCTION__, $column)->scalar();
     }
 
     /**
@@ -131,8 +133,8 @@ trait SelectBuilder {
      * @return bool|int|string
      * @throws \Exception
      */
-    public function avg($column)  {
-        return $this->_selectFunction(__FUNCTION__, $column)->scalar();
+    public function avg(string $column): int|float  {
+        return Utils::formatNumeric($this->selectFuncName(__FUNCTION__, $column)->scalar());
     }
 
     /**
@@ -141,9 +143,8 @@ trait SelectBuilder {
      * @return int|float|double
      * @throws \Exception
      */
-    public function sum($column)  {
-        $val = $this->_selectFunction(__FUNCTION__, $column)->scalar();
-        return empty($val) ? 0 : $val;
+    public function sum(string $column): int|float  {
+        return Utils::formatNumeric($this->selectFuncName(__FUNCTION__, $column)->scalar());
     }
 
     /**
@@ -151,7 +152,7 @@ trait SelectBuilder {
      * @param string $column
      * @return $this
      */
-    private function _selectFunction($name, $column) {
+    protected function selectFuncName($name, $column) {
         $this->selects[] = "{$name}({$column}) AS {$name}";
         return $this;
     }

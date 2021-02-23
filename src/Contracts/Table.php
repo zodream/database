@@ -1,9 +1,10 @@
 <?php
 declare(strict_types=1);
-namespace Zodream\Database\Concerns;
+namespace Zodream\Database\Contracts;
 
 interface Table {
 
+    public function setSchema(Schema $schema): Table;
     public function schema(): Schema;
 
     public function name(string $name): Table;
@@ -16,8 +17,13 @@ interface Table {
     public function getComment(): string;
     public function engine(string $engine): Table;
     public function getEngine(): string;
+    public function getPrimaryKey(): string;
+    public function getForeignKeys(): array;
+    public function getChecks(): array;
+    public function getIndexes(): array;
+    public function getAiBegin(): int;
 
-    public function ai(Column|string $column): Table;
+    public function ai(Column|string $column, int $begin = 1): Table;
     public function pk(Column|string $column): Table;
     public function fk(string $name, Column|string $column, Column $fkColumn, string $delete = 'NO ACTION', string $update = 'NO ACTION'): Table;
     public function index(string $name, Column|string $column, string $order = ''): Table;
@@ -25,6 +31,7 @@ interface Table {
     public function check(string $name, string $constraint = ''): Table;
 
     public function column(Column|string $column): Column;
+    public function columns(): array;
     public function bool(string $name): Column;
     public function enum(string $name, array $items = []): Column;
     public function int(string $name, int $length = 11): Column;
@@ -48,6 +55,4 @@ interface Table {
     public function datetime(string $name): Column;
     public function time(string $name): Column;
     public function timestamp(string $name): Column;
-
-    public function diff(Table $table): Table;
 }

@@ -7,10 +7,10 @@ namespace Zodream\Database;
  * Date: 2016/5/14
  * Time: 9:07
  */
-use Zodream\Helpers\Time;
-use Zodream\Database\Engine\BaseEngine;
+
 use Zodream\Database\Engine\Pdo;
-use Zodream\Infrastructure\Concerns\SingletonPattern;
+use Zodream\Helpers\Time;
+use Zodream\Database\Contracts\Engine;
 use Zodream\Helpers\Str;
 use Closure;
 use Zodream\Infrastructure\Contracts\Database;
@@ -18,7 +18,6 @@ use Zodream\Infrastructure\Contracts\Database;
 /**
  * Class Command
  * @package Zodream\Database
- * @method BaseEngine getEngine($name = null)
  */
 class Command extends Manager implements Database {
 
@@ -33,11 +32,11 @@ class Command extends Manager implements Database {
     protected $configKey = 'database.connections';
 
     /**
-     * @var BaseEngine[]
+     * @var Engine[]
      */
     protected array $engines = [];
 
-    protected $defaultDriver = Pdo::class;
+    protected string $defaultDriver = Pdo::class;
 
     public function __construct() {
         parent::__construct();
@@ -45,17 +44,21 @@ class Command extends Manager implements Database {
             $this->setTable($this->table);
         }
     }
+    
+    public function engine(string $name = ''): Engine {
+        return $this->getEngine($name);
+    }
 
     protected function initEngineEvent($engine) {
         timer('db init end');
     }
 
     /**
-     * @param BaseEngine $engine
+     * @param Engine $engine
      */
     protected function changeEngineEvent($engine) {
         // 改变缓存状态
-        $this->openCache($engine->getConfig('cache_expire'));
+        $this->openCache($engine->config('cache_expire'));
     }
 
     /**
@@ -82,7 +85,7 @@ class Command extends Manager implements Database {
         if (str_starts_with($table, '!')) {
             return sprintf('`%s`%s', substr($table, 1), $alias);
         }
-        $prefix = $this->getEngine()->getConfig('prefix');
+        $prefix = $this->engine()->config('prefix');
         if (empty($prefix)) {
             return sprintf('`%s`%s', $table, $alias);
         }
@@ -102,14 +105,6 @@ class Command extends Manager implements Database {
     }
 
     /**
-     * @return Grammars\Grammar
-     * @throws \Exception
-     */
-    public function grammar() {
-        return $this->getEngine()->getGrammar();
-    }
-
-    /**
      * GET TABLE
      * @return string
      */
@@ -119,12 +114,15 @@ class Command extends Manager implements Database {
 
     /**
      * 更改数据库
-     * @param string $database
+     * @param string $schema
      * @return $this
-     * @throws \Exception
      */
-    public function changedSchema(string $database): Database {
-        $this->getEngine()->execute('use '.$database);
+    public function changedSchema(string $schema): Database {
+        $engine = $this->engine();
+        if (empty($schema)) {
+            $schema = $engine->config('database');
+        }
+        $engine->execute($engine->schemaGrammar()->compileSchemaUse($schema));
         return $this;
     }
 
@@ -140,7 +138,7 @@ class Command extends Manager implements Database {
      * @param int|bool $expire
      * @return $this
      */
-    public function openCache($expire = 3600) {
+    public function openCache(int|bool $expire = 3600) {
         $this->allowCache = $expire !== false;
         $this->cacheLife = $expire;
         return $this;
@@ -177,12 +175,16 @@ class Command extends Manager implements Database {
      * @throws \Exception
      */
     public function fetch(string $sql, array $parameters = []) {
-        return $this->getArray($sql, $parameters);
+        return $this->runOrCache($sql, $parameters, function ($sql, $parameters) {
+            return $this->engine()->fetch($sql, $parameters);
+        });
     }
 
     public function fetchMultiple(string $sql, array $parameters = [])
     {
-        return $this->getArray($sql, $parameters);
+        return $this->runOrCache($sql, $parameters, function ($sql, $parameters) {
+            return $this->engine()->fetchMultiple($sql, $parameters);
+        });
     }
 
     /**
@@ -192,17 +194,17 @@ class Command extends Manager implements Database {
      * @throws \Exception
      */
     public function transaction($args) {
-        return $this->getEngine()->transaction($args);
+        return $this->engine()->transaction($args);
     }
 
     /**
      * 开始执行事务
-     * @return BaseEngine
+     * @return Engine
      * @throws \Exception
      */
-    public function beginTransaction() {
-        $this->getEngine()->begin();
-        return $this->getEngine();
+    public function beginTransaction(): Engine {
+        $this->engine()->transactionBegin();
+        return $this->engine();
     }
 
     /**
@@ -214,47 +216,8 @@ class Command extends Manager implements Database {
      */
     public function insert(string $sql, array $parameters = []) {
         return $this->run($sql, $parameters, function ($sql, $parameters) {
-            return $this->getEngine()->insert($sql, $parameters);
+            return $this->engine()->insert($sql, $parameters);
         });
-    }
-
-    /**
-     * 如果行作为新记录被insert，则受影响行的值为1；如果原有的记录被更新，则受影响行的值为2。 如果有多条存在则只更新最后一条
-     * @param string $columns
-     * @param string $tags
-     * @param string $update
-     * @param array $parameters
-     * @return int
-     * @throws \Exception
-     */
-    public function insertOrUpdate($columns, $tags, $update, $parameters = array()) {
-        if (!empty($columns) && strpos($columns, '(') === false) {
-            $columns = '('.$columns.')';
-        }
-        $tags = trim($tags);
-        if (strpos($tags, '(') !== 0) {
-            $tags = '('.$tags.')';
-        }
-        return $this->update("INSERT INTO {$this->table} {$columns} VALUES {$tags} ON DUPLICATE KEY UPDATE {$update}", $parameters);
-    }
-
-    /**
-     *在执行REPLACE后，系统返回了所影响的行数，如果返回1，说明在表中并没有重复的记录，如果返回2，说明有一条重复记录，系统自动先调用了 DELETE删除这条记录，然后再记录用INSERT来insert这条记录。如果返回的值大于2，那说明有多个唯一索引，有多条记录被删除和insert。
-     * @param string $columns
-     * @param string $tags
-     * @param array $parameters
-     * @return int
-     * @throws \Exception
-     */
-    public function insertOrReplace($columns, $tags, $parameters = array()) {
-        if (!empty($columns) && strpos($columns, '(') === false) {
-            $columns = '('.$columns.')';
-        }
-        $tags = trim($tags);
-        if (strpos($tags, '(') !== 0) {
-            $tags = '('.$tags.')';
-        }
-        return $this->update("REPLACE INTO {$this->table} {$columns} VALUES {$tags}", $parameters);
     }
 
     /**
@@ -265,10 +228,9 @@ class Command extends Manager implements Database {
      * @throws \Exception
      */
     public function update(string $sql, array $parameters = []): int {
-        $res = $this->run($sql, $parameters, function ($sql, $parameters) {
-            return $this->getEngine()->update($sql, $parameters);
+        return $this->run($sql, $parameters, function ($sql, $parameters) {
+            return $this->engine()->update($sql, $parameters);
         });
-        return is_integer($res) ? $res : intval($res);
     }
 
     /**
@@ -279,10 +241,9 @@ class Command extends Manager implements Database {
      * @throws \Exception
      */
     public function delete(string $sql, array $parameters = []): int {
-        $res = $this->run($sql, $parameters, function ($sql, $parameters) {
-            return $this->getEngine()->delete($sql, $parameters);
+        return $this->run($sql, $parameters, function ($sql, $parameters) {
+            return $this->engine()->delete($sql, $parameters);
         });
-        return is_integer($res) ? $res : intval($res);
     }
 
     /**
@@ -292,20 +253,9 @@ class Command extends Manager implements Database {
      * @throws \Exception
      */
     public function execute(string $sql, array $parameters = []) {
-        if (preg_match('/^(insert|delete|update|replace|drop|create)\s+/i', $sql)) {
-            return $this->run($sql, $parameters, function ($sql, $parameters) {
-                return $this->getEngine()->execute($sql, $parameters);
-            });
-        }
-        $args = empty($parameters) ? serialize($parameters) : null;
-        if ($cache = $this->getCache($sql.$args)) {
-            return $cache;
-        }
-        $result = $this->run($sql, $parameters, function ($sql, $parameters) {
-            return $this->getEngine()->execute($sql, $parameters);
+        return $this->runOrCache($sql, $parameters, function ($sql, $parameters) {
+            return $this->engine()->execute($sql, $parameters);
         });
-        $this->setCache($sql.$args, $result);
-        return $result;
     }
 
     /**
@@ -317,11 +267,15 @@ class Command extends Manager implements Database {
      */
     protected function run($query, $bindings, \Closure $callback) {
         $start = Time::millisecond();
-        $result = $this->runQueryCallback($query, $bindings, $callback);
-        DB::addQueryLog($query, $bindings, Time::elapsedTime($start));
-        $error = $this->getError();
-        if (!empty($error)) {
-            throw new \Exception($error);
+        $result = null;
+        try {
+            $result = $this->runQueryCallback($query, $bindings, $callback);
+        } catch (\Exception $ex) {
+            if (app()->isDebug()) {
+                throw $ex;
+            }
+        } finally {
+            DB::addQueryLog($query, $bindings, Time::elapsedTime($start));
         }
         return $result;
     }
@@ -336,8 +290,8 @@ class Command extends Manager implements Database {
      *
      * @throws \Exception
      */
-    public function lastInsertId(): int {
-        return intval($this->getEngine()->lastInsertId());
+    public function lastInsertId(): int|string {
+        return $this->engine()->lastInsertId();
     }
 
     /**
@@ -346,72 +300,43 @@ class Command extends Manager implements Database {
      * @throws \Exception
      */
     public function rowCount(): int {
-        return $this->getEngine()->rowCount();
-    }
-
-    /**
-     * @param string $sql
-     * @param array $parameters
-     * @return array
-     * @throws \Exception
-     */
-    public function getArray($sql, $parameters = array()) {
-        $args = empty($parameters) ? serialize($parameters) : null;
-        if ($cache = $this->getCache($sql.$args)) {
-            return $cache;
-        }
-        $result = $this->run($sql, $parameters, function ($sql, $parameters) {
-            return $this->getEngine()->getArray($sql, $parameters);
-        });
-        $this->setCache($sql.$args, $result);
-        return $result;
-    }
-
-    /**
-     * @param string $sql
-     * @param array $parameters
-     * @return object[]
-     * @throws \Exception
-     */
-    public function getObject($sql, $parameters = array()) {
-        $args = empty($parameters) ? serialize($parameters) : null;
-        if ($cache = $this->getCache($sql.$args)) {
-            return $cache;
-        }
-        $result = $this->run($sql, $parameters, function ($sql, $parameters) {
-            return $this->getEngine()->getObject($sql, $parameters);
-        });
-        $this->setCache($sql.$args, $result);
-        return $result;
-    }
-
-    /**
-     * 获取错误信息
-     * @throws \Exception
-     */
-    public function getError() {
-        return $this->getEngine()->getError();
+        return $this->engine()->rowCount();
     }
 
     public function insertBatch(string $sql, array $parameters = [])
     {
-        return $this->insert($sql, $parameters);
+        return $this->engine()->insertBatch($sql, $parameters);
     }
 
     public function updateBatch(string $sql, array $parameters = [])
     {
-        return $this->insert($sql, $parameters);
+        return $this->engine()->updateBatch($sql, $parameters);
     }
 
     public function executeScalar(string $sql, array $parameters = [])
     {
-        $items = $this->first($sql, $parameters);
-        return empty($items) ? [] : current($items);
+        return $this->runOrCache($sql, $parameters, function ($sql, $parameters) {
+            return $this->engine()->executeScalar($sql, $parameters);
+        });
     }
 
     public function first(string $sql, array $parameters = [])
     {
-        $items = $this->fetch($sql, $parameters);
-        return empty($items) ? [] : current($items);
+        return $this->runOrCache($sql, $parameters, function ($sql, $parameters) {
+            return $this->engine()->first($sql, $parameters);
+        });
+    }
+
+    protected function runOrCache(string $sql, array $parameters, \Closure $callback) {
+        if (!$this->engine()->grammar()->cacheable($sql)) {
+            return $this->run($sql, $parameters, $callback);
+        }
+        $args = empty($parameters) ? serialize($parameters) : '';
+        if ($cache = $this->getCache($sql.$args)) {
+            return $cache;
+        }
+        $result = $this->run($sql, $parameters, $callback);
+        $this->setCache($sql.$args, $result);
+        return $result;
     }
 }

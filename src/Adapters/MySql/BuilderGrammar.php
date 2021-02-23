@@ -2,14 +2,15 @@
 declare(strict_types = 1);
 namespace Zodream\Database\Adapters\MySql;
 
-use Zodream\Database\Concerns\BuilderGrammar as GrammarInterface;
-use Zodream\Database\Concerns\SqlBuilder;
+use Zodream\Database\Contracts\BuilderGrammar as GrammarInterface;
+use Zodream\Database\Contracts\SqlBuilder;
 use Zodream\Database\Query\Builder;
 use Zodream\Database\Query\Expression;
+use Zodream\Database\Utils;
 use Zodream\Helpers\Arr;
 
 class BuilderGrammar implements GrammarInterface {
-    public function compileSelects(Builder $query): string {
+    public function compileSelects(SqlBuilder $query): string {
         return 'SELECT '.$this->getField($query->selects);
     }
 
@@ -35,7 +36,7 @@ class BuilderGrammar implements GrammarInterface {
         return implode(',', $result);
     }
 
-    public function compileFrom(Builder $query): string {
+    public function compileFrom(SqlBuilder $query): string {
         if (empty($query->from)) {
             return '';
         }
@@ -45,8 +46,8 @@ class BuilderGrammar implements GrammarInterface {
                 $result[] = $query->addPrefix($item);
                 continue;
             }
-            if ($item instanceof Builder) {
-                $result[] = '('.$item->getSql().') ' .$key;
+            if ($item instanceof SqlBuilder) {
+                $result[] = '('.$item->getSQL().') ' .$key;
                 continue;
             }
             $result[] = $query->addPrefix($item).' ' .$key;
@@ -56,10 +57,10 @@ class BuilderGrammar implements GrammarInterface {
 
     /**
      * 支持多个相同的left [$table, $where, ...]
-     * @param Builder $query
+     * @param SqlBuilder $query
      * @return string
      */
-    public function compileJoins(Builder $query): string {
+    public function compileJoins(SqlBuilder $query): string {
         if (empty($query->joins)) {
             return '';
         }
@@ -73,7 +74,7 @@ class BuilderGrammar implements GrammarInterface {
         return $sql;
     }
 
-    public function compileWheres(Builder $query): string {
+    public function compileWheres(SqlBuilder $query): string {
         if (empty($query->wheres)) {
             return '';
         }
@@ -179,10 +180,10 @@ class BuilderGrammar implements GrammarInterface {
     }
 
     /**
-     * @param Builder $query
+     * @param SqlBuilder $query
      * @return string
      */
-    protected function compileUnions(Builder $query): string {
+    protected function compileUnions(SqlBuilder $query): string {
         if (empty($query->unions)) {
             return '';
         }
@@ -192,12 +193,12 @@ class BuilderGrammar implements GrammarInterface {
             if ($item['all']) {
                 $sql .= 'ALL ';
             }
-            if ($item['query'] instanceof Builder) {
-                $sql .= $item['query']->getSql();
+            if ($item['query'] instanceof SqlBuilder) {
+                $sql .= $item['query']->getSQL();
                 continue;
             }
             if (is_array($item['query'])) {
-                $sql .= (new Builder())->load($item['query'])->getSql();
+                $sql .= (new Builder())->load($item['query'])->getSQL();
             }
             $sql .= $item['query'];
         }
@@ -207,10 +208,10 @@ class BuilderGrammar implements GrammarInterface {
     /**
      * Compile the "having" portions of the query.
      *
-     * @param Builder $query
+     * @param SqlBuilder $query
      * @return string
      */
-    protected function compileHavings(Builder $query): string {
+    protected function compileHavings(SqlBuilder $query): string {
         if (empty($query->having)) {
             return '';
         }
@@ -251,14 +252,14 @@ class BuilderGrammar implements GrammarInterface {
 
 
 
-    protected function compileGroups(Builder $query): string {
+    protected function compileGroups(SqlBuilder $query): string {
         if (empty($query->groups)) {
             return '';
         }
         return ' GROUP BY '.implode(',', (array)$query->groups);
     }
 
-    protected function compileOrders(Builder $query): string {
+    protected function compileOrders(SqlBuilder $query): string {
         if (empty($query->orders)) {
             return '';
         }
@@ -275,7 +276,7 @@ class BuilderGrammar implements GrammarInterface {
         return ' ORDER BY '.implode(',', $result);
     }
 
-    protected function compileLimit(Builder $query): string {
+    protected function compileLimit(SqlBuilder $query): string {
         if (empty($query->limit)) {
             return '';
         }
@@ -291,7 +292,7 @@ class BuilderGrammar implements GrammarInterface {
         return " LIMIT {$param[0]},{$param[1]}";
     }
 
-    protected function compileOffset(Builder $query): string {
+    protected function compileOffset(SqlBuilder $query): string {
         if (empty($query->offset)) {
             return '';
         }
@@ -323,10 +324,10 @@ class BuilderGrammar implements GrammarInterface {
     }
 
     /**
-     * @param Builder $query
+     * @param SqlBuilder $query
      * @return string
      */
-    public function compileSelect(Builder $query) {
+    public function compileQuery(SqlBuilder $query): string {
         $sql = $this->compileSelects($query).
             $this->compileFrom($query).
             $this->compileJoins($query).
@@ -339,18 +340,18 @@ class BuilderGrammar implements GrammarInterface {
         return $sql;
     }
 
-    public function compileInsert(Builder $query, $columns = null, $values = null): string {
-        $table = $query->getTable();
+    public function compileInsert(SqlBuilder $builder, array|string $columns = '', array|string $values = ''): string {
+        $table = $builder->getTable();
         if (empty($columns)) {
             return sprintf('INSERT INTO %s (%s)', $table, is_null($values) ? 'NULL' : $values);
         }
         if (is_array($columns)) {
-            if (is_array(reset($columns))) {
-                list($values, $columns) = [$columns, array_keys(reset($columns))];
-            } elseif (is_null($values)) {
+            if (is_array(current($columns))) {
+                list($values, $columns) = [$columns, array_keys(current($columns))];
+            } elseif ($values === '') {
                 list($values, $columns) = [$columns, array_keys($columns)];
             }
-            if (is_array($values) && Arr::isAssoc(reset($values))){
+            if (is_array($values) && Arr::isAssoc(current($values))){
                 // 如果值是关联数组则接着下来会进行排序
                 sort($columns);
             }
@@ -358,15 +359,16 @@ class BuilderGrammar implements GrammarInterface {
         if (is_array($columns)) {
             $columns = implode('`,`', $columns);
         }
-        return $this->compileInsertColumns($query, $table, $columns, $values);
+
+        return $this->compileInsertColumns($builder, $table, $columns, $values);
     }
 
-    protected function compileInsertColumns(Builder $query, $table, $columns, $values) {
+    protected function compileInsertColumns(SqlBuilder $query, $table, $columns, $values) {
         if (!is_array($values)) {
             return sprintf('INSERT INTO %s (%s) VALUES %s', $table, $columns,
                 $values);
         }
-        if (!is_array(reset($values))) {
+        if (!is_array(current($values))) {
             return sprintf('INSERT INTO %s (`%s`) VALUES %s', $table, $columns,
                 $this->compileInsertColumn($query, $values));
         }
@@ -391,51 +393,11 @@ class BuilderGrammar implements GrammarInterface {
         return implode(';', $insert_columns);
     }
 
-    /**
-     * @param Builder $query
-     * @param array $item
-     * @return string
-     */
-    public function compileInsertColumn(Builder $query, $item) {
-        $arg = [];
-        foreach ($item as $value) {
-            if (is_null($value)) {
-                $arg[] = 'NULL';
-                continue;
-            }
-            if (is_bool($value)) {
-                $arg[] = intval($value);
-                continue;
-            }
-            if (is_string($value)) {
-                $arg[] = '?';
-                $query->addBinding($value);
-                continue;
-            }
-            if (is_array($value) || is_object($value)) {
-                $arg[] = '?';
-                $query->addBinding(serialize($value));
-                continue;
-            }
-            $arg[] = $value;
-        }
-        return '(' . implode(', ', $arg) . ')';
-    }
 
-    public function compileUpdate(Builder $query, array $values): string {
+
+    public function compileUpdate(SqlBuilder $query, array $values): string {
         $table = $query->getTable();
-        $data = [];
-        $parameters = array();
-        foreach ($values as $key => $value) {
-            if (is_integer($key)) {
-                $data[] = $value;
-                continue;
-            }
-            $data[] = "`{$key}` = ?";
-            $parameters[] = $value;
-        }
-        $columns = implode(',', $data);
-        $query->addBinding($parameters, 'join');
+        $columns = $this->compileUpdateData($query, $values);
 
         // If the query has any "join" clauses, we will setup the joins on the builder
         // and compile them so we can attach them to this update, as update queries
@@ -470,7 +432,7 @@ class BuilderGrammar implements GrammarInterface {
         return rtrim($sql);
     }
 
-    public function compileDelete(Builder $query): string {
+    public function compileDelete(SqlBuilder $query): string {
         $table = $query->getTable();
 
         $where = is_array($query->wheres) ? $this->compileWheres($query) : '';
@@ -483,12 +445,12 @@ class BuilderGrammar implements GrammarInterface {
     /**
      * Compile a delete query that does not use joins.
      *
-     * @param Builder $query
+     * @param SqlBuilder $query
      * @param  string $table
      * @param  string $where
      * @return string
      */
-    protected function compileDeleteWithoutJoins(Builder $query, $table, $where) {
+    protected function compileDeleteWithoutJoins(SqlBuilder $query, $table, $where) {
         $sql = trim("delete from {$table} {$where}");
 
         // When using MySQL, delete statements may contain order by statements and limits
@@ -507,12 +469,12 @@ class BuilderGrammar implements GrammarInterface {
     /**
      * Compile a delete query that uses joins.
      *
-     * @param Builder $query
+     * @param SqlBuilder $query
      * @param  string $table
      * @param  string $where
      * @return string
      */
-    protected function compileDeleteWithJoins(Builder $query, $table, $where) {
+    protected function compileDeleteWithJoins(SqlBuilder $query, $table, $where) {
         $joins = $this->compileJoins($query);
 
         $alias = strpos(strtolower($table), ' as ') !== false
@@ -565,23 +527,104 @@ class BuilderGrammar implements GrammarInterface {
         return $expression->getValue();
     }
 
-    public function compileQuery(SqlBuilder $builder): string
+    public function compileInsertOrUpdate(SqlBuilder $builder, array $insertData, array $updateData): string
     {
-        // TODO: Implement compileQuery() method.
+        $keys = $this->getInsertKey($insertData);
+        return sprintf('INSERT INTO %s %s VALUES %s ON DUPLICATE KEY UPDATE %s',
+            Utils::formatName($builder),
+            $this->compileInsertKey($keys),
+            $this->compileInsertData($builder, $insertData, $keys), $this->compileUpdateData($builder, $updateData));
     }
 
-    public function compileInsertOrUpdate(SqlBuilder|string $builder, array $insertData, array $updateData): string
+    public function compileInsertOrReplace(SqlBuilder $builder, array $data): string
     {
-        // TODO: Implement compileInsertOrUpdate() method.
-    }
-
-    public function compileInsertOrReplace(SqlBuilder|string $builder, array $data): string
-    {
-        // TODO: Implement compileInsertOrReplace() method.
+        $keys = $this->getInsertKey($data);
+        return sprintf('REPLACE INTO %s %s VALUES %s',
+            $this->compileInsertKey($keys),
+            $this->compileInsertData($builder, $data, $keys));
     }
 
     public function cacheable(string $sql): bool
     {
-        // TODO: Implement cacheable() method.
+        return !preg_match('/^(insert|delete|update|replace|drop|create)\s+/i', $sql);
     }
+
+    protected function compileInsertData(SqlBuilder $builder, array $data, array $keys = []): string {
+        $item = current($data);
+        if (is_array($item)) {
+            return implode(',', array_map(function ($item) use ($builder, $keys) {
+                return $this->compileInsertColumn($builder, $item, $keys);
+            }, $data));
+        }
+        return $this->compileInsertColumn($builder, $data, $keys);
+    }
+
+    protected function compileInsertKey(array $keys): string {
+        return sprintf('(%s)', implode(',', array_map(function ($item) {
+            return Utils::wrapName($item);
+        }, $keys)));
+    }
+
+    protected function compileUpdateData(SqlBuilder $builder, array $data): string {
+        $items = [];
+        foreach ($data as $key => $value) {
+            if (is_integer($key)) {
+                $items[] = $value;
+                continue;
+            }
+            $items[] = "`{$key}` = ?";
+            $builder->addBinding($value, 'join');
+        }
+        return implode(',', $items);
+    }
+
+    protected function getInsertKey(array $data): array {
+        $item = current($data);
+        if (is_array($item)) {
+            return array_keys($item);
+        }
+        return array_keys($data);
+    }
+
+    /**
+     * @param SqlBuilder $query
+     * @param array $item
+     * @param array $keys
+     * @return string
+     */
+    protected function compileInsertColumn(SqlBuilder $query, array $item, array $keys = []): string {
+        $args = [];
+        $cb = function ($value) use (&$args, $query) {
+            if (is_null($value)) {
+                $args[] = 'NULL';
+                return;
+            }
+            if (is_bool($value)) {
+                $args[] = intval($value);
+                return;
+            }
+            if (is_string($value)) {
+                $args[] = '?';
+                $query->addBinding($value);
+                return;
+            }
+            if (is_array($value) || is_object($value)) {
+                $args[] = '?';
+                $query->addBinding(serialize($value));
+                return;
+            }
+            $args[] = $value;
+        };
+        if (!empty($keys)) {
+            foreach ($keys as $key) {
+                $cb(isset($item[$key]) ? $item[$key] : null);
+            }
+        } else {
+            foreach ($item as $value) {
+                $cb($value);
+            }
+        }
+        return '(' . implode(', ', $args) . ')';
+    }
+
 }
