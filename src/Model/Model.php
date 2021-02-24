@@ -125,9 +125,6 @@ abstract class Model extends MagicObject {
 		return ucwords(str_replace('_', ' ', $key));
 	}
 
-
-
-
     /**
      * Create a new instance of the given model.
      *

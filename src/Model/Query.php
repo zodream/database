@@ -17,12 +17,12 @@ class Query extends Builder {
      */
     protected array $eagerLoad = [];
 
-    protected string $modelName;
+    protected string $modelName = '';
 
     /**
-     * @var Model
+     * @var Model|null
      */
-    protected Model $model;
+    protected ?Model $model = null;
 
     protected bool $isArray = false;
 
