@@ -2,9 +2,8 @@
 declare(strict_types = 1);
 namespace Zodream\Database\Query;
 
-
-use Zodream\Database\Contracts\BuilderGrammar;
 use Zodream\Database\Contracts\SqlBuilder;
+use Zodream\Database\DB;
 use Zodream\Database\Query\Components\ExecBuilder;
 use Zodream\Database\Query\Components\JoinBuilder;
 use Zodream\Database\Query\Components\RecordBuilder;
@@ -201,7 +200,8 @@ class Builder extends BaseSchema implements SqlBuilder {
     }
 
     /**
-     * @param string|array $tables
+     * @param string|array $table
+     * @param string $alias
      * @return static
      */
     public function from(string|array $table, string $alias = ''): SqlBuilder {
@@ -253,7 +253,7 @@ class Builder extends BaseSchema implements SqlBuilder {
             return $this;
         }
         $this->limit = $length;
-        return $this->offset($offset);
+        return $this->offset((int)$offset);
     }
 
     public function offset(int $offset): SqlBuilder {
@@ -364,14 +364,6 @@ class Builder extends BaseSchema implements SqlBuilder {
      * @throws \Exception
      */
     public function getSQL(): string {
-        return $this->grammar()->compileQuery($this);
-    }
-
-    /**
-     * @return BuilderGrammar
-     * @throws \Exception
-     */
-    protected function grammar() {
-        return $this->command()->engine()->grammar();
+        return DB::grammar()->compileQuery($this);
     }
 }

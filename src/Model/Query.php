@@ -17,12 +17,12 @@ class Query extends Builder {
      */
     protected array $eagerLoad = [];
 
-    protected $modelName;
+    protected string $modelName;
 
     /**
      * @var Model
      */
-    protected $model;
+    protected Model $model;
 
     protected bool $isArray = false;
 
@@ -39,7 +39,7 @@ class Query extends Builder {
      * @param  mixed  $relations
      * @return $this
      */
-    public function with($relations) {
+    public function with(array|string $relations) {
         $eagerLoad = $this->parseWithRelations(is_string($relations) ? func_get_args() : $relations);
 
         $this->eagerLoad = array_merge($this->eagerLoad, $eagerLoad);
@@ -53,7 +53,7 @@ class Query extends Builder {
      * @param  mixed  $relations
      * @return $this
      */
-    public function without($relations) {
+    public function without(array|string $relations) {
         $this->eagerLoad = array_diff_key($this->eagerLoad, array_flip(
             is_string($relations) ? func_get_args() : $relations
         ));
@@ -68,7 +68,7 @@ class Query extends Builder {
      * @return $this
      * @throws \Exception
      */
-    public function withCount($relations) {
+    public function withCount(array|string $relations) {
         if (empty($relations)) {
             return $this;
         }
@@ -223,7 +223,7 @@ class Query extends Builder {
     /**
      * @return mixed
      */
-    public function getModelName() {
+    public function getModelName(): string {
         return $this->modelName;
     }
 
@@ -236,7 +236,7 @@ class Query extends Builder {
      * @return array|object[]|Model[]
      * @throws \Exception
      */
-    public function all(): ?array {
+    public function all() {
         $data = parent::all();
         if (empty($data)
             || $this->isArray
@@ -272,7 +272,7 @@ class Query extends Builder {
      * @return bool|int|string
      * @throws \Exception
      */
-    public function scalar(): ?string {
+    public function scalar() {
         $this->asArray();
         return parent::scalar();
     }
@@ -324,7 +324,7 @@ class Query extends Builder {
             // For nested eager loads we'll skip loading them here and they will be set as an
             // eager load on the query to retrieve the relation so that they will be eager
             // loaded on that query, because that is where they get hydrated as models.
-            if (strpos($name, '.') === false) {
+            if (!str_contains($name, '.')) {
                 $models = $this->eagerLoadRelation($models, $name, $constraints);
             }
         }
@@ -350,10 +350,10 @@ class Query extends Builder {
     /**
      * Get the relation instance for the given relation name.
      *
-     * @param  string  $name
+     * @param string $name
      * @return Relation
      */
-    public function getRelation($name) {
+    public function getRelation(string $name) {
         // We want to run a relationship query without any constrains so that we will
         // not have to remove these where clauses manually which gets really hacky
         // and error prone. We don't want constraints because we add eager ones.
@@ -379,10 +379,10 @@ class Query extends Builder {
     /**
      * Get the deeply nested relations for a given top-level relation.
      *
-     * @param  string  $relation
+     * @param string $relation
      * @return array
      */
-    protected function relationsNestedUnder($relation) {
+    protected function relationsNestedUnder(string $relation) {
         $nested = [];
 
         // We are basically looking for any relationships that are nested deeper than
@@ -400,11 +400,11 @@ class Query extends Builder {
     /**
      * Determine if the relationship is nested.
      *
-     * @param  string  $relation
-     * @param  string  $name
+     * @param string $relation
+     * @param string $name
      * @return bool
      */
-    protected function isNestedUnder($relation, $name) {
+    protected function isNestedUnder(string $relation, string $name) {
         return Str::contains($name, '.') && Str::startsWith($name, $relation.'.');
     }
 

@@ -8,20 +8,12 @@ namespace Zodream\Database\Schema;
  * Time: 9:38
  */
 
-use Zodream\Database\Command;
-use Zodream\Infrastructure\Contracts\Database;
+use Zodream\Database\DB;
 
 abstract class BaseSchema {
 
-    /**
-     * @return Database|Command
-     */
-    protected function command() {
-        return app('db');
-    }
-
     public function addPrefix($table) {
-        return $this->command()->addPrefix($table);
+        return DB::db()->addPrefix($table);
     }
 
     /**

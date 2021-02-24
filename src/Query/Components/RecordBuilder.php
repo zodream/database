@@ -3,8 +3,7 @@ declare(strict_types = 1);
 namespace Zodream\Database\Query\Components;
 
 
-use Zodream\Database\Query\Builder;
-use Zodream\Helpers\Str;
+use Zodream\Database\DB;
 
 trait RecordBuilder {
 
@@ -20,8 +19,8 @@ trait RecordBuilder {
      * @throws \Exception
      */
     public function insert(array|string $columns = '', array|string $values = ''): int|string {
-        $sql = $this->grammar()->compileInsert($this, $columns, $values);
-        return $this->command()
+        $sql = DB::grammar()->compileInsert($this, $columns, $values);
+        return DB::db()
             ->insert($sql, $this->getBindings());
     }
 
@@ -32,8 +31,8 @@ trait RecordBuilder {
      * @throws \Exception
      */
     public function update(array $data): int {
-        $sql = $this->grammar()->compileUpdate($this, $data);
-        return $this->command()
+        $sql = DB::grammar()->compileUpdate($this, $data);
+        return DB::db()
             ->update($sql, $this->getBindings());
     }
 
@@ -102,8 +101,8 @@ trait RecordBuilder {
      * @throws \Exception
      */
     public function insertOrUpdate(array $insertData, array $updateData): int {
-        return $this->command()->update(
-            $this->grammar()->compileInsertOrUpdate($this, $insertData, $updateData)
+        return DB::db()->update(
+            DB::grammar()->compileInsertOrUpdate($this, $insertData, $updateData)
         );
     }
 
@@ -113,8 +112,8 @@ trait RecordBuilder {
      * @return mixed
      */
     public function replace(array $data): int {
-        return $this->command()->update(
-            $this->grammar()->compileInsertOrReplace($this, $data)
+        return DB::db()->update(
+            DB::grammar()->compileInsertOrReplace($this, $data)
         );
     }
 
@@ -124,8 +123,8 @@ trait RecordBuilder {
      * @throws \Exception
      */
     public function delete(): int {
-        $sql = $this->grammar()->compileDelete($this);
-        return $this->command()
+        $sql = DB::grammar()->compileDelete($this);
+        return DB::db()
             ->delete($sql, $this->getBindings());
     }
 }

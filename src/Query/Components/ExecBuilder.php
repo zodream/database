@@ -4,6 +4,7 @@ namespace Zodream\Database\Query\Components;
 
 
 use Zodream\Database\Command;
+use Zodream\Database\DB;
 use Zodream\Database\Model\Model;
 use Zodream\Html\Page;
 
@@ -18,7 +19,7 @@ trait ExecBuilder {
         if ($this->isEmpty) {
             return null;
         }
-        return $this->command()->fetch($this->getSQL(), $this->getBindings());
+        return DB::db()->fetch($this->getSQL(), $this->getBindings());
     }
 
     public function get(...$columns) {
@@ -32,11 +33,10 @@ trait ExecBuilder {
         if (func_num_args() > 1) {
             $this->select(...$fields);
         }
-        /** @var Command $command */
-        $command = $this->command();
-        $result = $command->execute($this->getSQL(), $this->getBindings());
+        $engine = DB::engine();
+        $result = $engine->fetchRow($this->getSQL(), $this->getBindings());
         $items = [];
-        while (!!$res = $command->getEngine()->row(true, $result)) {
+        while (!!$res = $engine->fetchRow()) {
             $item = call_user_func($cb, $res);
             if (empty($item)) {
                 continue;
@@ -62,7 +62,7 @@ trait ExecBuilder {
      * @return Page
      * @throws \Exception
      */
-    public function page(int $perPage, string $pageKey = 'page'): Page {
+    public function page(int $perPage = 20, string $pageKey = 'page'): Page {
         $countQuery = clone $this;
         $countQuery->selects = [];
         $countQuery->orders = [];

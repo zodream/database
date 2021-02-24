@@ -3,9 +3,14 @@ declare(strict_types=1);
 namespace Zodream\Database;
 
 
+use Zodream\Database\Contracts\BuilderGrammar;
+use Zodream\Database\Contracts\Engine;
+use Zodream\Database\Contracts\Information;
+use Zodream\Database\Contracts\SchemaGrammar;
 use Zodream\Database\Engine\BaseEngine;
 use Zodream\Database\Events\QueryExecuted;
 use Zodream\Database\Query\Builder;
+use Zodream\Infrastructure\Contracts\Database;
 
 /**
  * Class DB
@@ -21,28 +26,28 @@ use Zodream\Database\Query\Builder;
  */
 class DB {
 
-    protected static $enableLog = false;
+    protected static bool $enableLog = false;
 
-    protected static $logs = [];
+    protected static array $logs = [];
 
     public static function enableQueryLog() {
         self::$logs = [];
         self::$enableLog = true;
     }
 
-    public static function queryLogs() {
+    public static function queryLogs(): array {
         self::$enableLog = false;
         return self::$logs;
     }
 
     /**
-     * @param $sql
+     * @param string $sql
      * @param array $bindings
-     * @param null $time
+     * @param float $time
      * @throws \Exception
      */
-    public static function addQueryLog($sql, $bindings = [], $time = null) {
-        event(new QueryExecuted($sql, $bindings, $time, app('db')->getCurrentName()));
+    public static function addQueryLog(string $sql, array $bindings = [], float $time = 0) {
+        event(new QueryExecuted($sql, $bindings, $time, static::db()->getCurrentName()));
         if (self::$enableLog) {
             self::$logs[] = compact('sql', 'bindings', 'time');
         }
@@ -51,14 +56,34 @@ class DB {
     /**
      *
      * @param $table
-     * @param null $connection
+     * @param string $connection
      * @return Builder
      */
-    public static function table($table, $connection = null) {
-        return (new Builder())->from($table);
+    public static function table($table, string $connection = '') {
+        return (new Builder())->from(Utils::formatName($table));
     }
 
     public static function __callStatic($name, $arguments) {
-        return call_user_func_array([app('db'), $name], $arguments);
+        return call_user_func_array([static::db(), $name], $arguments);
+    }
+
+    public static function db(): Database {
+        return app('db');
+    }
+
+    public static function engine(): Engine {
+        return static::db()->engine();
+    }
+
+    public static function grammar(): BuilderGrammar {
+        return static::engine()->grammar();
+    }
+
+    public static function schemaGrammar(): SchemaGrammar {
+        return static::engine()->schemaGrammar();
+    }
+
+    public static function information(): Information {
+        return static::engine()->information();
     }
 }

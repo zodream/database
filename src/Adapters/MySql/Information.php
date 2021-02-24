@@ -3,33 +3,32 @@ declare(strict_types=1);
 namespace Zodream\Database\Adapters\MySql;
 
 use Zodream\Database\Contracts\Information as InformationInterface;
-use Zodream\Database\Contracts\SchemaGrammar as SchemaInterface;
 use Zodream\Database\Contracts\Schema;
 use Zodream\Database\Contracts\Table as TableInterface;
 use Zodream\Database\Contracts\Column as ColumnInterface;
+use Zodream\Database\DB;
 use Zodream\Database\Schema\Column;
 use Zodream\Database\Utils;
-use Zodream\Infrastructure\Contracts\Database;
 use Zodream\Database\Schema\Table;
 
 class Information implements InformationInterface {
 
     public function version(): string
     {
-        return $this->db()->executeScalar('SELECT VERSION();');
+        return DB::db()->executeScalar('SELECT VERSION();');
     }
 
     public function schemaList(): array
     {
-        $items = $this->db()->fetch($this->grammar()->compileSchemaAll());
+        $items = DB::db()->fetch(DB::schemaGrammar()->compileSchemaAll());
         return empty($items) ? [] : array_column($items, 'Database');
     }
 
     public function tableList(string|Schema $schema, bool $full = false): array
     {
-        $db = $this->db();
+        $db = DB::db();
         $db->changedSchema(Utils::formatName($schema));
-        $items = $db->fetch($this->grammar()->compileTableAll($full));
+        $items = $db->fetch(DB::schemaGrammar()->compileTableAll($full));
         $db->changedSchema('');
         if (empty($items)) {
             return [];
@@ -44,13 +43,13 @@ class Information implements InformationInterface {
 
     public function columnList(string|TableInterface $table, bool $full = false): array
     {
-        return $this->db()->fetch($this->grammar()->compileColumnAll($table, $full));
+        return DB::db()->fetch(DB::schemaGrammar()->compileColumnAll($table, $full));
     }
 
     public function table(string|TableInterface $table, bool $full = false): ?TableInterface
     {
-        $db = $this->db();
-        $grammar = $this->grammar();
+        $db = DB::db();
+        $grammar = DB::schemaGrammar();
         $data = $db->first($grammar->compileTableQuery($table));
         if (empty($data)) {
             return null;
@@ -68,7 +67,7 @@ class Information implements InformationInterface {
 
     public function column(string|TableInterface $table, ColumnInterface|string $column): ?ColumnInterface
     {
-        $data = $this->db()->first($this->grammar()->compileColumnQuery($table, $column));
+        $data = DB::db()->first(DB::schemaGrammar()->compileColumnQuery($table, $column));
         if (empty($data)) {
             return null;
         }
@@ -77,7 +76,7 @@ class Information implements InformationInterface {
 
     public function tableCreateSql(TableInterface|string $table): string
     {
-        $data = $this->db()->first($this->grammar()->compileTableSql($table));
+        $data = DB::db()->first(DB::schemaGrammar()->compileTableSql($table));
         return empty($data) ? '' : ($data['Create Table'].';');
     }
 
@@ -92,8 +91,8 @@ class Information implements InformationInterface {
         if ($autoLoad) {
             $oldTable = $this->table($table->getName(), true);
         }
-        $db = $this->db();
-        $grammar = $this->grammar();
+        $db = DB::db();
+        $grammar = DB::schemaGrammar();
         if (empty($oldTable)) {
             $db->execute($grammar->compileTableCreate($table));
             return $table;
@@ -190,14 +189,6 @@ class Information implements InformationInterface {
         return $table->engine($data['Engine'])
             ->collation($data['Collation'])
             ->comment($data['Comment']);
-    }
-
-    protected function db(): Database {
-        return app('db');
-    }
-
-    protected function grammar(): SchemaInterface {
-        return $this->db()->engine()->schemaGrammar();
     }
 
 }

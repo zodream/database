@@ -2,10 +2,9 @@
 declare(strict_types=1);
 namespace Zodream\Database\Migrations;
 
-use Zodream\Database\Contracts\SchemaGrammar;
 use Zodream\Database\Contracts\Migration as MigrationInterface;
+use Zodream\Database\DB;
 use Zodream\Database\Schema\Table;
-use Zodream\Infrastructure\Contracts\Database;
 
 /**
  * Created by PhpStorm.
@@ -73,7 +72,7 @@ abstract class Migration implements MigrationInterface {
      * 执行生成命令
      */
     protected function createTable() {
-        $help = $this->db()->engine()->information();
+        $help = DB::information();
         foreach ($this->tables as $table => $func) {
             $item = new Table($table);
             call_user_func($func, $item);
@@ -85,19 +84,11 @@ abstract class Migration implements MigrationInterface {
      * 执行删除命令
      */
     protected function dropTable() {
-        $db = $this->db();
-        $grammar = $this->grammar();
+        $db = DB::db();
+        $grammar = DB::schemaGrammar();
         foreach ($this->tables as $table => $_) {
             /** @var string $table */
             $db->execute($grammar->compileTableDelete($table));
         }
-    }
-
-    protected function db(): Database {
-        return app('db');
-    }
-
-    protected function grammar(): SchemaGrammar {
-        return $this->db()->engine()->schemaGrammar();
     }
 }

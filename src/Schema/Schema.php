@@ -2,10 +2,9 @@
 declare(strict_types=1);
 namespace Zodream\Database\Schema;
 
-use Zodream\Database\Command;
 use Zodream\Database\Contracts\Schema as SchemaInterface;
 use Zodream\Database\Contracts\Table as TableInterface;
-use Zodream\Infrastructure\Contracts\Database;
+use Zodream\Database\DB;
 
 class Schema implements SchemaInterface {
 
@@ -26,7 +25,7 @@ class Schema implements SchemaInterface {
     public function name(string $name): SchemaInterface
     {
         if (empty($name)) {
-            $name = $this->db()->engine()->config('database');
+            $name = DB::engine()->config('database');
         }
         $this->name = $name;
         return $this;
@@ -73,12 +72,5 @@ class Schema implements SchemaInterface {
             return $this->items[$table];
         }
         return $this->items[$table] = (new Table($table))->setSchema($this);
-    }
-
-    /**
-     * @return Database|Command
-     */
-    protected function db() {
-        return app('db');
     }
 }
