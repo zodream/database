@@ -25,9 +25,9 @@ interface Column {
     public function table(): Table;
     public function getPreviousName(): string;
 
-
     public function bool(): Column;
     public function enum(array $items): Column;
+    public function set(array $allowed): Column;
     public function int(int $length = 11): Column;
     public function tinyint(int $length = 1): Column;
     public function bit(): Column;
@@ -42,6 +42,7 @@ interface Column {
     public function varchar(int $length = 255): Column;
     public function text(): Column;
     public function json(): Column;
+    public function jsonb(): Column;
     public function mediumText(): Column;
     public function longText(): Column;
     public function blob(): Column;
@@ -53,7 +54,7 @@ interface Column {
     public function time(): Column;
     public function timestamp(): Column;
 
-    public function nullable(): Column;
+    public function nullable(bool $value = true): Column;
     public function unsigned(): Column;
     public function default(string|int|float $value): Column;
     public function ai(int $begin = 1): Column;

@@ -184,6 +184,14 @@ class Table implements TableInterface {
         return $this->items[$column] = (new Column($column))->setTable($this);
     }
 
+    public function id(string $column = 'id'): ColumnInterface {
+        return $this->increments($column);
+    }
+
+    public function increments(string $column): ColumnInterface {
+        return $this->uint($column)->pk(true);
+    }
+
     public function bool(string $name): ColumnInterface
     {
         return $this->column($name)->bool();

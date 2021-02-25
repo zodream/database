@@ -11,7 +11,7 @@ class Column implements ColumnInterface {
     protected int|array $typeLength = 0;
     protected bool $typeIsUnsigned = false;
     protected bool $isNullable = false;
-    protected ?string $default;
+    protected string|int|float|null $default = null;
     protected $typeOption;
 
     protected string $charset = 'utf8mb4';
@@ -130,6 +130,19 @@ class Column implements ColumnInterface {
     {
         $this->type = __FUNCTION__;
         $this->typeOption = $items;
+        return $this;
+    }
+
+    public function set(array $allowed): ColumnInterface
+    {
+        $this->type = __FUNCTION__;
+        $this->typeOption = $allowed;
+        return $this;
+    }
+
+    public function jsonb(): ColumnInterface
+    {
+        $this->type = __FUNCTION__;
         return $this;
     }
 
@@ -291,9 +304,9 @@ class Column implements ColumnInterface {
         return $this;
     }
 
-    public function nullable(): ColumnInterface
+    public function nullable(bool $value = true): ColumnInterface
     {
-        $this->isNullable = true;
+        $this->isNullable = $value;
         return $this;
     }
 

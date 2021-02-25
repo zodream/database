@@ -32,11 +32,47 @@ interface Table {
 
     public function column(Column|string $column): Column;
     public function columns(): array;
+    public function id(string $column = 'id'): Column;
+
+    /**
+     * 自动增长的数字类型主键
+     * @param string $column
+     * @return Column
+     */
+    public function increments(string $column): Column;
     public function bool(string $name): Column;
     public function enum(string $name, array $items = []): Column;
+
+    /**
+     * 数字类型
+     * @param string $name
+     * @param int $length < 3 自动为 tinyint
+     * @return Column
+     */
     public function int(string $name, int $length = 11): Column;
+
+    /**
+     * 无符号的数字类型
+     * @param string $name
+     * @param int $length < 3 自动为 tinyint; < 6 为 short; > 19 为 long
+     * @return Column
+     */
     public function uint(string $name, int $length = 11): Column;
+
+    /**
+     * 比较短的数字类型相当于 smallint
+     * @param string $name
+     * @param int $length
+     * @return Column
+     */
     public function short(string $name, int $length = 4): Column;
+
+    /**
+     * 长的数字类型相当于 bigint
+     * @param string $name
+     * @param int $length
+     * @return Column
+     */
     public function long(string $name, int $length = 20): Column;
 
     /**

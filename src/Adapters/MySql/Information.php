@@ -131,10 +131,30 @@ class Information implements InformationInterface {
         if (!empty($column->getComment()) && $column->getComment() !== $oldColumn->getComment()) {
             return false;
         }
-        return $column->getName() === $oldColumn->getName() &&
-            $column->getNullable() === $oldColumn->getNullable() &&
-            $column->getTypeIsUnsigned() === $oldColumn->getTypeIsUnsigned() &&
-            $column->getTypeLength() === $oldColumn->getTypeLength();
+        if ($column->getName() !== $oldColumn->getName() ||
+            $column->getNullable() !== $oldColumn->getNullable() ||
+            $column->getTypeIsUnsigned() !== $oldColumn->getTypeIsUnsigned()) {
+            return false;
+        }
+        $type = $column->getType();
+        $length = $column->getTypeLength();
+        if ($type === 'timestamp') {
+            $length = 10;
+            $type = 'int';
+        } elseif ($type === 'bool') {
+            $length = $oldColumn->getTypeLength();
+            $type = 'tinyint';
+        }
+        $typeMaps = [
+            'short' => 'smallint',
+            'long' => 'bigint',
+            'string' => 'varchar',
+            'jsonb' => 'json'
+        ];
+        if (isset($typeMaps[$type])) {
+            $type = $typeMaps[$type];
+        }
+        return $type === $oldColumn->getType() && $type === $oldColumn->getTypeLength();
     }
 
     protected function formatColumn(array $data, ?TableInterface $table = null): ColumnInterface {

@@ -71,7 +71,7 @@ class SchemaGrammar implements GrammarInterface {
 
     public function compileTableCreate(Table $table): string
     {
-        $sql = "CREATE TABLE IF NOT EXISTS {$table->getName()} (";
+        $items = ['CREATE TABLE IF NOT EXISTS', Utils::wrapName($table->getName()), '('];
         $lines = [];
         foreach ($table->columns() as $column) {
             $lines[] = $this->compileColumnCreate($column);
@@ -88,11 +88,16 @@ class SchemaGrammar implements GrammarInterface {
         foreach ($table->getForeignKeys() as $key => $item) {
             $lines[] = "CONSTRAINT `{$key}` FOREIGN KEY (`{$item[0]}`) REFERENCES `{$item[1]}` (`{$item[2]}`) ON DELETE {$item[2]} ON UPDATE {$item[3]}";
         }
-        $sql .= implode(',', $lines).") ENGINE={$table->getEngine()}";
+        $items[] = implode(',', $lines);
+        $items[] = ") ENGINE={$table->getEngine()}";
         if ($table->getAiBegin() > 1) {
-            $sql .= ' AUTO_INCREMENT='.$table->getAiBegin();
+            $items[] = 'AUTO_INCREMENT='.$table->getAiBegin();
         }
-        return $sql." DEFAULT CHARSET={$table->getCharset()} COMMENT='{$table->getComment()}';";
+        $items[] = 'DEFAULT CHARSET='. $table->getCharset();
+        if (!empty($table->getComment())) {
+            $items[] = 'COMMENT='.Utils::wrapText($table->getComment());
+        }
+        return implode(' ', $items).';';
     }
 
     /**
@@ -229,8 +234,8 @@ class SchemaGrammar implements GrammarInterface {
 
     protected function formatColumnType(Column $column): string {
         $type = $column->getType();
-        if ($type === 'enum') {
-            return sprintf('ENUM()', implode(',',
+        if (in_array($type, ['set', 'enum'])) {
+            return sprintf('%s(%s)', strtoupper($type), implode(',',
                 array_map(function ($item) {
                 return Utils::wrapText($item);
             }, $column->getTypeOption())));
@@ -239,11 +244,15 @@ class SchemaGrammar implements GrammarInterface {
             $column->default(0);
             return 'INT(10) UNSIGNED';
         }
+        if ($type === 'bool') {
+            return 'TINYINT(1) UNSIGNED';
+        }
         $typeMaps = [
             'bool' => 'tinyint',
             'short' => 'smallint',
             'long' => 'bigint',
             'string' => 'varchar',
+            'jsonb' => 'json'
         ];
         if (isset($typeMaps[$type])) {
             $type = $typeMaps[$type];

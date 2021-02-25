@@ -27,6 +27,9 @@ final class Utils {
     }
 
     public static function wrapName(string $name) {
+        if (str_contains($name, '`')) {
+            return $name;
+        }
         return '`'.$name.'`';
     }
 
