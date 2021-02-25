@@ -98,6 +98,9 @@ class Information implements InformationInterface {
             return $table;
         }
         list($newColumns, $updateColumns, $dropColumns) = $this->formatDiff($table->columns(), $oldTable->columns());
+        if (empty($newColumns) && empty($updateColumns) && empty($dropColumns)) {
+            return $table;
+        }
         $db->execute($grammar->compileTableUpdate($table, $newColumns, $updateColumns, $dropColumns));
         return $table;
     }
@@ -132,18 +135,22 @@ class Information implements InformationInterface {
             return false;
         }
         if ($column->getName() !== $oldColumn->getName() ||
-            $column->getNullable() !== $oldColumn->getNullable() ||
-            $column->getTypeIsUnsigned() !== $oldColumn->getTypeIsUnsigned()) {
+            $column->getNullable() !== $oldColumn->getNullable()) {
             return false;
         }
         $type = $column->getType();
         $length = $column->getTypeLength();
+        $isUnsigned = $column->getTypeIsUnsigned();
         if ($type === 'timestamp') {
             $length = 10;
             $type = 'int';
+            $isUnsigned = true;
         } elseif ($type === 'bool') {
             $length = $oldColumn->getTypeLength();
             $type = 'tinyint';
+            $isUnsigned = true;
+        } elseif ($type === 'tinyint') {
+            $length = $oldColumn->getTypeLength();
         }
         $typeMaps = [
             'short' => 'smallint',
@@ -154,7 +161,9 @@ class Information implements InformationInterface {
         if (isset($typeMaps[$type])) {
             $type = $typeMaps[$type];
         }
-        return $type === $oldColumn->getType() && $type === $oldColumn->getTypeLength();
+        return $type === $oldColumn->getType()  &&
+            $length === $oldColumn->getTypeLength() &&
+            $isUnsigned === $oldColumn->getTypeIsUnsigned();
     }
 
     protected function formatColumn(array $data, ?TableInterface $table = null): ColumnInterface {
@@ -178,9 +187,9 @@ class Information implements InformationInterface {
         if (strpos($data['Type'], 'unsigned') > 0) {
             $column->unsigned();
         }
-        $func = $data['type'];
+        $func = $data['Type'];
         $params = [];
-        if (preg_match('/^(\b+)\((.+)\)/', $data['Type'], $match)) {
+        if (preg_match('/^([a-zA-Z]+)\((.+)\)/', $data['Type'], $match)) {
             $func = $match[1];
             if ($func === 'enum') {
                $params = [$this->formatEnumOption($match[2])];
@@ -190,7 +199,7 @@ class Information implements InformationInterface {
                 $params = [intval($match[2])];
             }
         }
-        if (method_exists($column, $func)) {
+        if (!empty($func) && method_exists($column, $func)) {
             call_user_func_array([$column, $func], $params);
         }
         return $column;

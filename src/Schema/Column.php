@@ -7,7 +7,7 @@ use Zodream\Database\Contracts\Column as ColumnInterface;
 
 class Column implements ColumnInterface {
 
-    protected string $type;
+    protected string $type = '';
     protected int|array $typeLength = 0;
     protected bool $typeIsUnsigned = false;
     protected bool $isNullable = false;
@@ -310,7 +310,7 @@ class Column implements ColumnInterface {
         return $this;
     }
 
-    public function default(float|int|string $value): ColumnInterface
+    public function default(float|int|string|null $value): ColumnInterface
     {
         $this->default = $value;
         return $this;

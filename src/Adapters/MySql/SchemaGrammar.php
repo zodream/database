@@ -74,7 +74,7 @@ class SchemaGrammar implements GrammarInterface {
         $items = ['CREATE TABLE IF NOT EXISTS', Utils::wrapName($table->getName()), '('];
         $lines = [];
         foreach ($table->columns() as $column) {
-            $lines[] = $this->compileColumnCreate($column);
+            $lines[] = $this->compileColumnSQL($column);
         }
         if (!empty($table->getPrimaryKey())) {
             $lines[] = "PRIMARY KEY (`{$table->getPrimaryKey()}`)";
@@ -179,7 +179,7 @@ class SchemaGrammar implements GrammarInterface {
         return sprintf('SHOW FULL COLUMNS FROM `%s` WHERE `Field`=\'%s\'', Utils::formatName($table), Utils::formatName($column));
     }
 
-    public function compileColumnCreate(Column $column): string
+    protected function compileColumnSQL(Column $column): string
     {
         $type = $this->formatColumnType($column);
         $items = [];
@@ -212,14 +212,25 @@ class SchemaGrammar implements GrammarInterface {
         return implode(' ', $items);
     }
 
+    public function compileColumnCreate(Column $column): string {
+        $items = ['ADD COLUMN', $this->compileColumnSQL($column)];
+        if (!empty($column->getPreviousName())) {
+            $items[] = "after `{$column->getPreviousName()}`";
+        }
+        return implode(' ', $items);
+    }
+
     public function compileColumnUpdate(Column $column): string
     {
-        $sql = empty($column->getOldName()) ? 'ADD COLUMN ' : "CHANGE COLUMN `{$column->getOldName()}` ";
-        $sql .= $this->compileColumnCreate($column);
+        $items = [
+            'CHANGE COLUMN',
+            Utils::wrapName(empty($column->getOldName()) ? $column->getName() : $column->getOldName()),
+            $this->compileColumnSQL($column)
+        ];
         if (!empty($column->getPreviousName())) {
-            $sql .= " after `{$column->getPreviousName()}`";
+            $items[] = "after `{$column->getPreviousName()}`";
         }
-        return $sql;
+        return implode(' ', $items);
     }
 
     public function compileColumnDelete(Column|string $column): string
@@ -265,7 +276,11 @@ class SchemaGrammar implements GrammarInterface {
             return sprintf('DECIMAL(%s)%s',
                 implode(',', (array)$length), $unsigned);
         }
-        $lengthTypes = ['int', 'smallint', 'bigint', 'float', 'double', 'char', 'varchar'];
+        if ($type === 'tinyint') {
+            // 所有的tinyint 都设为1
+            $length = 1;
+        }
+        $lengthTypes = ['tinyint', 'int', 'smallint', 'bigint', 'float', 'double', 'char', 'varchar'];
         if (is_array($length)) {
             $length = $length[0];
         }

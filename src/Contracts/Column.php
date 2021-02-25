@@ -56,7 +56,7 @@ interface Column {
 
     public function nullable(bool $value = true): Column;
     public function unsigned(): Column;
-    public function default(string|int|float $value): Column;
+    public function default(string|int|float|null $value): Column;
     public function ai(int $begin = 1): Column;
     public function pk(bool $isAi = false): Column;
     public function unique(string $name = '', string $order = ''): Column;
