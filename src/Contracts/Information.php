@@ -8,6 +8,7 @@ interface Information {
     public function schemaList(): array;
     public function tableList(Schema|string $schema, bool $full = false): array;
     public function columnList(Table|string $table, bool $full = false): array;
+    public function foreignKeys(Table $table): array;
 
     public function table(Table|string $table, bool $full = false): ?Table;
     public function tableCreateSql(Table|string $table): string;

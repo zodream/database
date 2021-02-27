@@ -41,6 +41,27 @@ class Information implements InformationInterface {
         return $items;
     }
 
+    public function foreignKeys(TableInterface $table): array
+    {
+        $sql = 'SELECT * FROM `information_schema`.`key_column_usage` where CONSTRAINT_SCHEMA=? AND TABLE_NAME=?';
+        $items = DB::db()->fetch($sql, [$table->schema()->getName(), $table->getName()]);
+        $data = [];
+        foreach ($items as $item) {
+            if (empty($item['REFERENCED_TABLE_NAME'])) {
+                continue;
+            }
+            $data[] = [
+                'schema' => $item['TABLE_SCHEMA'],
+                'table' => $item['TABLE_NAME'],
+                'column' => $item['COLUMN_NAME'],
+                'link_schema' => $item['REFERENCED_TABLE_SCHEMA'],
+                'link_table' => $item['REFERENCED_TABLE_NAME'],
+                'link_column' => $item['REFERENCED_COLUMN_NAME'],
+            ];
+        }
+        return $data;
+    }
+
     public function columnList(string|TableInterface $table, bool $full = false): array
     {
         return DB::db()->fetch(DB::schemaGrammar()->compileColumnAll($table, $full));
