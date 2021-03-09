@@ -27,7 +27,7 @@ class Table implements TableInterface {
 
     protected array $indexItems = [];
 
-    protected string $primaryKey;
+    protected string $primaryKey = '';
 
     protected string $comment = '';
 
@@ -254,6 +254,11 @@ class Table implements TableInterface {
     public function string(string $name, int $length = 255): ColumnInterface
     {
         return $this->column($name)->string($length);
+    }
+
+    public function text(string $name): ColumnInterface
+    {
+        return $this->column($name)->text();
     }
 
     public function char(string $name, int $length = 10): ColumnInterface

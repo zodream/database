@@ -85,6 +85,7 @@ interface Table {
     public function double(string $name, int $length = 16, int $d = 10): Column;
     public function decimal(string $name, int $length = 16, int $d = 10): Column;
     public function string(string $name, int $length = 255): Column;
+    public function text(string $name): Column;
     public function char(string $name, int $length = 10): Column;
     public function blob(string $name): Column;
     public function date(string $name): Column;
