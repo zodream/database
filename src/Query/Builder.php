@@ -164,9 +164,7 @@ class Builder extends BaseSchema implements SqlBuilder {
      * @return Builder
      */
     public function orderBy(array|string $column, string $order = '', ...$args): SqlBuilder {
-        if (!is_array($args)) {
-            $args = func_get_args();
-        }
+        $args = !is_array($column) ? func_get_args() : $column;
         // 把关联数组变成 1，asc
         foreach ($args as $key => $item) {
             if (!is_integer($key)) {
