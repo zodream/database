@@ -44,6 +44,9 @@ trait SelectBuilder {
             if (is_null($value)) {
                 continue;
             }
+            if (in_array($value, $this->selects)) {
+                continue;
+            }
             $this->selects[] = $value;
         }
         return $this;

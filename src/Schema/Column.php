@@ -345,7 +345,7 @@ class Column implements ColumnInterface {
     public function unique(string $name = '', string $order = ''): ColumnInterface
     {
         if ($this->table) {
-            $this->table->unique($name, $this, $order);
+            $this->table->unique(empty($name) ? $this->name : $name, $this, $order);
         }
         return $this;
     }
