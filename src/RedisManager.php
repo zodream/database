@@ -14,7 +14,7 @@ class RedisManager extends Manager {
      */
     protected array $engines = [];
 
-    protected $defaultDriver = Redis::class;
+    protected string $defaultDriver = Redis::class;
 
     protected $configKey = 'redis';
 
