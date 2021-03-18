@@ -90,7 +90,7 @@ trait RecordBuilder {
         if ($num >= 0) {
             $num = '+'.$num;
         }
-        return $num;
+        return (string)$num;
     }
 
     /**
