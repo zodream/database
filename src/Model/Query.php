@@ -255,6 +255,21 @@ class Query extends Builder {
         return $this->eagerLoadRelations($args);
     }
 
+    public function each(callable $cb, ...$fields): array
+    {
+        return parent::each(function (array $item) use ($cb) {
+            if ($this->isArray || !class_exists($this->modelName)) {
+                return call_user_func($cb, $item);
+            }
+            $item = $this->getRealValues($item);
+            /** @var $model Model */
+            $model = new $this->modelName;
+            $model->setOldAttribute($item)
+                ->setSourceAttribute($item);
+            return call_user_func($cb, $model);
+        }, ...$fields);
+    }
+
     /**
      * 转换成真实的数据
      * @param array $data
