@@ -31,7 +31,7 @@ trait AutoModel {
             list($key, $excludes) = ['', $key];
         }
         if (!is_array($data) && request()->isPost()) {
-            $data = request($key);
+            $data = request()->get($key);
         }
         if (empty($data)) {
             return false;
