@@ -199,9 +199,9 @@ class Relation {
      */
     protected function getQueryResults(array $models) {
         if (empty($this->relations)) {
-            return static::getRelationQuery($models)->all();
+            return static::getRelationQuery($models)->get();
         }
-        $data = static::getRelationQuery($models)->appendSelect($this->getRelationFields())->all();
+        $data = static::getRelationQuery($models)->appendSelect($this->getRelationFields())->get();
         if (empty($data)) {
             return $data;
         }
@@ -257,7 +257,7 @@ class Relation {
      */
     public function getWithMulti(array $data) {
         $results = $this->getQueryResults($data);
-        return $this->buildRelation($data, $results);
+        return $this->buildRelation($data, is_array($results) ? $results : []);
     }
 
     /**
