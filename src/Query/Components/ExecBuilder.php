@@ -62,12 +62,12 @@ trait ExecBuilder {
      * @return Page
      * @throws \Exception
      */
-    public function page(int $perPage = 20, string $pageKey = 'page'): Page {
+    public function page(int $perPage = 20, string $pageKey = 'page', int $pageIndex = -1): Page {
         $countQuery = clone $this;
         $countQuery->selects = [];
         $countQuery->orders = [];
         $countQuery->limit = null;
-        $page = new Page($countQuery, $perPage, $pageKey);
+        $page = new Page($countQuery, $perPage, $pageKey, $pageIndex);
         return $page->setPage($this->limit($page->getLimit())->all());
     }
 

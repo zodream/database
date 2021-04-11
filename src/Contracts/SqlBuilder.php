@@ -64,7 +64,7 @@ interface SqlBuilder {
     public function value(string $column);
     public function first(...$columns);
     public function get(...$columns);
-    public function page(int $perPage = 20, string $pageKey = 'page'): Page;
+    public function page(int $perPage = 20, string $pageKey = 'page', int $page = -1): Page;
     public function each(callable $cb, ...$columns): array;
 
     public function insert(array|string $columns = '', array|string $values = ''): int|string;
