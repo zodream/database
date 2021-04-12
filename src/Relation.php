@@ -268,6 +268,10 @@ class Relation {
      */
     public function buildRelation(array $models, array $results) {
         foreach ($models as &$model) {
+            if ($this->key === self::EMPTY_RELATION_KEY) {
+                $model = $this->matchRelation($model, $results);
+                continue;
+            }
             if ($model instanceof Model) {
                 $model->setRelation($this->getKey(), $this->matchRelation($model, $results));
                 continue;
