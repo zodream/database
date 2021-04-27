@@ -53,6 +53,26 @@ trait WhereBuilder {
         return $this;
     }
 
+    protected function whereSub($column, $operator, Closure $callback, $boolean) {
+        if ($this->isEmpty) {
+            return $this;
+        }
+        $type = 'Sub';
+
+        // Once we have the query instance we can simply execute it so it can add all
+        // of the sub-select's conditions to itself, and then we can cache it off
+        // in the array of where clauses for the "main" parent query instance.
+        call_user_func($callback, $query = $this->newBuilder());
+
+        $this->wheres[] = compact(
+            'type', 'column', 'operator', 'query', 'boolean'
+        );
+
+        $this->addBinding($query->getBindings(), 'where');
+
+        return $this;
+    }
+
     protected function addArrayOfWheres($column, $boolean, $method = 'where') {
         return $this->whereNested(function ($query) use ($column, $method) {
             foreach ($column as $key => $value) {
@@ -237,7 +257,7 @@ trait WhereBuilder {
         // To create the exists sub-select, we will actually create a query and call the
         // provided callback with the query so the developer may set any of the query
         // conditions they want for the in clause, then we'll put it in this array.
-        call_user_func($callback, $query = $this->newQuery());
+        call_user_func($callback, $query = $this->newBuilder());
 
         $this->wheres[] = compact('type', 'column', 'query', 'boolean');
 
@@ -373,6 +393,9 @@ trait WhereBuilder {
      * @return Builder|static
      */
     public function whereNested(Closure $callback, $boolean = 'and') {
+        if ($this->isEmpty) {
+            return $this;
+        }
         call_user_func($callback, $query = $this->forNestedWhere());
 
         return $this->addNestedWhereQuery($query, $boolean);

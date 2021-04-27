@@ -179,6 +179,11 @@ class BuilderGrammar implements GrammarInterface {
         return '('.substr($this->compileWheres($where['query']), $offset).')';
     }
 
+    protected function whereSub($where) {
+        $select = $this->compileSelects($where['query']);
+        return $where['column'].' '.$where['operator']." ($select)";
+    }
+
     /**
      * @param SqlBuilder $query
      * @return string
@@ -477,7 +482,7 @@ class BuilderGrammar implements GrammarInterface {
     protected function compileDeleteWithJoins(SqlBuilder $query, $table, $where) {
         $joins = $this->compileJoins($query);
 
-        $alias = strpos(strtolower($table), ' as ') !== false
+        $alias = str_contains(strtolower($table), ' as ')
             ? explode(' as ', $table)[1] : $table;
 
         return trim("delete {$alias} from {$table}{$joins} {$where}");

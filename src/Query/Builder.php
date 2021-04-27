@@ -74,7 +74,7 @@ class Builder extends BaseSchema implements SqlBuilder {
      * 提前知道查询结果为空，但必须保留链式
      * @var bool
      */
-    protected $isEmpty = false;
+    protected bool $isEmpty = false;
 
     public function __construct($args = array()) {
         $this->load($args);
@@ -216,7 +216,7 @@ class Builder extends BaseSchema implements SqlBuilder {
      * @param  \Closure  $callback
      * @return $this
      */
-    public function tap($callback): SqlBuilder {
+    public function tap(Closure $callback): SqlBuilder {
         return $this->when(true, $callback);
     }
 
@@ -228,6 +228,9 @@ class Builder extends BaseSchema implements SqlBuilder {
      * @return $this
      */
     public function when($condition, Closure $trueFunc, Closure $falseFunc = null): SqlBuilder {
+        if ($this->isEmpty) {
+            return $this;
+        }
         if ($condition) {
             $trueFunc($this);
             return $this;
@@ -363,5 +366,9 @@ class Builder extends BaseSchema implements SqlBuilder {
      */
     public function getSQL(): string {
         return DB::grammar()->compileQuery($this);
+    }
+
+    public function newBuilder(): SqlBuilder {
+        return new static();
     }
 }
