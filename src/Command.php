@@ -228,7 +228,7 @@ class Command extends Manager implements Database {
      * @throws \Exception
      */
     public function update(string $sql, array $parameters = []): int {
-        return $this->run($sql, $parameters, function ($sql, $parameters) {
+        return (int)$this->run($sql, $parameters, function ($sql, $parameters) {
             return $this->engine()->update($sql, $parameters);
         });
     }
