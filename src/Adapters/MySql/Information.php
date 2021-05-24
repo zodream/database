@@ -149,7 +149,7 @@ class Information implements InformationInterface {
     }
 
     protected function columnEqual(ColumnInterface $column, ColumnInterface $oldColumn): bool {
-        if (!empty($column->getDefault()) && $column->getDefault() !== $oldColumn->getDefault()) {
+        if (!is_null($column->getDefault()) && $column->getDefault() !== $oldColumn->getDefault()) {
             return false;
         }
         if (!empty($column->getComment()) && $column->getComment() !== $oldColumn->getComment()) {
