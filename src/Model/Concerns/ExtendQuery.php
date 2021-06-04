@@ -3,6 +3,7 @@ declare(strict_types=1);
 namespace Zodream\Database\Model\Concerns;
 
 use Exception;
+use Zodream\Database\DB;
 use Zodream\Database\Model\Model;
 use Zodream\Database\Model\Query;
 
@@ -121,6 +122,9 @@ trait ExtendQuery {
     }
 
 
+    public static function lock(string $lockType = '') {
+        DB::lock(static::tableName(), $lockType);
+    }
 
     /**
      * 查询数据

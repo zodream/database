@@ -140,12 +140,19 @@ class SchemaGrammar implements GrammarInterface {
         return sprintf('TRUNCATE %s;', Utils::formatName($table));
     }
 
-    public function compileTableLock(string|Table $table): string
+    public function compileTableLock(string|Table|array $table, string $lockType = ''): string
     {
-        return sprintf('LOCK TABLES %s WRITE;', Utils::formatName($table));
+        $lines = [];
+        foreach ((array)$table as $key => $item) {
+            if (is_numeric($key)) {
+                list($key, $item) = [$item, $lockType];
+            }
+            $lines[] = sprintf('%s %s', Utils::formatName($key), strtoupper(empty($item) ? 'WRITE' : $item));
+        }
+        return sprintf('LOCK TABLES %s;', implode(',', $lines));
     }
 
-    public function compileTableUnlock(string|Table $table): string
+    public function compileTableUnlock(string|Table|array $table): string
     {
         return 'UNLOCK TABLES;';
     }

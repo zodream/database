@@ -209,7 +209,7 @@ class Command extends Manager implements Database {
 
     /**
      * 插入
-     * @param $sql
+     * @param string $sql
      * @param array $parameters
      * @return int
      * @throws \Exception

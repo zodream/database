@@ -67,6 +67,14 @@ class DB {
         return call_user_func_array([static::db(), $name], $arguments);
     }
 
+    public static function lock(array|string $tables, string $lockType = '') {
+        static::db()->execute(static::schemaGrammar()->compileTableLock($tables, $lockType));
+    }
+
+    public static function unlock() {
+        static::db()->execute(static::schemaGrammar()->compileTableUnlock(''));
+    }
+
     public static function db(): Database {
         return app('db');
     }

@@ -22,8 +22,8 @@ interface SchemaGrammar {
     public function compileTableUpdate(Table $table, array $newColumns = [], array $updateColumns = [], array $dropColumns = []): string;
     public function compileTableDelete(Table|string $table): string;
     public function compileTableTruncate(Table|string $table): string;
-    public function compileTableLock(Table|string $table): string;
-    public function compileTableUnlock(Table|string $table): string;
+    public function compileTableLock(Table|string|array $table, string $lockType = ''): string;
+    public function compileTableUnlock(Table|string|array $table): string;
     public function compileTableAnalyze(Table|string $table): string;
     public function compileTableCheck(Table|string $table): string;
     public function compileTableOptimize(Table|string $table): string;
