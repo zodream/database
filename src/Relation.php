@@ -2,9 +2,11 @@
 declare(strict_types=1);
 namespace Zodream\Database;
 
+use Zodream\Database\Contracts\SqlBuilder;
 use Zodream\Database\Model\Model;
 use Zodream\Database\Model\Query;
 use Zodream\Database\Query\Builder;
+use Zodream\Helpers\Arr;
 use Zodream\Html\Page;
 
 /**
@@ -28,7 +30,14 @@ class Relation {
 
     const TYPE_MANY = 1;
 
-    const EMPTY_RELATION_KEY = '__relation_key__';
+    /**
+     * 表示替换整个
+     */
+    const EMPTY_RELATION_KEY = '__relation_empty__';
+    /**
+     * 表示合并，同时会转化成数组
+     */
+    const MERGE_RELATION_KEY = '__relation_merge__';
 
     /**
      * @var string
@@ -268,15 +277,20 @@ class Relation {
      */
     public function buildRelation(array $models, array $results) {
         foreach ($models as &$model) {
+            $value = $this->matchRelation($model, $results);
             if ($this->key === self::EMPTY_RELATION_KEY) {
-                $model = $this->matchRelation($model, $results);
+                $model = $value;
+                continue;
+            }
+            if ($this->key === self::MERGE_RELATION_KEY) {
+                $model = array_merge(Arr::toArray($model), Arr::toArray($value));
                 continue;
             }
             if ($model instanceof Model) {
-                $model->setRelation($this->getKey(), $this->matchRelation($model, $results));
+                $model->setRelation($this->getKey(), $value);
                 continue;
             }
-            $model[$this->getKey()] = $this->matchRelation($model, $results);
+            $model[$this->getKey()] = $value;
         }
         unset($model);
         return $models;
@@ -295,14 +309,20 @@ class Relation {
                 continue;
             }
             if ($this->type == self::TYPE_ONE) {
-                return $this->hasEmptyRelationKey($item)
-                    ? $item[self::EMPTY_RELATION_KEY] : $item;
+                if ($this->hasEmptyRelationKey($item)) {
+                    return $item[self::EMPTY_RELATION_KEY];
+                }
+                if ($this->hasMergeRelationKey($item)) {
+                    return $item[self::MERGE_RELATION_KEY];
+                }
+                return $item;
             }
-            if (!$this->hasEmptyRelationKey($item)) {
+            if (!$this->hasReplaceRelationKey($item)) {
                 $data[] = $item;
                 continue;
             }
-            $args = $item[self::EMPTY_RELATION_KEY];
+            $args = $this->hasEmptyRelationKey($item) ?
+                $item[self::EMPTY_RELATION_KEY] : $item[self::MERGE_RELATION_KEY];
             if (empty($args)) {
                 continue;
             }
@@ -315,12 +335,24 @@ class Relation {
         return $data;
     }
 
+    protected function hasReplaceRelationKey($item) {
+        return $this->hasEmptyRelationKey($item) || $this->hasMergeRelationKey($item);
+    }
+
     protected function hasEmptyRelationKey($item) {
         if (is_array($item) || !$item instanceof Model) {
             return isset($item[self::EMPTY_RELATION_KEY])
                 || array_key_exists(self::EMPTY_RELATION_KEY, $item);
         }
         return $item->relationLoaded(self::EMPTY_RELATION_KEY);
+    }
+
+    protected function hasMergeRelationKey($item) {
+        if (is_array($item) || !$item instanceof Model) {
+            return isset($item[self::MERGE_RELATION_KEY])
+                || array_key_exists(self::MERGE_RELATION_KEY, $item);
+        }
+        return $item->relationLoaded(self::MERGE_RELATION_KEY);
     }
 
     /**
@@ -472,5 +504,23 @@ class Relation {
         }
         $relation->setRelations($data['relation']);
         return $relation;
+    }
+
+    /**
+     * 生成一个关系
+     * @param SqlBuilder $builder
+     * @param string $dataKey
+     * @param string $foreignKey
+     * @param int $type
+     * @return array
+     */
+    public static function make(SqlBuilder $builder, string $dataKey, string $foreignKey, int $type = self::TYPE_ONE) {
+        return [
+            'query' => $builder,
+            'link' => [
+                $dataKey => $foreignKey
+            ],
+            'type' => $type,
+        ];
     }
 }
