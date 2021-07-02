@@ -1,6 +1,10 @@
 # database
 SQL Builder With PDO, ORM etc
 
+## 注意 Model 关联查询不支持 方法名驼峰转化
+
+`$model->option_items` 不会调用 `$model->optionItems()`
+
 ## 提前预知为空不进行真实数据请求
 
 ```php

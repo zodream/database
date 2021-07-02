@@ -52,7 +52,7 @@ class Relation {
     /**
      * @var array  $foreignKey => $localKey
      */
-    protected $links = [];
+    protected array $links = [];
 
     /**
      * @var Relation[]
@@ -62,7 +62,7 @@ class Relation {
     /**
      * @var int
      */
-    protected $type = self::TYPE_MANY;
+    protected int $type = self::TYPE_MANY;
 
 
     /**
@@ -238,7 +238,7 @@ class Relation {
         }
         $results = $this->getQueryResults($models);
         if (empty($results) || !$is_one) {
-            return $results;
+            return $this->type === self::TYPE_ONE ? null : $results;
         }
         return $this->type == self::TYPE_ONE ? reset($results) : $results;
     }
@@ -332,7 +332,7 @@ class Relation {
             }
             $data = array_merge($data, $args);
         }
-        return $data;
+        return empty($data) && $this->type === self::TYPE_ONE ? null : $data;
     }
 
     protected function hasReplaceRelationKey($item) {
