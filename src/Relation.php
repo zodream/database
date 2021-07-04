@@ -149,12 +149,12 @@ class Relation {
      */
     public function setRelations(array $relations) {
         foreach ($relations as $key => $relation) {
-            $this->appendRelation($relation, is_int($key) ? null : $key);
+            $this->appendRelation($relation, is_int($key) ? '' : $key);
         }
         return $this;
     }
 
-    public function appendRelation($relation, $key = null) {
+    public function appendRelation($relation, $key = '') {
         $this->relations[] = static::parse($relation, $key);
         return $this;
     }
@@ -218,7 +218,7 @@ class Relation {
             if (empty($relation->getKey())) {
                 // 如果为key空 表示把结果作为替换
                 $relation->setKey(self::EMPTY_RELATION_KEY);
-                return $relation->get($data);
+                return ['items' => $relation->get($data), 'source' => $data, 'links' => $relation->getLinks()];
             }
             $data = $relation->get($data);
         }
@@ -237,10 +237,23 @@ class Relation {
             $models = [$models];
         }
         $results = $this->getQueryResults($models);
+        if ($this->isLinkResult($results)) {
+            $results = $results['items'];
+        }
         if (empty($results) || !$is_one) {
             return $this->type === self::TYPE_ONE ? null : $results;
         }
         return $this->type == self::TYPE_ONE ? reset($results) : $results;
+    }
+
+    /**
+     * 判断是否是新链接的结果
+     * @param $data
+     * @return bool
+     */
+    private function isLinkResult($data): bool {
+        return is_array($data) && count($data) === 3
+            && isset($data['items']) && isset($data['links']) && isset($data['source']);
     }
 
     /**
@@ -303,22 +316,35 @@ class Relation {
      * @return array
      */
     public function matchRelation($model, $results) {
-        $data = [];
-        foreach ($results as $item) {
-            if (!$this->isMatchRelation($model, $item)) {
-                continue;
-            }
-            if ($this->type == self::TYPE_ONE) {
-                if ($this->hasEmptyRelationKey($item)) {
-                    return $item[self::EMPTY_RELATION_KEY];
+        if ($this->isLinkResult($results)) {
+            $items = static::getLinkItems($model, $results['source'], $this->links);
+            $data = [];
+            foreach ($items as $item) {
+                if (in_array($item, $data)) {
+                    continue;
                 }
-                if ($this->hasMergeRelationKey($item)) {
-                    return $item[self::MERGE_RELATION_KEY];
-                }
-                return $item;
+                $data = array_merge($data, static::getLinkItems($item, $results['items'], $results['links']));
             }
+        } else {
+            $data = static::getLinkItems($model, $results, $this->links);
+        }
+        if (empty($data)) {
+            return $this->type === self::TYPE_ONE ? null : [];
+        }
+        if ($this->type == self::TYPE_ONE) {
+            $item = current($data);
+            if ($this->hasEmptyRelationKey($item)) {
+                return $item[self::EMPTY_RELATION_KEY];
+            }
+            if ($this->hasMergeRelationKey($item)) {
+                return $item[self::MERGE_RELATION_KEY];
+            }
+            return $item;
+        }
+        $items = [];
+        foreach ($data as $item) {
             if (!$this->hasReplaceRelationKey($item)) {
-                $data[] = $item;
+                $items[] = $item;
                 continue;
             }
             $args = $this->hasEmptyRelationKey($item) ?
@@ -327,12 +353,12 @@ class Relation {
                 continue;
             }
             if (!self::isSomeArr($args)) {
-                $data[] = $args;
+                $items[] = $args;
                 continue;
             }
-            $data = array_merge($data, $args);
+            $items = array_merge($items, $args);
         }
-        return empty($data) && $this->type === self::TYPE_ONE ? null : $data;
+        return $items;
     }
 
     protected function hasReplaceRelationKey($item) {
@@ -353,21 +379,6 @@ class Relation {
                 || array_key_exists(self::MERGE_RELATION_KEY, $item);
         }
         return $item->relationLoaded(self::MERGE_RELATION_KEY);
-    }
-
-    /**
-     * 是否匹配
-     * @param $model
-     * @param $result
-     * @return bool
-     */
-    public function isMatchRelation($model, $result) {
-        foreach ($this->links as $fk => $lk) {
-            if ($model[$fk] != $result[$lk]) {
-                return false;
-            }
-        }
-        return true;
     }
 
     /**
@@ -522,5 +533,31 @@ class Relation {
             ],
             'type' => $type,
         ];
+    }
+
+    /**
+     * 根据对应关系获取所有的结果
+     * @param $source
+     * @param array $distItems
+     * @param array $linkMap
+     * @return array
+     */
+    public static function getLinkItems($source, array $distItems, array $linkMap): array {
+        $items = [];
+        foreach ($distItems as $item) {
+            if (static::isMatchLink($source, $item, $linkMap)) {
+                $items[] = $item;
+            }
+        }
+        return $items;
+    }
+
+    protected static function isMatchLink($model, $result, array $linkMap): bool {
+        foreach ($linkMap as $fk => $lk) {
+            if ($model[$fk] != $result[$lk]) {
+                return false;
+            }
+        }
+        return true;
     }
 }
