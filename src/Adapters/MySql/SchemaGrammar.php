@@ -143,7 +143,8 @@ class SchemaGrammar implements GrammarInterface {
     public function compileTableLock(string|Table|array $table, string $lockType = ''): string
     {
         $lines = [];
-        foreach ((array)$table as $key => $item) {
+        $items = !is_array($table) ? [$table] : $table;
+        foreach ($items as $key => $item) {
             if (is_numeric($key)) {
                 list($key, $item) = [$item, $lockType];
             }
