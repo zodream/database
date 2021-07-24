@@ -20,8 +20,9 @@ trait RecordBuilder {
      */
     public function insert(array|string $columns = '', array|string $values = ''): int|string {
         $sql = DB::grammar()->compileInsert($this, $columns, $values);
-        return DB::db()
+        $res = DB::db()
             ->insert($sql, $this->getBindings());
+        return is_null($res) ? 0 : $res;
     }
 
     /**
