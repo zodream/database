@@ -251,4 +251,9 @@ class Pdo extends BaseEngine implements Engine {
     {
         return new Information();
     }
+
+    public function escapeString(string $value): string
+    {
+        return $this->driver->quote($value);
+    }
 }

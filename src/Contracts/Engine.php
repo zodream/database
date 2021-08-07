@@ -67,4 +67,11 @@ interface Engine {
     public function transactionRollBack(): bool;
 
     public function close(): bool;
+
+    /**
+     * 处理字符串
+     * @param string $value
+     * @return string 返回包含 '' 得字符串
+     */
+    public function escapeString(string $value): string;
 }
