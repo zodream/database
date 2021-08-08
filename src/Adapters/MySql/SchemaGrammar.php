@@ -24,36 +24,36 @@ class SchemaGrammar implements GrammarInterface {
     public function compileColumnAll(string|Table $table, bool $full = false): string
     {
         return sprintf($full ? 'SHOW FULL COLUMNS FROM %s' : 'SHOW COLUMNS FROM %s',
-            Utils::formatName($table));
+            Utils::wrapName(Utils::formatName($table)));
     }
 
     public function compileTableSql(string|Table $table): string
     {
-        return sprintf('SHOW CREATE TABLE %s', Utils::formatName($table));
+        return sprintf('SHOW CREATE TABLE %s', Utils::wrapName(Utils::formatName($table)));
     }
 
     public function compileSchemaCreate(Schema $schema): string
     {
-        return sprintf('CREATE SCHEMA IF NOT EXISTS `%s` DEFAULT CHARACTER SET %s COLLATE %s',
-            $schema->getName(),
+        return sprintf('CREATE SCHEMA IF NOT EXISTS %s DEFAULT CHARACTER SET %s COLLATE %s',
+            Utils::wrapName($schema->getName()),
             $schema->getCharset(), $schema->getCollation());
     }
 
     public function compileSchemaUpdate(Schema $schema): string
     {
-        return sprintf('ALTER SCHEMA `%s`  DEFAULT CHARACTER SET %s  DEFAULT COLLATE %s',
-            $schema->getName(),
+        return sprintf('ALTER SCHEMA %s DEFAULT CHARACTER SET %s  DEFAULT COLLATE %s',
+            Utils::wrapName($schema->getName()),
             $schema->getCharset(), $schema->getCollation());
     }
 
     public function compileSchemaDelete(string|Schema $schema): string
     {
-        return sprintf('DROP DATABASE `%s`', Utils::formatName($schema));
+        return sprintf('DROP DATABASE %s', Utils::wrapName(Utils::formatName($schema)));
     }
 
     public function compileSchemaUse(string|Schema $schema): string
     {
-        return sprintf('use `%s`;', Utils::formatName($schema));
+        return sprintf('use %s;', Utils::wrapName(Utils::formatName($schema)));
     }
 
     public function compileTableQuery(Table|string $table): string {
@@ -64,7 +64,7 @@ class SchemaGrammar implements GrammarInterface {
     {
         return sprintf(
             'CREATE TABLE %s AS %s',
-            Utils::formatName($table),
+            Utils::wrapName(Utils::formatName($table)),
             Utils::formatName($builder)
         );
     }
@@ -132,12 +132,12 @@ class SchemaGrammar implements GrammarInterface {
 
     public function compileTableDelete(string|Table $table): string
     {
-        return sprintf('DROP TABLE IF EXISTS %s;', Utils::formatName($table));
+        return sprintf('DROP TABLE IF EXISTS %s;', Utils::wrapName(Utils::formatName($table)));
     }
 
     public function compileTableTruncate(string|Table $table): string
     {
-        return sprintf('TRUNCATE %s;', Utils::formatName($table));
+        return sprintf('TRUNCATE %s;', Utils::wrapName(Utils::formatName($table)));
     }
 
     public function compileTableLock(string|Table|array $table, string $lockType = ''): string
@@ -148,7 +148,7 @@ class SchemaGrammar implements GrammarInterface {
             if (is_numeric($key)) {
                 list($key, $item) = [$item, $lockType];
             }
-            $lines[] = sprintf('%s %s', Utils::formatName($key), strtoupper(empty($item) ? 'WRITE' : $item));
+            $lines[] = sprintf('%s %s', Utils::wrapName(Utils::formatName($key)), strtoupper(empty($item) ? 'WRITE' : $item));
         }
         return sprintf('LOCK TABLES %s;', implode(',', $lines));
     }
@@ -160,22 +160,22 @@ class SchemaGrammar implements GrammarInterface {
 
     public function compileTableAnalyze(string|Table $table): string
     {
-        return sprintf('ANALYZE TABLE %s;', Utils::formatName($table));
+        return sprintf('ANALYZE TABLE %s;', Utils::wrapName(Utils::formatName($table)));
     }
 
     public function compileTableCheck(string|Table $table): string
     {
-        return sprintf('CHECK TABLE %s;', Utils::formatName($table));
+        return sprintf('CHECK TABLE %s;', Utils::wrapName(Utils::formatName($table)));
     }
 
     public function compileTableOptimize(string|Table $table): string
     {
-        return sprintf('OPTIMIZE TABLE %s;', Utils::formatName($table));
+        return sprintf('OPTIMIZE TABLE %s;', Utils::wrapName(Utils::formatName($table)));
     }
 
     public function compileTableRepair(string|Table $table): string
     {
-        return sprintf('REPAIR TABLE %s;', Utils::formatName($table));
+        return sprintf('REPAIR TABLE %s;', Utils::wrapName(Utils::formatName($table)));
     }
 
     public function compileTableRename(string|Table $table, string $newName): string
@@ -184,7 +184,7 @@ class SchemaGrammar implements GrammarInterface {
     }
 
     public function compileColumnQuery(Table|string $table, Column|string $column): string {
-        return sprintf('SHOW FULL COLUMNS FROM `%s` WHERE `Field`=\'%s\'', Utils::formatName($table), Utils::formatName($column));
+        return sprintf('SHOW FULL COLUMNS FROM %s WHERE `Field`=\'%s\'', Utils::wrapName(Utils::formatName($table)), Utils::formatName($column));
     }
 
     protected function compileColumnSQL(Column $column): string
