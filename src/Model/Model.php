@@ -28,6 +28,7 @@ abstract class Model extends MagicObject {
     const AFTER_INSERT = 'after insert';
     const BEFORE_UPDATE = 'before update';
     const AFTER_UPDATE = 'after update';
+    const ERROR_NOT_DATA_CHANGE = '__not_change';
 
     /**
      * The name of the "created at" column.
@@ -43,7 +44,7 @@ abstract class Model extends MagicObject {
      */
     const UPDATED_AT = 'updated_at';
 
-    public $isNewRecord = true;
+    public bool $isNewRecord = true;
 
     /**
      * 是否保存所有字段

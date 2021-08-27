@@ -55,7 +55,7 @@ trait SaveModel {
         if (!empty($row)) {
             $this->setOldAttribute();
         } else {
-            $this->setError('data', 'Data is not change!');
+            $this->setError(static::ERROR_NOT_DATA_CHANGE, 'Data is not change!');
         }
         $this->invoke(self::AFTER_UPDATE, [$this]);
         return $row;
@@ -199,5 +199,13 @@ trait SaveModel {
             $this->isNewRecord = !$this->hasPrimaryKey();
         }
         return $this;
+    }
+
+    /**
+     * 判断是否是更新无数据返回的错误
+     * @return bool
+     */
+    public function isNotChangedError(): bool {
+        return $this->hasError() && !empty($this->getError(static::ERROR_NOT_DATA_CHANGE));
     }
 }
