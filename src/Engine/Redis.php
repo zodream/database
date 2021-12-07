@@ -16,7 +16,7 @@ class Redis extends ConfigObject {
 	 */
 	private $driver;
 
-    protected $configs = array(
+    protected array $configs = array(
         'host'     => '127.0.0.1',                //服务器
         'port'     => '6379',						//端口
     );
