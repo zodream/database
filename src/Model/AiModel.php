@@ -2,26 +2,21 @@
 declare(strict_types=1);
 namespace Zodream\Database\Model;
 
-use Zodream\Database\Schema\Table;
+use Zodream\Database\DB;
 
-/**
- * Created by PhpStorm.
- * User: zx648
- * Date: 2017/3/31
- * Time: 19:41
- */
 class AiModel extends Model {
-    protected static $tableName;
+    protected static string $tableName;
 
     public static function tableName() {
         return static::$tableName;
     }
 
-    public static function table($table) {
+    public static function table(string $table) {
         return new static($table);
     }
 
-    public function __construct($table = '') {
+    public function __construct(string $table = '') {
+        parent::__construct();
         if (empty($table)) {
             return;
         }
@@ -35,7 +30,7 @@ class AiModel extends Model {
         if (!empty($data)) {
             return unserialize($data);
         }
-        $data = (new Table(static::tableName()))->getAllColumn();
+        $data = DB::information()->columnList(static::tableName(), true);
         $data = array_column($data, 'Field');
         $driver->set($key, serialize($data));
         return $data;
