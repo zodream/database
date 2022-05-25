@@ -23,7 +23,7 @@ trait AutoModel {
      * @return bool
      * @throws \Exception
      */
-    public function load($data = null, $key = '', $excludes = []) {
+    public function load(array|string|null $data = null, array|string $key = '', array $excludes = []): bool {
         if (is_string($data)) {
             list($key, $excludes, $data) = [$data, $key, null];
         }
@@ -73,7 +73,7 @@ trait AutoModel {
         if (!$this->hasOldAttribute($key)) {
             return true;
         }
-        return $this->getOldAttribute($key)
+        return $this->getAttributeFromOld($key)
             !== $this->getAttributeSource($key);
     }
 
@@ -83,7 +83,7 @@ trait AutoModel {
      * @param null $value
      * @return $this
      */
-    public function setSourceAttribute($key, $value = null) {
+    public function setAttributeToSource(array|string|null $key, mixed $value = null) {
         if (empty($key)) {
             return $this;
         }
@@ -97,10 +97,11 @@ trait AutoModel {
 
     /**
      * 设置旧值
-     * @param null $data
+     * @param array|null $data
      * @return $this
+     * @throws \Exception
      */
-    public function setOldAttribute($data = null) {
+    public function setAttributeToOld(?array $data = null) {
         if (is_null($data)) {
             $data = $this->getAttribute();
         }
@@ -109,7 +110,7 @@ trait AutoModel {
         return $this;
     }
 
-    public function getOldAttribute($key) {
+    public function getAttributeFromOld(string $key) {
         if (!$this->hasOldAttribute($key)) {
             return null;
         }

@@ -248,8 +248,8 @@ class Query extends Builder {
             $item = $this->getRealValues($item);
             /** @var $model Model */
             $model = new $this->modelName;
-            $model->setOldAttribute($item)
-                ->setSourceAttribute($item);
+            $model->setAttributeToOld($item)
+                ->setAttributeToSource($item);
             $args[] = $model;
         }
         return $this->eagerLoadRelations($args);
@@ -264,8 +264,8 @@ class Query extends Builder {
             $item = $this->getRealValues($item);
             /** @var $model Model */
             $model = new $this->modelName;
-            $model->setOldAttribute($item)
-                ->setSourceAttribute($item);
+            $model->setAttributeToOld($item)
+                ->setAttributeToSource($item);
             return call_user_func($cb, $model);
         }, ...$fields);
     }

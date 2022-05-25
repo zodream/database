@@ -53,7 +53,7 @@ trait SaveModel {
         $row = $query
             ->update($data);
         if (!empty($row)) {
-            $this->setOldAttribute();
+            $this->setAttributeToOld();
         } else {
             $this->setError(static::ERROR_NOT_DATA_CHANGE, 'Data is not change!');
         }
@@ -83,7 +83,7 @@ trait SaveModel {
             if ($this->isEmpty($pk)) {
                 $this->set($pk, is_numeric($row) ? intval($row) : $row);
             }
-            $this->setOldAttribute();
+            $this->setAttributeToOld();
         }
         $this->invoke(self::AFTER_INSERT, [$this]);
         return $row;
