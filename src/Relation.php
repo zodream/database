@@ -160,21 +160,6 @@ class Relation {
     }
 
     /**
-     * @param array $models
-     * @param null $key
-     * @return mixed
-     */
-    protected function getKeys(array $models, $key) {
-        $data = [];
-        foreach ($models as $model) {
-            $data[] = $model[$key];
-        }
-        $data = array_unique($data);
-        sort($data);
-        return $data;
-    }
-
-    /**
      * 转化成关联参训语句
      * @param array $data
      * @return Builder
@@ -182,7 +167,7 @@ class Relation {
     public function getRelationQuery(array $data) {
         foreach ($this->links as $key => $val) {
             $this->query->whereIn(
-                $val, $this->getKeys($data, $key)
+                $val, static::columns($data, $key)
             );
         }
         return $this->query;
@@ -559,5 +544,20 @@ class Relation {
             }
         }
         return true;
+    }
+
+    /**
+     * @param array $models
+     * @param string|int $key
+     * @return array
+     */
+    public static function columns(array $models, string|int $key): array {
+        $data = [];
+        foreach ($models as $model) {
+            $data[] = $model[$key];
+        }
+        $data = array_unique($data);
+        sort($data);
+        return $data;
     }
 }
