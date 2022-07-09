@@ -38,7 +38,7 @@ trait ValidateAttributes {
      * @return bool
      * @throws Exception
      */
-    public function validate($rules = array()) {
+    public function validate(array $rules = []) {
         if (empty($rules)) {
             $rules = $this->rules();
         }
@@ -51,10 +51,11 @@ trait ValidateAttributes {
 
     /**
      * 验证属性值
-     * @param $rules
+     * @param array $rules
+     * @return bool
      * @throws Exception
      */
-    protected function validateAttribute($rules) {
+    protected function validateAttribute(array $rules) {
         $validator = new Validator();
         foreach ($rules as $key => $item) {
             if (!$this->isNewRecord && !$this->hasAttribute($key)) {
