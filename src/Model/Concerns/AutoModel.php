@@ -55,7 +55,7 @@ trait AutoModel {
             $key = [$key => $value];
         }
         foreach ($key as $k => $item) {
-            $method = sprintf('set%sAttribute', Str::studly($k));
+            $method = sprintf('set%sAttribute', Str::studly((string)$k));
             if (method_exists($this, $method)) {
                 $this->{$method}($item);
                 continue;
