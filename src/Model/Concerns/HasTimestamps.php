@@ -124,9 +124,9 @@ trait HasTimestamps {
 
     protected function formatTimeAttribute($key) {
         if (!$this->hasColumn($key)) {
-            return;
+            return '';
         }
-        $value = $this->getAttributeValue($key);
+        $value = $this->getAttributeSource($key);
         return Time::format(empty($value) ? '' : $value);
     }
 }

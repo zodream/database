@@ -53,6 +53,12 @@ interface SqlBuilder {
     public function when(bool $condition, Closure $trueFunc, Closure $falseFunc = null): SqlBuilder;
     public function isEmpty(): SqlBuilder;
 
+    /**
+     * 声明结果为数组
+     * @return SqlBuilder
+     */
+    public function asArray(): SqlBuilder;
+
     public function count(string $column = '*'): int;
     public function max(string $column);
     public function min(string $column);

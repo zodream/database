@@ -69,7 +69,7 @@ trait ValidateAttributes {
                 continue;
             }
             $value = $this->hasAttribute($key) ?
-                $this->getAttributeValue($key) : $this->$key;
+                $this->getAttributeSource($key) : $this->$key;
             foreach ($item['rules'] as $rule => $args) {
                 if (is_callable($args)) {
                     if (false !== call_user_func($args, $value)) {

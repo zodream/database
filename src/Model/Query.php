@@ -2,6 +2,7 @@
 declare(strict_types=1);
 namespace Zodream\Database\Model;
 
+use Zodream\Database\Contracts\SqlBuilder;
 use Zodream\Database\Relation;
 use Zodream\Database\Query\Builder;
 use Zodream\Helpers\Arr;
@@ -227,7 +228,7 @@ class Query extends Builder {
         return $this->modelName;
     }
 
-    public function asArray() {
+    public function asArray(): SqlBuilder {
         $this->isArray = true;
         return $this;
     }

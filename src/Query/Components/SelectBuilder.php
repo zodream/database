@@ -100,6 +100,10 @@ trait SelectBuilder {
         }
     }
 
+    public function asArray(): SqlBuilder {
+        return $this;
+    }
+
     /**
      * 统计
      * @param string $column

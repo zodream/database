@@ -70,16 +70,23 @@ trait HasAttributes {
         return $data;
     }
 
-    public function getAttributeValue($key = null) {
-        return $this->getAttributeSource($key);
+    /**
+     * 直接获取原始数据
+     * @param string $key
+     * @return mixed|null
+     */
+    public function getAttributeSource(string $key): mixed {
+        return parent::getAttribute($key);
     }
 
     /**
-     * @param null $key
-     * @return mixed|null
+     * 设置原始数据
+     * @param string $key
+     * @param mixed $value
+     * @return void
      */
-    public function getAttributeSource($key = null) {
-        return parent::getAttribute($key);
+    protected function setAttributeSource(string $key, mixed $value) {
+        $this->__attributes[$key] = $value;
     }
 
     /**
