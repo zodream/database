@@ -110,7 +110,7 @@ trait ExtendQuery {
      * 查找或报错
      * @param $param
      * @param string $message
-     * @return bool|Model|static
+     * @return Model|static
      * @throws Exception
      */
     public static function findOrThrow($param, string $message = 'model find error') {
