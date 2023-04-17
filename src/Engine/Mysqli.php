@@ -50,6 +50,7 @@ class Mysqli extends BaseEngine implements Engine {
         if (isset($this->configs['encoding'])) {
             $this->driver->set_charset($this->configs['encoding']);
         }
+        return true;
     }
 
     public function insertBatch(string $sql, array $parameters = [])
