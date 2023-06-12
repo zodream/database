@@ -44,7 +44,7 @@ abstract class Manager extends ConfigObject {
      * @return mixed
      * @throws \Exception
      */
-    public function addEngine($name, $configs = null) {
+    public function addEngine(array|string|int $name, ?array $configs = null) {
         if (!is_string($name) && !is_numeric($name)) {
             $configs = $name;
             $name = $this->currentName;
@@ -55,7 +55,7 @@ abstract class Manager extends ConfigObject {
         if (is_object($configs)) {
             return $this->engines[$name] = $configs;
         }
-        if (!empty($configs) && !array_key_exists('driver', $configs) || !class_exists($configs['driver'])) {
+        if (empty($configs) || !isset($configs['driver']) || !class_exists($configs['driver'])) {
             $configs['driver'] = $this->defaultDriver;
         }
         $class = $configs['driver'];
@@ -66,7 +66,7 @@ abstract class Manager extends ConfigObject {
 
     /**
      * GET DATABASE ENGINE
-     * @param string $name
+     * @param string|int $name
      * @return mixed
      * @throws \Exception
      */
@@ -99,14 +99,14 @@ abstract class Manager extends ConfigObject {
         return $this->currentName;
     }
 
-    public function getConfig($name = null) {
+    public function getConfig(string|int|null $name = null) {
         if (is_null($name)) {
             $name = $this->getCurrentName();
         }
         return array_key_exists($name, $this->configs) ? $this->configs[$name] : [];
     }
 
-    public function hasConfig($name = null) {
+    public function hasConfig(string|int|null $name = null) {
         if (is_null($name)) {
             return empty($this->configs);
         }

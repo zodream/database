@@ -353,7 +353,7 @@ class Column implements ColumnInterface {
     public function index(string $name = '', string $order = ''): ColumnInterface
     {
         if ($this->table) {
-            $this->table->index($name, $this, $order);
+            $this->table->index(empty($name) ? sprintf('%s_index', $this->name) : $name, $this, $order);
         }
         return $this;
     }

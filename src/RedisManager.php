@@ -16,13 +16,13 @@ class RedisManager extends Manager {
 
     protected string $defaultDriver = Redis::class;
 
-    protected $configKey = 'redis';
+    protected string $configKey = 'redis';
 
     /**
      * @param string $name
      * @return Redis
      */
-    public static function connection($name = null) {
+    public static function connection(string $name = '') {
         return static::getInstance()->getEngine($name);
     }
 }

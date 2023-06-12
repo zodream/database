@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 namespace Zodream\Database\Engine;
 
 /**
@@ -11,17 +12,14 @@ use Zodream\Infrastructure\Error\Exception;
 use Redis as RedisClient;
 
 class Redis extends ConfigObject {
-	/**
-	 * @var \Redis
-	 */
-	private $driver;
+	private ?RedisClient $driver = null;
 
     protected array $configs = array(
         'host'     => '127.0.0.1',                //服务器
         'port'     => '6379',						//端口
     );
 
-    public function __construct($config) {
+    public function __construct(array|RedisClient $config) {
         if (is_array($config)) {
             $this->setConfigs($config)->connect();
             return;
@@ -41,7 +39,7 @@ class Redis extends ConfigObject {
     /**
      * @param mixed $driver
      */
-    public function setDriver($driver) {
+    public function setDriver(RedisClient $driver) {
         $this->driver = $driver;
     }
 
@@ -52,7 +50,7 @@ class Redis extends ConfigObject {
 	 * @param int $timeOut 时间  0表示无过期时间
 	 * @return bool
 	 */
-	public function set($key, $value, $timeOut=0) {
+	public function set(string $key, mixed $value, int $timeOut = 0): bool {
 		$retRes = $this->driver->set($key, $value);
 		if ($timeOut <= 0) {
 			return $retRes;
@@ -61,12 +59,12 @@ class Redis extends ConfigObject {
 		return true;
 	}
 	
-	/*
+	/**
 	 * 构建一个集合(无序集合)
 	 * @param string $key 集合Y名称
 	 * @param string|array $value  值
 	 */
-	public function sadd($key, $value) {
+	public function sadd(string $key, mixed $value) {
 		return $this->driver->sadd($key, $value);
 	}
 
@@ -77,7 +75,7 @@ class Redis extends ConfigObject {
 	 * @param int $score
 	 * @return int
      */
-	public function zadd($key, $value, $score = 1) {
+	public function zadd(string $key, mixed $value, int $score = 1) {
 		return $this->driver->zAdd($key, $score, $value);
 	}
 
@@ -86,7 +84,7 @@ class Redis extends ConfigObject {
 	 * @param string $setName 集合名字
 	 * @return array
 	 */
-	public function smembers($setName){
+	public function smembers(string $setName){
 		return $this->driver->smembers($setName);
 	}
 
@@ -96,7 +94,7 @@ class Redis extends ConfigObject {
 	 * @param string $value 值
 	 * @return int
 	 */
-	public function lpush($key, $value){
+	public function lpush(string $key, mixed $value){
 		return $this->driver->lPush($key, $value);
 	}
 
@@ -106,7 +104,7 @@ class Redis extends ConfigObject {
 	 * @param string $value 值
 	 * @return int
 	 */
-	public function rpush($key, $value){
+	public function rpush(string $key, mixed $value){
 		return $this->driver->rPush($key, $value);
 	}
 
@@ -117,7 +115,7 @@ class Redis extends ConfigObject {
 	 * @param int $tail 结束
 	 * @return array
 	 */
-	public function lranges($key, $head, $tail){
+	public function lranges(string $key, int $head, int $tail){
 		return $this->driver->lrange($key, $head, $tail);
 	}
 
@@ -128,15 +126,15 @@ class Redis extends ConfigObject {
 	 * @param string $value 值
 	 * @return int
 	 */
-	public function hset($tableName, $field, $value){
+	public function hset(string $tableName, string $field, mixed $value){
 		return $this->driver->hset($tableName, $field, $value);
 	}
 
-	public function setex($key, $ttl, $value) {
+	public function setex(string $key, int $ttl, mixed $value) {
         return $this->driver->setex($key, $ttl, $value);
     }
 	
-	public function hget($tableName, $field){
+	public function hget(string $tableName, string $field){
 		return $this->driver->hget($tableName, $field);
 	}
 
@@ -145,13 +143,10 @@ class Redis extends ConfigObject {
      * 设置多个值
      * @param array $keyArray KEY名称 获取得到的数据
      * @param int $timeout 时间
-     * @return bool|string
+     * @return bool
      * @throws Exception
      */
-	public function sets(array $keyArray, $timeout) {
-		if (!is_array($keyArray)) {
-			throw new Exception('Call  ' . __FUNCTION__ . ' method  parameter  Error !');
-		}
+	public function sets(array $keyArray, int $timeout): bool {
 		$retRes = $this->driver->mset($keyArray);
 		if ($timeout <= 0) {
 			return $retRes;
@@ -162,14 +157,14 @@ class Redis extends ConfigObject {
 		return true;
 	}
 
-	/**
-	 * 通过key获取数据
-	 * @param string $key KEY名称
-	 * @return bool|string
-	 */
-	public function get($key) {
-		$result = $this->driver->get($key);
-		return $result;
+    /**
+     * 通过key获取数据
+     * @param string $key KEY名称
+     * @return bool|string
+     * @throws \RedisException
+     */
+	public function get(string $key): mixed {
+		return $this->driver->get($key);
 	}
 
     /**
@@ -178,17 +173,14 @@ class Redis extends ConfigObject {
      * @return array|string
      * @throws \Exception
      */
-	public function gets(array $keyArray) {
-		if (is_array($keyArray)) {
-			return $this->driver->mget($keyArray);
-		}
-		throw new Exception('Call  ' . __FUNCTION__ . ' method  parameter  Error !');
+	public function gets(array $keyArray): mixed {
+        return $this->driver->mget($keyArray);
 	}
 	
 	/**
 	 * 获取所有key名，不是值
 	 */
-	public function keyAll() {
+	public function keyAll(): array {
 		return $this->driver->keys('*');
 	}
 	
@@ -196,8 +188,8 @@ class Redis extends ConfigObject {
 	 * 删除一条数据key
 	 * @param string $key 删除KEY的名称
 	 */
-	public function del($key) {
-		$this->driver->delete($key);
+	public function del(string $key) {
+		$this->driver->del($key);
 	}
 
     /**
@@ -207,10 +199,7 @@ class Redis extends ConfigObject {
      * @throws \Exception
      */
 	public function dels(array $keyArray) {
-		if (is_array($keyArray)) {
-			return $this->driver->del($keyArray);
-		}
-		throw new Exception('Call  ' . __FUNCTION__ . ' method  parameter  Error !');
+        return $this->driver->del($keyArray);
 	}
 
 	/**
@@ -218,7 +207,7 @@ class Redis extends ConfigObject {
 	 * @param string $key KEY名称
 	 * @return int
 	 */
-	public function increment($key) {
+	public function increment(string $key) {
 		return $this->driver->incr($key);
 	}
 
@@ -227,7 +216,7 @@ class Redis extends ConfigObject {
 	 * @param string $key KEY名称
 	 * @return int
 	 */
-	public function decrement($key) {
+	public function decrement(string $key) {
 		return $this->driver->decr($key);
 	}
 
@@ -237,7 +226,7 @@ class Redis extends ConfigObject {
 	 * @param string $key KEY名称
 	 * @return bool
 	 */
-	public function isExists($key){
+	public function isExists(string $key){
 		return $this->driver->exists($key);
 	}
 
@@ -248,7 +237,7 @@ class Redis extends ConfigObject {
 	 * @param string $newKey 新key名称
 	 * @return bool
 	 */
-	public function updateName($key,$newKey){
+	public function updateName(string $key, string $newKey): bool {
 		return $this->driver->RENAMENX($key,$newKey);
 	}
 
@@ -258,7 +247,7 @@ class Redis extends ConfigObject {
 	 * @param string $key KEY名称
 	 * @return int
 	 */
-	public function dataType($key){
+	public function dataType(string $key): int {
 		return $this->driver->type($key);
 	}
 	
