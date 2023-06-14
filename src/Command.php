@@ -25,11 +25,11 @@ class Command extends Manager implements Database {
 
     protected $prefix;
 
-    protected $allowCache = true;
+    protected bool $allowCache = true;
 
-    protected $cacheLife = 3600;
+    protected int|bool $cacheLife = 3600;
 
-    protected $configKey = 'database.connections';
+    protected string $configKey = 'database.connections';
 
     /**
      * @var Engine[]
@@ -40,7 +40,7 @@ class Command extends Manager implements Database {
 
     public function __construct() {
         parent::__construct();
-        if (isset($this->table)) {
+        if (!empty($this->table)) {
             $this->setTable($this->table);
         }
     }

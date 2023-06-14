@@ -8,7 +8,7 @@ abstract class BaseEngine {
 	protected $result;
 	protected $version;
 	
-	protected $configs = [
+	protected array $configs = [
 	    'type'     => 'mysql',                //数据库类型
 		'host'     => '127.0.0.1',                //服务器
 		'port'     => '3306',						//端口
@@ -30,7 +30,7 @@ abstract class BaseEngine {
      * @param array|resource|\mysqli|\PDO $config
      * @throws \Exception
      */
-	public function __construct($config) {
+	public function __construct(mixed $config) {
         if (is_array($config)) {
             timer('db engine init');
             $this->configs = array_merge($this->configs, $config);
