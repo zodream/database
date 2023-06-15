@@ -111,7 +111,11 @@ trait SaveModel {
     public static function createOrThrow(array $data) {
         $model = new static($data);
         if (!$model->save()) {
-            throw new Exception($model->getFirstError());
+            throw new Exception(
+                app()->isDebug() ?
+                    sprintf('[%s]%s', get_called_class(), $model->getFirstError()) :
+                $model->getFirstError()
+            );
         }
         return $model;
     }
@@ -122,7 +126,7 @@ trait SaveModel {
      *
      * @return int 返回影响的行数,
      */
-    public function delete() {
+    public function delete(): mixed {
         $query = $this->getPrimaryKeyQuery();
         if (empty($query)) {
             return false;
@@ -185,7 +189,7 @@ trait SaveModel {
      * 是否有主键值存在
      * @return bool
      */
-    public function hasPrimaryKey() {
+    public function hasPrimaryKey(): bool {
         return !empty($this->primaryKey)
             && !empty($this->getAttributeSource($this->primaryKey));
     }

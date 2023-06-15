@@ -113,10 +113,10 @@ class Query extends Builder {
     }
 
     /**
-     * @param $relation
+     * @param string $relation
      * @return Relation
      */
-    protected function getRelationWithoutConstraints($relation) {
+    protected function getRelationWithoutConstraints(string $relation) {
         return $this->getModel()->{$relation}();
     }
 
@@ -126,7 +126,7 @@ class Query extends Builder {
      * @param  array  $relations
      * @return array
      */
-    protected function parseWithRelations(array $relations) {
+    protected function parseWithRelations(array $relations): array {
         $results = [];
 
         foreach ($relations as $name => $constraints) {
@@ -160,7 +160,7 @@ class Query extends Builder {
      * @param  string  $name
      * @return array
      */
-    protected function createSelectWithConstraint($name) {
+    protected function createSelectWithConstraint(string $name): array {
         return [explode(':', $name)[0], function (Query $query) use ($name) {
             $query->select(explode(',', explode(':', $name)[1]));
         }];
@@ -173,7 +173,7 @@ class Query extends Builder {
      * @param  array  $results
      * @return array
      */
-    protected function addNestedWiths($name, $results) {
+    protected function addNestedWiths(string $name, array $results): array {
         $progress = [];
 
         // If the relation has already been set on the result array, we will not set it
@@ -196,7 +196,7 @@ class Query extends Builder {
      *
      * @return array
      */
-    public function getEagerLoads() {
+    public function getEagerLoads(): array {
         return $this->eagerLoad;
     }
 
@@ -356,7 +356,7 @@ class Query extends Builder {
      * @param  Closure  $constraints
      * @return array
      */
-    protected function eagerLoadRelation(array $models, $name, Closure $constraints) {
+    protected function eagerLoadRelation(array $models, string $name, Closure $constraints): array {
         $relation = $this->getRelation($name);
         $constraints($relation);
         $relation->setKey($name);

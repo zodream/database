@@ -20,13 +20,13 @@ trait ExtendQuery {
      *
      * @access public
      *
-     * @param array|string $param 条件
+     * @param string|int|array $param 条件
      * @param string $field
      * @param array $parameters
-     * @return static|boolean
+     * @return boolean|Model|static
      * @throws Exception
      */
-    public static function find($param, string $field = '*', array $parameters = []) {
+    public static function find(string|int|array $param, string $field = '*', array $parameters = []) {
         if (empty($param)) {
             return false;
         }
@@ -55,7 +55,7 @@ trait ExtendQuery {
      * @return static|bool
      * @throws Exception
      */
-    public static function findWithAuth($id, string $key = 'id', string $userKey = 'user_id') {
+    public static function findWithAuth(int|string $id, string $key = 'id', string $userKey = 'user_id') {
         return static::query()->where($key, $id)->where($userKey, auth()->id())->first();
     }
 
@@ -67,7 +67,7 @@ trait ExtendQuery {
      * @return bool|Model|static
      * @throws Exception
      */
-    public static function findOrNew($param, string $field = '*', array $parameters = []) {
+    public static function findOrNew(string|int|array $param, string $field = '*', array $parameters = []) {
         if (empty($param)) {
             return new static();
         }
@@ -80,12 +80,12 @@ trait ExtendQuery {
 
     /**
      * Set not found default data
-     * @param $param
+     * @param mixed $param
      * @param array $attributes
      * @return bool|Model|static
      * @throws Exception
      */
-    public static function findOrDefault($param, array $attributes) {
+    public static function findOrDefault(string|int|array $param, array $attributes) {
         $model = self::findOrNew($param);
         if ($model->isNewRecord) {
             $model->set($attributes);
@@ -95,12 +95,12 @@ trait ExtendQuery {
 
     /**
      * Set new attr
-     * @param $param
+     * @param mixed $param
      * @param array $attributes
      * @return bool|Model|static
      * @throws Exception
      */
-    public static function findWithReplace($param, array $attributes) {
+    public static function findWithReplace(string|int|array $param, array $attributes) {
         $model = self::findOrNew($param);
         $model->set($attributes);
         return $model;
@@ -108,15 +108,17 @@ trait ExtendQuery {
 
     /**
      * 查找或报错
-     * @param $param
+     * @param mixed $param
      * @param string $message
      * @return Model|static
      * @throws Exception
      */
-    public static function findOrThrow($param, string $message = 'model find error') {
+    public static function findOrThrow(string|int|array $param, string $message = 'model find error') {
         $model = static::find($param);
         if (empty($model)) {
-            throw new \InvalidArgumentException($message);
+            throw new \InvalidArgumentException(
+                app()->isDebug() ? sprintf('[%s]%s', get_called_class(), $message) : $message
+            );
         }
         return $model;
     }

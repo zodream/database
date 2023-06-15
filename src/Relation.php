@@ -2,6 +2,7 @@
 declare(strict_types=1);
 namespace Zodream\Database;
 
+use IteratorAggregate;
 use Zodream\Database\Contracts\SqlBuilder;
 use Zodream\Database\Model\Model;
 use Zodream\Database\Model\Query;
@@ -42,12 +43,12 @@ class Relation {
     /**
      * @var string
      */
-    protected $key;
+    protected string $key = '';
 
     /**
-     * @var Builder
+     * @var Builder|null
      */
-    protected $query;
+    protected ?SqlBuilder $query = null;
 
     /**
      * @var array  $foreignKey => $localKey
@@ -57,7 +58,7 @@ class Relation {
     /**
      * @var Relation[]
      */
-    protected $relations;
+    protected array $relations = [];
 
     /**
      * @var int
@@ -69,7 +70,7 @@ class Relation {
      * @param string $key
      * @return Relation
      */
-    public function setKey($key) {
+    public function setKey(string $key) {
         $this->key = $key;
         return $this;
     }
@@ -77,7 +78,7 @@ class Relation {
     /**
      * @return string
      */
-    public function getKey() {
+    public function getKey(): string {
         return $this->key;
     }
 
@@ -85,7 +86,7 @@ class Relation {
      * @param int $type
      * @return Relation
      */
-    public function setType($type) {
+    public function setType(int $type) {
         $this->type = $type;
         return $this;
     }
@@ -118,7 +119,7 @@ class Relation {
         return $this;
     }
 
-    public function appendLink($foreignKey, $localKey) {
+    public function appendLink(string $foreignKey, string $localKey) {
         $this->links[$foreignKey] = $localKey;
         return $this;
     }
@@ -126,11 +127,11 @@ class Relation {
     /**
      * @return array
      */
-    public function getLinks() {
+    public function getLinks(): array {
         return $this->links;
     }
 
-    public function getLinkKeys() {
+    public function getLinkKeys(): array {
         return array_keys($this->links);
     }
 
@@ -138,7 +139,7 @@ class Relation {
      * @param Builder $query
      * @return Relation
      */
-    public function setQuery($query) {
+    public function setQuery(SqlBuilder $query) {
         $this->query = $query;
         return $this;
     }
@@ -154,7 +155,7 @@ class Relation {
         return $this;
     }
 
-    public function appendRelation($relation, $key = '') {
+    public function appendRelation($relation, string $key = '') {
         $this->relations[] = static::parse($relation, $key);
         return $this;
     }
@@ -177,7 +178,7 @@ class Relation {
      * 获取下一个关联需要的字段
      * @return array
      */
-    protected function getRelationFields() {
+    protected function getRelationFields(): array {
         $fields = [];
         foreach ($this->relations as $relation) {
             $fields = array_merge($fields, $relation->getLinkKeys());
@@ -216,7 +217,7 @@ class Relation {
      * @return array|mixed|object[]
      * @throws \Exception
      */
-    public function getResults($models) {
+    public function getResults(mixed $models) {
         $is_one = !static::isSomeArr($models);
         if ($is_one) {
             $models = [$models];
@@ -236,7 +237,7 @@ class Relation {
      * @param $data
      * @return bool
      */
-    private function isLinkResult($data): bool {
+    private function isLinkResult(mixed $data): bool {
         return is_array($data) && count($data) === 3
             && isset($data['items']) && isset($data['links']) && isset($data['source']);
     }
@@ -247,7 +248,7 @@ class Relation {
      * @return array|Model
      * @throws \Exception
      */
-    public function get($data) {
+    public function get(mixed $data) {
         $is_one = !static::isSomeArr($data);;
         if ($is_one) {
             $data = [$data];
@@ -300,7 +301,7 @@ class Relation {
      * @param $results
      * @return array
      */
-    public function matchRelation($model, $results) {
+    public function matchRelation(mixed $model, array $results) {
         if ($this->isLinkResult($results)) {
             $items = static::getLinkItems($model, $results['source'], $this->links);
             $data = [];
@@ -407,7 +408,7 @@ class Relation {
      * @return array
      * @throws \Exception
      */
-    public static function create($models, array $relations) {
+    public static function create(mixed $models, array $relations) {
         if (empty($models)) {
             return $models;
         }
@@ -432,7 +433,7 @@ class Relation {
      * @return array|Page
      * @throws \Exception
      */
-    public static function bindRelation($models, array $items, string $key, array $links, $type = self::TYPE_ONE) {
+    public static function bindRelation(mixed $models, array $items, string $key, array $links, int $type = self::TYPE_ONE): mixed {
         if (empty($models)) {
             return $models;
         }
@@ -447,7 +448,7 @@ class Relation {
         return $is_one ? reset($models) : $models;
     }
 
-    public static function bindRelationArr($models, array $items, string $key, array $links, $type = self::TYPE_ONE) {
+    public static function bindRelationArr(mixed $models, array $items, string $key, array $links, int $type = self::TYPE_ONE) {
         if (empty($models)) {
             return $models;
         }
@@ -460,10 +461,10 @@ class Relation {
 
     /**
      * 是否是多维数组
-     * @param $models
+     * @param mixed $models
      * @return bool
      */
-    protected static function isSomeArr($models) {
+    protected static function isSomeArr(mixed $models): bool {
         if (!is_array($models)) {
             return false;
         }
@@ -472,11 +473,11 @@ class Relation {
     }
 
     /**
-     * @param $data
-     * @param null $key
+     * @param mixed $data
+     * @param string $key
      * @return static
      */
-    public static function parse($data, $key = null) {
+    public static function parse(mixed $data, string $key = '') {
         if ($data instanceof Relation) {
             if (!empty($key)) {
                 $data->setKey($key);
@@ -547,11 +548,11 @@ class Relation {
     }
 
     /**
-     * @param array $models
+     * @param array|Page $models
      * @param string|int $key
      * @return array
      */
-    public static function columns(array $models, string|int $key): array {
+    public static function columns(array|IteratorAggregate $models, string|int $key): array {
         $data = [];
         foreach ($models as $model) {
             $data[] = $model[$key];

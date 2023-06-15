@@ -275,7 +275,7 @@ trait HasAttributes {
         return $values;
     }
 
-    public function toArray() {
+    public function toArray(): array {
         return Arr::format($this->getArrayAbleItems($this->getAllAttributes()));
     }
 }

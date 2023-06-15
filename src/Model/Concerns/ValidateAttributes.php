@@ -24,11 +24,11 @@ trait ValidateAttributes {
 
     /**
      * 判断是否有列名
-     * @param $key
+     * @param string $key
      *
      * @return bool
      */
-    public function hasColumn($key) {
+    public function hasColumn(string $key): bool {
         return array_key_exists($key, $this->rules());
     }
 
@@ -38,14 +38,14 @@ trait ValidateAttributes {
      * @return bool
      * @throws Exception
      */
-    public function validate(array $rules = []) {
+    public function validate(array $rules = []): bool {
         if (empty($rules)) {
             $rules = $this->rules();
         }
         if ($this->validateAttribute($rules)) {
             return true;
         }
-        logger()->error(sprintf('%s model validate error', static::class), $this->getError());
+        logger()->error(sprintf('%s model validate error', get_called_class()), $this->getError());
         return false;
     }
 
