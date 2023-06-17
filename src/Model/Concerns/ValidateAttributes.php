@@ -55,7 +55,7 @@ trait ValidateAttributes {
      * @return bool
      * @throws Exception
      */
-    protected function validateAttribute(array $rules) {
+    protected function validateAttribute(array $rules): bool {
         $validator = new Validator();
         foreach ($rules as $key => $item) {
             if (!$this->isNewRecord && !$this->hasAttribute($key)) {

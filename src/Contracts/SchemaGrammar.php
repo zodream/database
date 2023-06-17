@@ -9,6 +9,13 @@ interface SchemaGrammar {
     public function compileSchemaAll(): string;
     public function compileTableAll(bool $full = false): string;
     public function compileColumnAll(Table|string $table, bool $full = false): string;
+
+    /**
+     * 生成判断表是否存在
+     * @param string|Table $table
+     * @return string
+     */
+    public function compileTableExist(string|Table $table): string;
     public function compileTableSql(Table|string $table): string;
 
     public function compileSchemaCreate(Schema $schema): string;

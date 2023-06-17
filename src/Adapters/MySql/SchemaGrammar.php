@@ -27,6 +27,11 @@ class SchemaGrammar implements GrammarInterface {
             Utils::wrapName(Utils::formatName($table)));
     }
 
+    public function compileTableExist(string|Table $table): string
+    {
+        return sprintf('SHOW TABLES LIKE %s', Utils::wrapName(Utils::formatName($table)));
+    }
+
     public function compileTableSql(string|Table $table): string
     {
         return sprintf('SHOW CREATE TABLE %s', Utils::wrapName(Utils::formatName($table)));

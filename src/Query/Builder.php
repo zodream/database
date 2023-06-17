@@ -76,7 +76,7 @@ class Builder extends BaseSchema implements SqlBuilder {
      */
     protected bool $isEmpty = false;
 
-    public function __construct($args = array()) {
+    public function __construct(array $args = array()) {
         $this->load($args);
     }
 
@@ -115,7 +115,7 @@ class Builder extends BaseSchema implements SqlBuilder {
         return $this;
     }
 
-    public function load($args = []) {
+    public function load(array $args = []) {
         if (empty($args)) {
             return $this;
         }

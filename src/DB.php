@@ -59,8 +59,18 @@ class DB {
      * @param string $connection
      * @return Builder
      */
-    public static function table($table, string $connection = '') {
+    public static function table(mixed $table, string $connection = '') {
         return (new Builder())->from(Utils::formatName($table));
+    }
+
+    /**
+     * 判断表是否存在
+     * @param mixed $table
+     * @return bool
+     */
+    public static function tableExist(mixed $table): bool {
+        $res = static::db()->first(static::schemaGrammar()->compileTableExist($table));
+        return !empty($res);
     }
 
     public static function __callStatic($name, $arguments) {
