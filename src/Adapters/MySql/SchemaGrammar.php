@@ -29,7 +29,7 @@ class SchemaGrammar implements GrammarInterface {
 
     public function compileTableExist(string|Table $table): string
     {
-        return sprintf('SHOW TABLES LIKE %s', Utils::wrapName(Utils::formatName($table)));
+        return sprintf('SHOW TABLES LIKE %s', Utils::wrapText(Utils::formatName($table)));
     }
 
     public function compileTableSql(string|Table $table): string
