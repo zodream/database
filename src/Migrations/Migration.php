@@ -23,11 +23,11 @@ abstract class Migration implements MigrationInterface {
 
     /**
      * 追加数据
-     * @param $table
-     * @param null $func
+     * @param string|array $table
+     * @param callable|null $func
      * @return $this
      */
-    public function append(string|array $table, callable $func = null) {
+    public function append(string|array $table, callable $func = null): static {
         if (!is_array($table)) {
             $table = [$table => $func];
         }
@@ -43,11 +43,11 @@ abstract class Migration implements MigrationInterface {
         return $this;
     }
 
-    public function up() {
+    public function up(): void {
         $this->autoUp();
     }
 
-    public function down() {
+    public function down(): void {
         $this->mode = true;
         $this->up();
         $this->mode = false;
@@ -57,12 +57,12 @@ abstract class Migration implements MigrationInterface {
     /**
      * 生成测试数据
      */
-    public function seed() {}
+    public function seed(): void {}
 
     /**
      * 自动确定是否为创建表
      */
-    protected function autoUp() {
+    protected function autoUp(): void {
         if ($this->mode) {
             return;
         }
@@ -72,7 +72,7 @@ abstract class Migration implements MigrationInterface {
     /**
      * 执行生成命令
      */
-    protected function createTables() {
+    protected function createTables(): void {
         $help = DB::information();
         foreach ($this->tables as $table => $func) {
             $item = new Table($table);
@@ -84,7 +84,7 @@ abstract class Migration implements MigrationInterface {
     /**
      * 执行删除命令
      */
-    protected function dropTables() {
+    protected function dropTables(): void {
         static::dropTable(array_keys($this->tables));
     }
 
@@ -92,7 +92,7 @@ abstract class Migration implements MigrationInterface {
      * 执行删除命令
      * @param string|array $tables
      */
-    public static function dropTable(string|array $tables) {
+    public static function dropTable(string|array $tables): void {
         $db = DB::db();
         $grammar = DB::schemaGrammar();
         foreach ((array)$tables as $table) {
@@ -105,7 +105,7 @@ abstract class Migration implements MigrationInterface {
      * @param string $table
      * @param callable $cb
      */
-    public static function createTable(string $table, callable $cb) {
+    public static function createTable(string $table, callable $cb): void {
         $item = new Table($table);
         call_user_func($cb, $item);
         DB::information()->updateTable($item, autoLoad: true);
@@ -118,7 +118,10 @@ abstract class Migration implements MigrationInterface {
      * @param array $updateColumns
      * @param array $dropColumns
      */
-    public static function updateTable(TableInterface|string $table, array $newColumns = [], array $updateColumns = [], array $dropColumns = []) {
+    public static function updateTable(TableInterface|string $table,
+                                       array $newColumns = [],
+                                       array $updateColumns = [],
+                                       array $dropColumns = []): void {
         DB::db()->execute(DB::schemaGrammar()->compileTableUpdate(
             $table instanceof TableInterface ? $table : new Table($table), $newColumns, $updateColumns, $dropColumns));
     }

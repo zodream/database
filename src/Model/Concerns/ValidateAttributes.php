@@ -10,7 +10,7 @@ trait ValidateAttributes {
      * 过滤规则
      * @return array
      */
-    protected function rules() {
+    protected function rules(): array {
         return [];
     }
 
@@ -18,7 +18,7 @@ trait ValidateAttributes {
      * 自定义验证错误信息
      * @return array
      */
-    protected function messages() {
+    protected function messages(): array {
         return [];
     }
 

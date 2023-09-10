@@ -45,18 +45,11 @@ abstract class Model extends MagicObject {
     const UPDATED_AT = 'updated_at';
 
     public bool $isNewRecord = true;
-
-    /**
-     * 是否保存所有字段
-     * @var bool
-     */
-    protected $isFullColumns = false;
-
     /**
      * 主键
      * @var string
      */
-    protected $primaryKey = 'id';
+    protected string $primaryKey = 'id';
 
 
 
@@ -64,7 +57,7 @@ abstract class Model extends MagicObject {
 	 * 标签
 	 * @return array
 	 */
-	protected function labels() {
+	protected function labels(): array {
 		return [];
 	}
 
@@ -72,11 +65,11 @@ abstract class Model extends MagicObject {
 	 * 表名
 	 * @return string
 	 */
-	public static function tableName() {
+	public static function tableName(): string {
 	    return '';
     }
 
-    public static function className() {
+    public static function className(): string {
 	    return static::class;
     }
 
@@ -95,14 +88,14 @@ abstract class Model extends MagicObject {
 
     /**
      * 判断字段是不是主键
-     * @param $key
+     * @param string $key
      * @return bool
      */
-	public function isPrimaryKey($key) {
-	    return $key == $this->primaryKey;
+	public function isPrimaryKey(string $key): bool {
+	    return $key === $this->primaryKey;
     }
 
-    public function getKeyName() {
+    public function getKeyName(): string {
 	    return $this->primaryKey;
     }
 
@@ -110,7 +103,7 @@ abstract class Model extends MagicObject {
      * 判断是否是新增
      * @return bool
      */
-	public function getIsNewRecord() {
+	public function getIsNewRecord(): bool {
 	    return $this->isNewRecord;
     }
 
@@ -118,7 +111,7 @@ abstract class Model extends MagicObject {
 	 * @param string $key
 	 * @return string
 	 */
-	public function getLabel($key) {
+	public function getLabel(string $key): string {
 		$labels = $this->labels();
 		if (isset($labels[$key])) {
 			return $labels[$key];
@@ -133,16 +126,13 @@ abstract class Model extends MagicObject {
      * @param  bool  $exists
      * @return static
      */
-    public function newInstance($attributes = [], $exists = false) {
-        // This method just provides a convenient way for us to generate fresh model
-        // instances of this current model. It is particularly useful during the
-        // hydration of new objects via the Eloquent query builder instances.
-        $model = new static((array) $attributes);
+    public function newInstance(array $attributes = [], bool $exists = false): static {
+        $model = new static($attributes);
         $model->isNewRecord = !$exists;
         return $model;
     }
 
-    public function qualifyColumn($column) {
+    public function qualifyColumn(string $column): string {
         if (Str::contains($column, '.')) {
             return $column;
         }
@@ -152,11 +142,11 @@ abstract class Model extends MagicObject {
 
 
     /**
-     * @param $method
-     * @param $arguments
+     * @param string $method
+     * @param array $arguments
      * @return Query|array
      */
-	public static function __callStatic($method, $arguments) {
+	public static function __callStatic(string $method, array $arguments) {
 		return call_user_func_array([
            	static::query(), $method], $arguments);
     }
