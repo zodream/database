@@ -6,22 +6,22 @@ use Zodream\Infrastructure\Contracts\UserObject;
 
 abstract class UserModel extends Model implements UserObject {
 
-    public static function getRememberTokenName() {
+    public static function getRememberTokenName(): string {
         return 'remember_token';
     }
 
-    public static function getIdentityName() {
+    public static function getIdentityName(): string {
         return 'id';
     }
     
-    public function getIdentity() {
+    public function getIdentity(): int|string {
         return $this->getAttribute(static::getIdentityName());
     }
 
     /**
      * @return string
      */
-    public function getRememberToken() {
+    public function getRememberToken(): string {
         return $this->getAttribute(static::getRememberTokenName());
     }
 
@@ -29,48 +29,47 @@ abstract class UserModel extends Model implements UserObject {
      * @param string $token
      * @return static
      */
-    public function setRememberToken($token) {
+    public function setRememberToken(string $token): static {
         $this->setAttribute(static::getRememberTokenName(), $token);
         $this->save();
         return $this;
     }
 
-    public function login($remember = false) {
+    public function login($remember = false): void {
         $this->invoke(static::BEFORE_LOGIN, [$this]);
         auth()->login($this, $remember);
         $this->invoke(static::AFTER_LOGIN, [$this]);
-        return true;
     }
     
-    public function logout() {
+    public function logout(): void {
         $this->invoke(static::BEFORE_LOGOUT, [$this]);
         auth()->logout();
         $this->invoke(static::AFTER_LOGOUT, [$this]);
-        return true;
     }
 
     /**
      * 根据 记住密码 token 获取用户
-     * @param integer $id
+     * @param int|string $id
      * @param string $token
-     * @return UserObject
+     * @return UserModel|null
+     * @throws \Exception
      */
-    public static function findByRememberToken($id, $token) {
+    public static function findByRememberToken(int|string $id, string $token): ?static {
         return static::find([
             static::getRememberTokenName() => $token,
             static::getIdentityName() => $id
         ]);
     }
 
-    public static function findByAccount($username, $password) {
+    public static function findByAccount(string $username, string $password): ?static {
         throw new \Exception('undefined method');
     }
 
-    public static function findByIdentity($id) {
+    public static function findByIdentity(int|string $id): ?static {
         return static::find($id);
     }
 
-    public static function findByToken($token) {
+    public static function findByToken(string $token): ?static {
         throw new \Exception('undefined method');
     }
 

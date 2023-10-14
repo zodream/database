@@ -7,8 +7,7 @@ use Zodream\Infrastructure\Support\ServiceProvider;
 
 class DatabaseServiceProvider extends ServiceProvider {
 
-    public function register()
-    {
+    public function register(): void {
         $this->app->scopedIf(Database::class, Command::class);
         $this->app->alias(Database::class, 'db');
     }
