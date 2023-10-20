@@ -10,7 +10,7 @@ trait HasTimestamps {
      *
      * @var bool
      */
-    public $timestamps = true;
+    public bool $timestamps = true;
 
     /**
      * Update the model's update timestamp.
@@ -32,7 +32,7 @@ trait HasTimestamps {
      *
      * @return void
      */
-    protected function updateTimestamps() {
+    protected function updateTimestamps(): void {
         $time = $this->freshTimestamp();
         if ($this->isEmpty(static::UPDATED_AT)
             && $this->hasColumn(static::UPDATED_AT)) {
