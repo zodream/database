@@ -148,14 +148,14 @@ class Relation {
      * @param Relation[] $relations
      * @return Relation
      */
-    public function setRelations(array $relations) {
+    public function setRelations(array $relations): static {
         foreach ($relations as $key => $relation) {
             $this->appendRelation($relation, is_int($key) ? '' : $key);
         }
         return $this;
     }
 
-    public function appendRelation($relation, string $key = '') {
+    public function appendRelation($relation, string $key = ''): static {
         $this->relations[] = static::parse($relation, $key);
         return $this;
     }
@@ -165,7 +165,7 @@ class Relation {
      * @param array $data
      * @return Builder
      */
-    public function getRelationQuery(array $data) {
+    public function getRelationQuery(array $data): SqlBuilder {
         foreach ($this->links as $key => $val) {
             $this->query->whereIn(
                 $val, static::columns($data, $key)
@@ -192,7 +192,7 @@ class Relation {
      * @return array|mixed|object[]
      * @throws \Exception
      */
-    protected function getQueryResults(array $models) {
+    protected function getQueryResults(array $models): mixed {
         if (empty($this->relations)) {
             return static::getRelationQuery($models)->get();
         }
@@ -217,7 +217,7 @@ class Relation {
      * @return array|mixed|object[]
      * @throws \Exception
      */
-    public function getResults(mixed $models) {
+    public function getResults(mixed $models): mixed {
         $is_one = !static::isSomeArr($models);
         if ($is_one) {
             $models = [$models];
@@ -248,7 +248,7 @@ class Relation {
      * @return array|Model
      * @throws \Exception
      */
-    public function get(mixed $data) {
+    public function get(mixed $data): mixed {
         $is_one = !static::isSomeArr($data);;
         if ($is_one) {
             $data = [$data];
@@ -263,7 +263,7 @@ class Relation {
      * @return array [[],]
      * @throws \Exception
      */
-    public function getWithMulti(array $data) {
+    public function getWithMulti(array $data): array {
         $results = $this->getQueryResults($data);
         return $this->buildRelation($data, is_array($results) ? $results : []);
     }
@@ -274,7 +274,7 @@ class Relation {
      * @param array $results
      * @return array
      */
-    public function buildRelation(array $models, array $results) {
+    public function buildRelation(array $models, array $results): array {
         foreach ($models as &$model) {
             $value = $this->matchRelation($model, $results);
             if ($this->key === self::EMPTY_RELATION_KEY) {
@@ -298,10 +298,10 @@ class Relation {
     /**
      * 匹配值
      * @param $model
-     * @param $results
+     * @param array $results
      * @return array
      */
-    public function matchRelation(mixed $model, array $results) {
+    public function matchRelation(mixed $model, array $results): mixed {
         if ($this->isLinkResult($results)) {
             $items = static::getLinkItems($model, $results['source'], $this->links);
             $data = [];
@@ -347,12 +347,12 @@ class Relation {
         return $items;
     }
 
-    protected function hasReplaceRelationKey($item) {
+    protected function hasReplaceRelationKey($item): bool {
         return $this->hasEmptyRelationKey($item) || $this->hasMergeRelationKey($item);
     }
 
-    protected function hasEmptyRelationKey($item) {
-        if (is_array($item) || !$item instanceof Model) {
+    protected function hasEmptyRelationKey($item): bool {
+        if (!($item instanceof Model)) {
             return isset($item[self::EMPTY_RELATION_KEY])
                 || array_key_exists(self::EMPTY_RELATION_KEY, $item);
         }
@@ -360,7 +360,7 @@ class Relation {
     }
 
     protected function hasMergeRelationKey($item) {
-        if (is_array($item) || !$item instanceof Model) {
+        if (!($item instanceof Model)) {
             return isset($item[self::MERGE_RELATION_KEY])
                 || array_key_exists(self::MERGE_RELATION_KEY, $item);
         }
@@ -368,9 +368,9 @@ class Relation {
     }
 
     /**
-     * @return Builder| Query
+     * @return SqlBuilder
      */
-    public function getQuery() {
+    public function getQuery(): SqlBuilder {
         return $this->query;
     }
 
@@ -379,13 +379,13 @@ class Relation {
      * @param Query $parentQuery
      * @return Query
      */
-    public function getRelationExistenceCountQuery(Query $query, Query $parentQuery) {
+    public function getRelationExistenceCountQuery(Query $query, Query $parentQuery): SqlBuilder {
         return $this->getRelationExistenceQuery(
             $query, $parentQuery, 'count(*)'
         );
     }
 
-    public function getRelationExistenceQuery(Query $query, Query $parentQuery, $columns = ['*']) {
+    public function getRelationExistenceQuery(Query $query, Query $parentQuery, $columns = ['*']): SqlBuilder {
         foreach ($this->links as $fk => $lk) {
             $query->whereColumn(
                 $parentQuery->getModel()->qualifyColumn($fk), '=',
@@ -408,7 +408,7 @@ class Relation {
      * @return array
      * @throws \Exception
      */
-    public static function create(mixed $models, array $relations) {
+    public static function create(mixed $models, array $relations): mixed {
         if (empty($models)) {
             return $models;
         }
@@ -418,7 +418,7 @@ class Relation {
         }
         foreach ($relations as $key => $relation) {
             $relation = static::parse($relation, $key);
-            $models =  $relation->getWithMulti($models);
+            $models = $relation->getWithMulti($models);
         }
         return $is_one ? reset($models) : $models;
     }
@@ -433,7 +433,8 @@ class Relation {
      * @return array|Page
      * @throws \Exception
      */
-    public static function bindRelation(mixed $models, array $items, string $key, array $links, int $type = self::TYPE_ONE): mixed {
+    public static function bindRelation(mixed $models, array $items, string $key,
+                                        array $links, int $type = self::TYPE_ONE): mixed {
         if (empty($models)) {
             return $models;
         }
@@ -448,7 +449,8 @@ class Relation {
         return $is_one ? reset($models) : $models;
     }
 
-    public static function bindRelationArr(mixed $models, array $items, string $key, array $links, int $type = self::TYPE_ONE) {
+    public static function bindRelationArr(mixed $models, array $items,
+                                           string $key, array $links, int $type = self::TYPE_ONE): mixed {
         if (empty($models)) {
             return $models;
         }
@@ -477,7 +479,7 @@ class Relation {
      * @param string $key
      * @return static
      */
-    public static function parse(mixed $data, string $key = '') {
+    public static function parse(mixed $data, string $key = ''): static {
         if ($data instanceof Relation) {
             if (!empty($key)) {
                 $data->setKey($key);
@@ -511,7 +513,8 @@ class Relation {
      * @param int $type
      * @return array
      */
-    public static function make(SqlBuilder $builder, string $dataKey, string $foreignKey, int $type = self::TYPE_ONE) {
+    public static function make(SqlBuilder $builder, string $dataKey,
+                                string $foreignKey, int $type = self::TYPE_ONE): array {
         return [
             'query' => $builder,
             'link' => [
