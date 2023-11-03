@@ -257,8 +257,7 @@ class Mysqli extends BaseEngine implements Engine {
         return new Information();
     }
 
-    public function escapeString(string $value): string
-    {
-        return sprintf('\'%s\'', mysqli_real_escape_string($this->driver, $value));
+    public function escapeString(mixed $value): string {
+        return var_export(mysqli_real_escape_string($this->driver, (string)$value), true);
     }
 }

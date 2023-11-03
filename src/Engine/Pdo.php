@@ -1,4 +1,5 @@
-<?php 
+<?php
+declare(strict_types=1);
 namespace Zodream\Database\Engine;
 
 use Exception;
@@ -252,8 +253,8 @@ class Pdo extends BaseEngine implements Engine {
         return new Information();
     }
 
-    public function escapeString(string $value): string
-    {
-        return $this->driver->quote($value);
+    public function escapeString(mixed $value): string {
+        $res = $this->driver->quote((string)$value);
+        return $res === false ? var_export((string)$value, true) : $res;
     }
 }

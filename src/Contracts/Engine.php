@@ -73,5 +73,5 @@ interface Engine {
      * @param string $value
      * @return string 返回包含 '' 得字符串
      */
-    public function escapeString(string $value): string;
+    public function escapeString(mixed $value): string;
 }
