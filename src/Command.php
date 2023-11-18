@@ -67,30 +67,11 @@ class Command extends Manager implements Database {
      * @return string
      * @throws \Exception
      */
-    public function addPrefix(string $table): string
-    {
+    public function addPrefix(string $table): string {
         if (str_contains($table, '`')) {
             return $table;
         }
-        preg_match('/([\w_\.]+)( (as )?[\w_]+)?/i', $table, $match);
-        $table = count($match) == 2 ? $table : $match[1];
-        $alias = '';
-        if (count($match) > 2) {
-            $alias = $match[2];
-        }
-        if (str_contains($table, '.')) {
-            list($schema, $table) = explode('.', $table);
-            return sprintf('`%s`.`%s`%s', $schema, $table, $alias);
-        }
-        if (str_starts_with($table, '!')) {
-            return sprintf('`%s`%s', substr($table, 1), $alias);
-        }
-        $prefix = $this->engine()->config('prefix');
-        if (empty($prefix)) {
-            return sprintf('`%s`%s', $table, $alias);
-        }
-        return sprintf('`%s`%s', $prefix.
-            Str::firstReplace($table, $prefix), $alias);
+        return Utils::wrapTable($table);
     }
 
     /**
@@ -99,7 +80,7 @@ class Command extends Manager implements Database {
      * @return $this
      * @throws \Exception
      */
-    public function setTable(string $table) {
+    public function setTable(string $table): static {
         $this->table = $this->addPrefix($table);
         return $this;
     }
@@ -127,18 +108,11 @@ class Command extends Manager implements Database {
     }
 
     /**
-     * 拷贝（未实现）
-     */
-    public function copy() {
-        //return $this->select(null, '* INTO table in db');
-    }
-
-    /**
      * 开启缓存
      * @param int|bool $expire
      * @return $this
      */
-    public function openCache(int|bool $expire = 3600) {
+    public function openCache(int|bool $expire = 3600): static {
         $this->allowCache = $expire !== false;
         $this->cacheLife = $expire;
         return $this;
@@ -146,10 +120,10 @@ class Command extends Manager implements Database {
 
     /**
      * @param string $sql
-     * @return array null
+     * @return array|null null
      * @throws \Exception
      */
-    public function getCache(string $sql) {
+    public function getCache(string $sql): ?array {
         if (!$this->allowCache) {
             return null;
         }
@@ -160,7 +134,7 @@ class Command extends Manager implements Database {
         return unserialize($cache);
     }
 
-    public function setCache(string $sql, $data) {
+    public function setCache(string $sql, $data): void {
         if (!$this->allowCache || app()->isDebug()) {
             return;
         }

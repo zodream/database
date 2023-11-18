@@ -333,7 +333,7 @@ class BuilderGrammar implements GrammarInterface {
      * @return string
      */
     public function compileQuery(SqlBuilder $query): string {
-        $sql = $this->compileSelects($query).
+        return $this->compileSelects($query).
             $this->compileFrom($query).
             $this->compileJoins($query).
             $this->compileWheres($query).
@@ -342,7 +342,6 @@ class BuilderGrammar implements GrammarInterface {
             $this->compileOrders($query).
             $this->compileLimit($query).
             $this->compileOffset($query);
-        return $sql;
     }
 
     public function compileInsert(SqlBuilder $builder, array|string $columns = '', array|string $values = ''): string {
@@ -622,7 +621,7 @@ class BuilderGrammar implements GrammarInterface {
         };
         if (!empty($keys)) {
             foreach ($keys as $key) {
-                $cb(isset($item[$key]) ? $item[$key] : null);
+                $cb($item[$key] ?? null);
             }
         } else {
             foreach ($item as $value) {

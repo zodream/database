@@ -7,6 +7,7 @@ use Zodream\Database\Contracts\BuilderGrammar;
 use Zodream\Database\Contracts\Engine;
 use Zodream\Database\Contracts\Information;
 use Zodream\Database\Contracts\SchemaGrammar;
+use Zodream\Database\Contracts\SqlBuilder;
 use Zodream\Database\Engine\BaseEngine;
 use Zodream\Database\Events\QueryExecuted;
 use Zodream\Database\Query\Builder;
@@ -30,7 +31,7 @@ class DB {
 
     protected static array $logs = [];
 
-    public static function enableQueryLog() {
+    public static function enableQueryLog(): void {
         self::$logs = [];
         self::$enableLog = true;
     }
@@ -46,7 +47,7 @@ class DB {
      * @param float $time
      * @throws \Exception
      */
-    public static function addQueryLog(string $sql, array $bindings = [], float $time = 0) {
+    public static function addQueryLog(string $sql, array $bindings = [], float $time = 0): void {
         event(new QueryExecuted($sql, $bindings, $time, static::db()->getCurrentName()));
         if (self::$enableLog) {
             self::$logs[] = compact('sql', 'bindings', 'time');
@@ -55,12 +56,12 @@ class DB {
 
     /**
      *
-     * @param $table
+     * @param mixed $table
      * @param string $connection
      * @return Builder
      */
-    public static function table(mixed $table, string $connection = '') {
-        return (new Builder())->from(Utils::formatName($table));
+    public static function table(mixed $table, string $connection = ''): SqlBuilder {
+        return (new Builder())->from(Utils::wrapTable($table, $connection));
     }
 
     /**
@@ -77,11 +78,11 @@ class DB {
         return call_user_func_array([static::db(), $name], $arguments);
     }
 
-    public static function lock(array|string $tables, string $lockType = '') {
+    public static function lock(array|string $tables, string $lockType = ''): void {
         static::db()->execute(static::schemaGrammar()->compileTableLock($tables, $lockType));
     }
 
-    public static function unlock() {
+    public static function unlock(): void {
         static::db()->execute(static::schemaGrammar()->compileTableUnlock(''));
     }
 
