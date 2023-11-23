@@ -37,7 +37,7 @@ final class Utils {
         $alias = '';
         if (preg_match('/(`?([\w_]+)`?\.)?(`?(!?[\w_]+)`?)(\s(as\s)?([\w_]+))?/i',
             self::formatName($table), $match)) {
-            $alias = $match[7];
+            $alias = $match[7] ?? '';
             $connection = empty($connection) ? $match[2] : $connection;
             $table = $match[4];
         }
