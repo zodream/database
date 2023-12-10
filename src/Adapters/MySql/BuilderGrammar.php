@@ -544,6 +544,7 @@ class BuilderGrammar implements GrammarInterface {
     {
         $keys = $this->getInsertKey($data);
         return sprintf('REPLACE INTO %s %s VALUES %s',
+            Utils::formatName($builder),
             $this->compileInsertKey($keys),
             $this->compileInsertData($builder, $data, $keys));
     }
