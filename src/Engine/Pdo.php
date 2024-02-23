@@ -10,6 +10,7 @@ use Zodream\Database\Contracts\BuilderGrammar as BuilderInterface;
 use Zodream\Database\Contracts\Engine;
 use Zodream\Database\Contracts\Information as InformationInterface;
 use Zodream\Database\Contracts\SchemaGrammar as SchemaInterface;
+use Zodream\Infrastructure\Error\DatabaseException;
 
 class Pdo extends BaseEngine implements Engine {
 
@@ -50,7 +51,7 @@ class Pdo extends BaseEngine implements Engine {
                 $this->driver->query ( "SET character_set_results={$this->configs['encoding']}" );
             }
         } catch (\PDOException $ex) {
-            throw $ex;
+            throw new DatabaseException($ex->getMessage(), $ex->getCode(), $ex);
         }
         return true;
     }
@@ -149,7 +150,7 @@ class Pdo extends BaseEngine implements Engine {
             $this->result->execute();
         } catch (\PDOException  $ex) {
             logger()->info(sprintf('PDO: %s => %s', $sql, $ex->getMessage()), $parameters);
-            throw $ex;
+            throw new DatabaseException($ex->getMessage(), $ex->getCode(), $ex);
         }
         return $this->result;
     }

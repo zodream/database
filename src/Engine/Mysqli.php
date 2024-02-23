@@ -10,6 +10,7 @@ use Zodream\Database\Contracts\BuilderGrammar as BuilderInterface;
 use Zodream\Database\Contracts\Engine;
 use Zodream\Database\Contracts\Information as InformationInterface;
 use Zodream\Database\Contracts\SchemaGrammar as SchemaInterface;
+use Zodream\Infrastructure\Error\DatabaseException;
 
 class Mysqli extends BaseEngine implements Engine {
 
@@ -41,7 +42,7 @@ class Mysqli extends BaseEngine implements Engine {
             $this->configs['database'],
             $this->configs['port']
         )
-        or throw new Exception('There was a problem connecting to the database');
+        or throw new DatabaseException('There was a problem connecting to the database');
         /* check connection */
         /*if (mysqli_connect_errno()) {
          printf("Connect failed: %s\n", mysqli_connect_error());
@@ -200,17 +201,17 @@ class Mysqli extends BaseEngine implements Engine {
     public function execute(string $sql, array $parameters = [])
     {
         if (empty($sql)) {
-            throw new Exception('sql is empty');
+            throw new DatabaseException('sql is empty');
         }
         $this->prepare($sql);
         $this->bind($parameters);
         $error = mysqli_error($this->driver);
         if (!empty($error)) {
-            throw new Exception($error);
+            throw new DatabaseException($error);
         }
         logger()->info(sprintf('MYSQLI: %s => %s', $sql, $error));
         if (!$this->result->execute()) {
-            throw new Exception(mysqli_error($this->driver));
+            throw new DatabaseException(mysqli_error($this->driver));
         }
         return $this->result;
     }

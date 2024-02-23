@@ -8,6 +8,7 @@ namespace Zodream\Database\Engine;
  * @author Jason
  */
 use Zodream\Infrastructure\Base\ConfigObject;
+use Zodream\Infrastructure\Error\DatabaseException;
 use Zodream\Infrastructure\Error\Exception;
 use Redis as RedisClient;
 
@@ -31,7 +32,7 @@ class Redis extends ConfigObject {
         $this->driver = new RedisClient();
         $this->driver->connect($this->configs['host'], $this->configs['port']);
         if (isset($this->configs['password']) && !$this->driver->auth($this->configs['password'])) {
-            throw new \Exception('redis password error!');
+            throw new DatabaseException('redis password error!');
         }
         $this->driver->select(isset($this->configs['db']) ? intval($this->configs['db']) : 0);
     }
