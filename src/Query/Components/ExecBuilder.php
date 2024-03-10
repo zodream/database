@@ -17,7 +17,7 @@ trait ExecBuilder {
      */
     public function all() {
         if ($this->isEmpty) {
-            return null;
+            return [];
         }
         return DB::db()->fetch($this->getSQL(), $this->getBindings());
     }
