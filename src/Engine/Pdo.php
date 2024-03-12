@@ -150,7 +150,7 @@ class Pdo extends BaseEngine implements Engine {
             $this->result->execute();
         } catch (\PDOException  $ex) {
             logger()->info(sprintf('PDO: %s => %s', $sql, $ex->getMessage()), $parameters);
-            throw new DatabaseException($ex->getMessage(), $ex->getCode(), $ex);
+            throw new DatabaseException($ex->getMessage(), (int)$ex->getCode(), $ex);
         }
         return $this->result;
     }
