@@ -15,9 +15,10 @@ trait SaveModel {
 
     /**
      * 保存
+     * @param bool $force 是否忽略更新时的内容位变化错误
      * @return bool|mixed
      */
-    public function save() {
+    public function save(bool $force = false): mixed {
         $this->invoke(self::BEFORE_SAVE, [$this]);
         if ($this->isNewRecord) {
             $row = $this->insert();
@@ -25,6 +26,9 @@ trait SaveModel {
             $row = $this->update();
         }
         $this->invoke(self::BEFORE_SAVE, [$this]);
+        if (!$row && $force && $this->isNotChangedError()) {
+            return true;
+        }
         return $row;
     }
 
