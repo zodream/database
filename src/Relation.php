@@ -282,7 +282,11 @@ class Relation {
                 continue;
             }
             if ($this->key === self::MERGE_RELATION_KEY) {
-                $model = array_merge(Arr::toArray($model), Arr::toArray($value));
+                $value = Arr::toArray($value);
+                foreach ($this->links as $key) {
+                    unset($value[$key]);
+                }
+                $model = array_merge(Arr::toArray($model), $value);
                 continue;
             }
             if ($model instanceof Model) {
