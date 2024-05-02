@@ -244,10 +244,6 @@ class Command extends Manager implements Database {
         $result = null;
         try {
             $result = $this->runQueryCallback($query, $bindings, $callback);
-        } catch (\Exception $ex) {
-            if (app()->isDebug()) {
-                throw $ex;
-            }
         } finally {
             DB::addQueryLog($query, $bindings, Time::elapsedTime($start));
         }
