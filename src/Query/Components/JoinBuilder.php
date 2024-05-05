@@ -12,12 +12,12 @@ trait JoinBuilder {
     /**
      * Add a join clause to the query.
      *
-     * @param  string  $table
-     * @param  string  $first
-     * @param  string  $operator
-     * @param  string  $second
-     * @param  string  $type
-     * @return $this
+     * @param string $table
+     * @param string $first
+     * @param null $operator
+     * @param null $second
+     * @param string $type
+     * @return SqlBuilder
      */
     public function join(string $table, $first, $operator = null, $second = null, string $type = 'inner'): SqlBuilder {
         $on = $first;
@@ -25,6 +25,13 @@ trait JoinBuilder {
             $on .= is_null($second) ? ' = '.$operator : sprintf(' %s %s', $operator, $second);
         }
         $this->joins[] = compact('table', 'on', 'type');
+        return $this;
+    }
+
+    public function joinRaw(SqlBuilder $builder, string $alias, string $on, string $type = 'inner'): SqlBuilder {
+        $table = sprintf('(%s) as %s', $builder, $alias);
+        $this->joins[] = compact('table', 'on', 'type');
+        $this->addBinding($builder->getBindings(), 'join');
         return $this;
     }
 

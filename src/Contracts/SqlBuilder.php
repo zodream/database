@@ -16,6 +16,7 @@ interface SqlBuilder {
 
     public function from(string|array $table, string $alias = ''): SqlBuilder;
 
+    public function joinRaw(SqlBuilder $builder, string $alias, string $on, string $type = 'inner'): SqlBuilder;
     public function join(string $table, $first, $operator = null, $second = null, string $type = 'inner'): SqlBuilder;
     public function leftJoin(string $table, $first, $operator = null, $second = null): SqlBuilder;
     public function rightJoin(string $table, $first, $operator = null, $second = null): SqlBuilder;
@@ -80,6 +81,8 @@ interface SqlBuilder {
     public function updateDecrement(string|array $column, int|float $value = 1): int;
     public function replace(array $data): int;
     public function delete(): int;
+
+    public function getBindings(): array;
 
     public function addBinding($value, string $type = 'where'): SqlBuilder;
     public function getSQL(): string;

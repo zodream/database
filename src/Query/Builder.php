@@ -268,7 +268,7 @@ class Builder extends BaseSchema implements SqlBuilder {
      *
      * @return array
      */
-    public function getBindings() {
+    public function getBindings(): array {
         $keys = func_num_args() < 1 ? array_keys($this->bindings) : func_get_args();
         $args = [];
         foreach ($keys as $item) {
