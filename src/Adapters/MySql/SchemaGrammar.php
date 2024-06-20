@@ -39,21 +39,21 @@ class SchemaGrammar implements GrammarInterface {
 
     public function compileSchemaCreate(Schema $schema): string
     {
-        return sprintf('CREATE SCHEMA IF NOT EXISTS %s DEFAULT CHARACTER SET %s COLLATE %s',
+        return sprintf('CREATE SCHEMA IF NOT EXISTS %s DEFAULT CHARACTER SET %s COLLATE %s;',
             Utils::wrapName($schema->getName()),
             $schema->getCharset(), $schema->getCollation());
     }
 
     public function compileSchemaUpdate(Schema $schema): string
     {
-        return sprintf('ALTER SCHEMA %s DEFAULT CHARACTER SET %s  DEFAULT COLLATE %s',
+        return sprintf('ALTER SCHEMA %s DEFAULT CHARACTER SET %s DEFAULT COLLATE %s;',
             Utils::wrapName($schema->getName()),
             $schema->getCharset(), $schema->getCollation());
     }
 
     public function compileSchemaDelete(string|Schema $schema): string
     {
-        return sprintf('DROP DATABASE %s', Utils::wrapName(Utils::formatName($schema)));
+        return sprintf('DROP DATABASE %s;', Utils::wrapName(Utils::formatName($schema)));
     }
 
     public function compileSchemaUse(string|Schema $schema): string
