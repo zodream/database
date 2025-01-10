@@ -109,7 +109,7 @@ trait ExecBuilder {
         return empty($field) ? $field : sprintf('`%s`', trim($field, '`'));
     }
 
-    public function pluck(?string $column = null, ?string $key = null): array {
+    public function pluck(string|null $column = null, string|null $key = null): array {
         if (empty($this->selects) && !empty($column)) {
             $this->select($this->wrapField($column), $this->wrapField($key));
         }

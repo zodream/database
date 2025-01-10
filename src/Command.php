@@ -123,7 +123,7 @@ class Command extends Manager implements Database {
      * @return array|null null
      * @throws \Exception
      */
-    public function getCache(string $sql): ?array {
+    public function getCache(string $sql): array|null {
         if (!$this->allowCache) {
             return null;
         }

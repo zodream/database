@@ -51,7 +51,7 @@ interface SqlBuilder {
     public function take(int $length): SqlBuilder;
 
     public function tap(Closure $cb): SqlBuilder;
-    public function when(bool $condition, Closure $trueFunc, Closure $falseFunc = null): SqlBuilder;
+    public function when(bool $condition, Closure $trueFunc, Closure|null $falseFunc = null): SqlBuilder;
     public function isEmpty(): SqlBuilder;
 
     /**
@@ -67,7 +67,7 @@ interface SqlBuilder {
     public function sum(string $column): int|float;
 
     public function scalar();
-    public function pluck(?string $column = null, ?string $key = null): array;
+    public function pluck(string|null $column = null, string|null $key = null): array;
     public function value(string $column);
     public function first(...$columns);
     public function get(...$columns);

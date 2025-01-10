@@ -101,7 +101,7 @@ trait AutoModel {
      * @return $this
      * @throws \Exception
      */
-    public function setAttributeToOld(?array $data = null) {
+    public function setAttributeToOld(array|null $data = null) {
         if (is_null($data)) {
             $data = $this->getAttribute();
         }

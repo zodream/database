@@ -27,7 +27,7 @@ abstract class Migration implements MigrationInterface {
      * @param callable|null $func
      * @return $this
      */
-    public function append(string|array $table, callable $func = null): static {
+    public function append(string|array $table, callable|null $func = null): static {
         if (!is_array($table)) {
             $table = [$table => $func];
         }

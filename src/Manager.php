@@ -44,7 +44,7 @@ abstract class Manager extends ConfigObject {
      * @return mixed
      * @throws \Exception
      */
-    public function addEngine(array|string|int $name, ?array $configs = null) {
+    public function addEngine(array|string|int $name, array|null $configs = null) {
         if (!is_string($name) && !is_numeric($name)) {
             $configs = $name;
             $name = $this->currentName;

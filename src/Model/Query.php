@@ -23,7 +23,7 @@ class Query extends Builder {
     /**
      * @var Model|null
      */
-    protected ?Model $model = null;
+    protected Model|null $model = null;
 
     protected bool $isArray = false;
 

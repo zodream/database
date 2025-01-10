@@ -227,7 +227,7 @@ class Builder extends BaseSchema implements SqlBuilder {
      * @param Closure|null $falseFunc
      * @return $this
      */
-    public function when($condition, Closure $trueFunc, Closure $falseFunc = null): SqlBuilder {
+    public function when($condition, Closure $trueFunc, Closure|null $falseFunc = null): SqlBuilder {
         if ($this->isEmpty) {
             return $this;
         }

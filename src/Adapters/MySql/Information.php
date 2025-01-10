@@ -104,11 +104,11 @@ class Information implements InformationInterface {
     /**
      * 通过对比修改表格
      * @param TableInterface $table
-     * @param ?TableInterface $oldTable
+     * @param TableInterface|null $oldTable
      * @param bool $autoLoad
      * @return Table
      */
-    public function updateTable(TableInterface $table, ?TableInterface $oldTable = null, bool $autoLoad = false): TableInterface {
+    public function updateTable(TableInterface $table, TableInterface|null $oldTable = null, bool $autoLoad = false): TableInterface {
         if ($autoLoad) {
             $oldTable = $this->table($table->getName(), true);
         }
@@ -187,7 +187,7 @@ class Information implements InformationInterface {
             $isUnsigned === $oldColumn->getTypeIsUnsigned();
     }
 
-    protected function formatColumn(array $data, ?TableInterface $table = null): ColumnInterface {
+    protected function formatColumn(array $data, TableInterface|null $table = null): ColumnInterface {
         $column = empty($table) ? new Column($data['Field']) : $table->column($data['Field']);
         $column->comment($data['Comment'])
             ->default($data['Default']);

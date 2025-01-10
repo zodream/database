@@ -21,6 +21,6 @@ interface Information {
      * @param bool $autoLoad
      * @return Table
      */
-    public function updateTable(Table $table, ?Table $oldTable = null, bool $autoLoad = false): Table;
+    public function updateTable(Table $table, Table|null $oldTable = null, bool $autoLoad = false): Table;
 
 }

@@ -13,7 +13,7 @@ use Zodream\Infrastructure\Error\Exception;
 use Redis as RedisClient;
 
 class Redis extends ConfigObject {
-	private ?RedisClient $driver = null;
+	private RedisClient|null $driver = null;
 
     protected array $configs = array(
         'host'     => '127.0.0.1',                //服务器

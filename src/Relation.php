@@ -48,7 +48,7 @@ class Relation {
     /**
      * @var Builder|null
      */
-    protected ?SqlBuilder $query = null;
+    protected SqlBuilder|null $query = null;
 
     /**
      * @var array  $foreignKey => $localKey
