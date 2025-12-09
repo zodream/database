@@ -22,27 +22,27 @@ abstract class Model extends MagicObject {
 
     use ErrorTrait, ExtendQuery, AutoModel, EventTrait, HasRelation, HasAttributes, ValidateAttributes, HasTimestamps, SaveModel;
 
-    const BEFORE_SAVE = 'before save';
-    const AFTER_SAVE = 'after save';
-    const BEFORE_INSERT = 'before insert';
-    const AFTER_INSERT = 'after insert';
-    const BEFORE_UPDATE = 'before update';
-    const AFTER_UPDATE = 'after update';
-    const ERROR_NOT_DATA_CHANGE = '__not_change';
+    const string BEFORE_SAVE = 'before save';
+    const string AFTER_SAVE = 'after save';
+    const string BEFORE_INSERT = 'before insert';
+    const string AFTER_INSERT = 'after insert';
+    const string BEFORE_UPDATE = 'before update';
+    const string AFTER_UPDATE = 'after update';
+    const string ERROR_NOT_DATA_CHANGE = '__not_change';
 
     /**
      * The name of the "created at" column.
      *
      * @var string
      */
-    const CREATED_AT = 'created_at';
+    const string CREATED_AT = 'created_at';
 
     /**
      * The name of the "updated at" column.
      *
      * @var string
      */
-    const UPDATED_AT = 'updated_at';
+    const string UPDATED_AT = 'updated_at';
 
     public bool $isNewRecord = true;
     /**

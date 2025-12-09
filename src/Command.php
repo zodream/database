@@ -11,7 +11,6 @@ namespace Zodream\Database;
 use Zodream\Database\Engine\Pdo;
 use Zodream\Helpers\Time;
 use Zodream\Database\Contracts\Engine;
-use Zodream\Helpers\Str;
 use Closure;
 use Zodream\Infrastructure\Contracts\Database;
 

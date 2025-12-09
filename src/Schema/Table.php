@@ -9,13 +9,13 @@ use Zodream\Database\Utils;
 
 class Table implements TableInterface {
 
-    const MyISAM = 'MyISAM';
-    const HEAP = 'HEAP';
-    const MEMORY = 'MEMORY';
-    const MERGE = 'MERGE';
-    const MRG_MYISAM = 'MRG_MYISAM';
-    const InnoDB = 'InnoDB';
-    const INNOBASE = 'INNOBASE';
+    const string MyISAM = 'MyISAM';
+    const string HEAP = 'HEAP';
+    const string MEMORY = 'MEMORY';
+    const string MERGE = 'MERGE';
+    const string MRG_MYISAM = 'MRG_MYISAM';
+    const string InnoDB = 'InnoDB';
+    const string INNOBASE = 'INNOBASE';
 
     protected string $collation = 'utf8mb4_general_ci';
 
