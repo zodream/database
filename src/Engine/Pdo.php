@@ -18,6 +18,7 @@ class Pdo extends BaseEngine implements Engine {
     const MSSQL = 'dblib';
     const ORACLE = 'oci';
     const SQLSRV = 'sqlsrv';
+    const ACCESS = 'access';
 
 	/**
 	 * @var \PDO
@@ -57,18 +58,21 @@ class Pdo extends BaseEngine implements Engine {
     }
 
     public function getDsn() {
-        if ($this->getType() == self::SQLSRV) {
-            return sprintf('sqlsrv:server=%s;Database=%s',
+        return match($this->getType()) {
+            self::SQLSRV => sprintf('sqlsrv:server=%s;Database=%s',
                 $this->configs['host'],
                 $this->configs['database']
-            );
-        }
-        return sprintf('%s:host=%s;port=%s;dbname=%s',
-            $this->getType(),
-            $this->configs['host'],
-            $this->configs['port'],
-            $this->configs['database']
-        );
+            ),
+            self::ACCESS => sprintf('odbc:driver={microsoft access driver (*.mdb)};dbq=%s',
+                realpath($this->configs['database'])
+            ),
+            default => sprintf('%s:host=%s;port=%s;dbname=%s',
+                $this->getType(),
+                $this->configs['host'],
+                $this->configs['port'],
+                $this->configs['database']
+            ),
+        };
     }
 
     /**
