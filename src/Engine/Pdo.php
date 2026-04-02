@@ -23,12 +23,12 @@ class Pdo extends BaseEngine implements Engine {
 	/**
 	 * @var \PDO
 	 */
-	protected $driver = null;
+	protected mixed $driver = null;
 
 	/**
 	 * @var \PDOStatement
 	 */
-	protected $result;
+	protected mixed $result;
 
     public function open(): bool
     {

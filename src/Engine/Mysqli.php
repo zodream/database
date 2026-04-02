@@ -17,14 +17,14 @@ class Mysqli extends BaseEngine implements Engine {
 	/**
 	 * @var \mysqli
 	 */
-	protected $driver = null;
+	protected mixed $driver = null;
 
 	/**
 	 * @var \mysqli_stmt
 	 */
-	protected $result;
+	protected mixed $result;
 
-	protected $version;
+	protected mixed $version;
 
 	public function open(): bool
     {

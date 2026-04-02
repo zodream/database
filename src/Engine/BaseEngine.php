@@ -4,9 +4,9 @@ namespace Zodream\Database\Engine;
 
 abstract class BaseEngine {
 	
-	protected $driver = null;
-	protected $result;
-	protected $version;
+	protected mixed $driver = null;
+	protected mixed $result;
+	protected mixed $version;
 	
 	protected array $configs = [
 	    'type'     => 'mysql',                //数据库类型

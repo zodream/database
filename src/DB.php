@@ -74,7 +74,7 @@ class DB {
         return !empty($res);
     }
 
-    public static function __callStatic($name, $arguments) {
+    public static function __callStatic(string $name, array $arguments): mixed {
         return call_user_func_array([static::db(), $name], $arguments);
     }
 
