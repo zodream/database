@@ -20,9 +20,9 @@ use Zodream\Infrastructure\Contracts\Database;
  */
 class Command extends Manager implements Database {
 
-    protected $table;
+    protected string $table = '';
 
-    protected $prefix;
+    protected string $prefix = '';
 
     protected bool $allowCache = true;
 
