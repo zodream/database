@@ -7,7 +7,7 @@ use Zodream\Database\DB;
 class AiModel extends Model {
     protected static string $tableName;
 
-    public static function tableName() {
+    public static function tableName(): string {
         return static::$tableName;
     }
 
