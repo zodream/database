@@ -86,6 +86,10 @@ class DB {
         static::db()->execute(static::schemaGrammar()->compileTableUnlock(''));
     }
 
+    public static function openCache(int|bool $expire = 3600): void {
+        static::db()->openCache($expire);
+    }
+
     public static function db(): Database {
         return app('db');
     }

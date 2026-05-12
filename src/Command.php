@@ -111,7 +111,7 @@ class Command extends Manager implements Database {
      * @param int|bool $expire
      * @return $this
      */
-    public function openCache(int|bool $expire = 3600): static {
+    public function openCache(int|bool $expire = 3600): Database {
         $this->allowCache = $expire !== false;
         $this->cacheLife = $expire;
         return $this;
@@ -238,7 +238,7 @@ class Command extends Manager implements Database {
      * @return mixed
      * @throws \Exception
      */
-    protected function run($query, $bindings, \Closure $callback) {
+    protected function run(string $query, array $bindings, \Closure $callback) {
         $start = Time::millisecond();
         $result = null;
         try {
@@ -249,7 +249,7 @@ class Command extends Manager implements Database {
         return $result;
     }
 
-    protected function runQueryCallback($query, $bindings, Closure $callback) {
+    protected function runQueryCallback(string $query, array $bindings, Closure $callback) {
         return $callback($query, $bindings);
     }
 
