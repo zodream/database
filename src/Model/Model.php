@@ -13,7 +13,6 @@ use Zodream\Database\Model\Concerns\HasRelation;
 use Zodream\Database\Model\Concerns\HasTimestamps;
 use Zodream\Database\Model\Concerns\SaveModel;
 use Zodream\Database\Model\Concerns\ValidateAttributes;
-use Zodream\Helpers\Str;
 use Zodream\Infrastructure\Base\MagicObject;
 use Zodream\Infrastructure\Concerns\ErrorTrait;
 use Zodream\Infrastructure\Concerns\EventTrait;
@@ -21,6 +20,7 @@ use Zodream\Infrastructure\Concerns\EventTrait;
 abstract class Model extends MagicObject {
 
     use ErrorTrait, ExtendQuery, AutoModel, EventTrait, HasRelation, HasAttributes, ValidateAttributes, HasTimestamps, SaveModel;
+
 
     const BEFORE_SAVE = 'before save';
     const AFTER_SAVE = 'after save';
@@ -51,6 +51,27 @@ abstract class Model extends MagicObject {
      */
     protected string $primaryKey = 'id';
 
+
+    /**
+     * 判断字段是不是主键
+     * @param string $key
+     * @return bool
+     */
+	public function isPrimaryKey(string $key): bool {
+	    return $key === $this->primaryKey;
+    }
+
+    public function getKeyName(): string {
+	    return $this->primaryKey;
+    }
+
+    /**
+     * 判断是否是新增
+     * @return bool
+     */
+	public function getIsNewRecord(): bool {
+	    return $this->isNewRecord;
+    }
 
 
 	/**
@@ -86,27 +107,7 @@ abstract class Model extends MagicObject {
 		
 	}
 
-    /**
-     * 判断字段是不是主键
-     * @param string $key
-     * @return bool
-     */
-	public function isPrimaryKey(string $key): bool {
-	    return $key === $this->primaryKey;
-    }
-
-    public function getKeyName(): string {
-	    return $this->primaryKey;
-    }
-
-    /**
-     * 判断是否是新增
-     * @return bool
-     */
-	public function getIsNewRecord(): bool {
-	    return $this->isNewRecord;
-    }
-
+    
 	/**
 	 * @param string $key
 	 * @return string
@@ -118,28 +119,6 @@ abstract class Model extends MagicObject {
 		}
 		return ucwords(str_replace('_', ' ', $key));
 	}
-
-    /**
-     * Create a new instance of the given model.
-     *
-     * @param  array  $attributes
-     * @param  bool  $exists
-     * @return static
-     */
-    public function newInstance(array $attributes = [], bool $exists = false): static {
-        $model = new static($attributes);
-        $model->isNewRecord = !$exists;
-        return $model;
-    }
-
-    public function qualifyColumn(string $column): string {
-        if (Str::contains($column, '.')) {
-            return $column;
-        }
-
-        return static::tableName().'.'.$column;
-    }
-
 
     /**
      * @param string $method

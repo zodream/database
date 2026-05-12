@@ -43,7 +43,7 @@ trait AutoModel {
         return true;
     }
 
-    public function set($key, $value = null){
+    public function set(mixed $key, mixed $value = null){
         if (empty($key)) {
             return $this;
         }
@@ -117,7 +117,7 @@ trait AutoModel {
         return $this->__oldAttributes[$key];
     }
 
-    public function hasOldAttribute($key) {
+    public function hasOldAttribute(string $key) {
         return isset($this->__oldAttributes[$key])
             || array_key_exists($key, $this->__oldAttributes);
     }

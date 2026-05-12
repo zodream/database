@@ -34,7 +34,7 @@ trait HasAttributes {
      * @return array|mixed|null
      * @throws \Exception
      */
-    public function getAttribute($key = null, $default = null){
+    public function getAttribute(mixed $key = null, mixed $default = null){
         if (is_null($key)) {
             return $this->getAllAttributes();
         }
@@ -59,7 +59,7 @@ trait HasAttributes {
         return $this->getRelationValue($key);
     }
 
-    public function getAllAttributes() {
+    public function getAllAttributes(): array {
         $data = property_exists($this, 'relations') ? $this->relations : [];
         foreach ($this->__attributes as $key => $value) {
             $data[$key] = $this->getAttribute($key);
@@ -96,7 +96,7 @@ trait HasAttributes {
      * @return mixed
      * @throws \Exception
      */
-    public function getRelationValue($key) {
+    public function getRelationValue(string $key) {
         // If the key already exists in the relationships array, it just means the
         // relationship has already been loaded, so we'll just return it out of
         // here because there is no need to query within the relations twice.
@@ -121,7 +121,7 @@ trait HasAttributes {
      * @throws \LogicException
      * @throws \Exception
      */
-    protected function getRelationshipFromMethod($method) {
+    protected function getRelationshipFromMethod(string $method) {
         $relation = $this->$method();
 
         if (! $relation instanceof Relation) {
@@ -139,7 +139,7 @@ trait HasAttributes {
      * @param null $key
      * @return bool
      */
-    public function isEmpty($key = null) {
+    public function isEmpty(string|null $key = null): bool {
         if (is_null($key)) {
             return count($this->__attributes) == 0;
         }
@@ -150,7 +150,7 @@ trait HasAttributes {
      * @param string|array $key
      * @return bool
      */
-    public function has($key = null) {
+    public function has(mixed $key = null): bool {
         if (!is_array($key)) {
             return $this->hasAttribute($key);
         }
@@ -162,7 +162,7 @@ trait HasAttributes {
         return false;
     }
 
-    public function setAttribute($key, $value = null) {
+    public function setAttribute(mixed $key, mixed $value = null) {
         if (is_array($key)) {
             return parent::setAttribute($key, $value);
         }
@@ -200,7 +200,7 @@ trait HasAttributes {
      * @param  array|string|null  $attributes
      * @return void
      */
-    public function addHidden($attributes = null) {
+    public function addHidden(mixed $attributes = null) {
         $this->hidden = array_merge(
             $this->hidden, is_array($attributes) ? $attributes : func_get_args()
         );
@@ -232,7 +232,7 @@ trait HasAttributes {
      * @param  array|string|null  $attributes
      * @return void
      */
-    public function addVisible($attributes = null) {
+    public function addVisible(mixed $attributes = null) {
         $this->visible = array_merge(
             $this->visible, is_array($attributes) ? $attributes : func_get_args()
         );
@@ -244,7 +244,7 @@ trait HasAttributes {
      * @param  array|string  $attributes
      * @return $this
      */
-    public function makeVisible($attributes) {
+    public function makeVisible(mixed $attributes) {
         $this->hidden = array_diff($this->hidden, (array) $attributes);
         if (! empty($this->visible)) {
             $this->addVisible($attributes);
@@ -258,7 +258,7 @@ trait HasAttributes {
      * @param  array|string  $attributes
      * @return $this
      */
-    public function makeHidden($attributes) {
+    public function makeHidden(mixed $attributes) {
         $attributes = (array) $attributes;
         $this->visible = array_diff($this->visible, $attributes);
         $this->hidden = array_unique(array_merge($this->hidden, $attributes));

@@ -392,14 +392,14 @@ class Relation {
     public function getRelationExistenceQuery(Query $query, Query $parentQuery, $columns = ['*']): SqlBuilder {
         foreach ($this->links as $fk => $lk) {
             $query->whereColumn(
-                $parentQuery->getModel()->qualifyColumn($fk), '=',
+                $parentQuery->creator->qualifyColumn($fk), '=',
                 $lk
             );
         }
         return $query->select($columns);
     }
 
-    public function __call($name, $arguments) {
+    public function __call(string $name, array $arguments) {
         $this->query->$name(...$arguments);
         return $this;
     }
@@ -421,7 +421,7 @@ class Relation {
             $models = [$models];
         }
         foreach ($relations as $key => $relation) {
-            $relation = static::parse($relation, $key);
+            $relation = static::parse($relation, (string)$key);
             $models = $relation->getWithMulti($models);
         }
         return $is_one ? reset($models) : $models;

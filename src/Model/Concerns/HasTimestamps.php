@@ -52,7 +52,7 @@ trait HasTimestamps {
      * @param  mixed  $value
      * @return $this
      */
-    public function setCreatedAt($value) {
+    public function setCreatedAt(mixed $value) {
         $this->{static::CREATED_AT} = $value;
 
         return $this;
@@ -64,7 +64,7 @@ trait HasTimestamps {
      * @param  mixed  $value
      * @return $this
      */
-    public function setUpdatedAt($value) {
+    public function setUpdatedAt(mixed $value) {
         $this->{static::UPDATED_AT} = $value;
 
         return $this;
@@ -92,7 +92,7 @@ trait HasTimestamps {
      *
      * @return bool
      */
-    public function usesTimestamps() {
+    public function usesTimestamps(): bool {
         return $this->timestamps;
     }
 

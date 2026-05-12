@@ -3,7 +3,7 @@ declare(strict_types=1);
 namespace Zodream\Database\Model\Concerns;
 
 use Exception;
-use Zodream\Database\DB;
+use Zodream\Database\Model\DefaultEntityCreator;
 use Zodream\Database\Model\Model;
 use Zodream\Database\Model\Query;
 
@@ -39,7 +39,7 @@ trait ExtendQuery {
                 'where' => $param
             ];
         }
-        $query = static::query()
+        $query = DefaultEntityCreator::from($model)->builder()
             ->load($param);
         if ($field !== '*' || empty($query->selects)) {
             $query->select($field);
@@ -123,11 +123,6 @@ trait ExtendQuery {
         return $model;
     }
 
-
-    public static function lock(string $lockType = '') {
-        DB::lock(static::tableName(), $lockType);
-    }
-
     /**
      * 查询数据
      *
@@ -136,8 +131,6 @@ trait ExtendQuery {
      * @return Query 返回查询结果,
      */
     public static function query() {
-        return (new Query())
-            ->setModelName(static::className())
-            ->from(static::tableName());
+        return DefaultEntityCreator::from(static::class)->builder();
     }
 }

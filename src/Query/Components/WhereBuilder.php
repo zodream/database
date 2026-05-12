@@ -408,7 +408,7 @@ trait WhereBuilder {
      * @return Builder
      */
     public function forNestedWhere() {
-        return (new static())->from($this->from);
+        return (new Builder())->from($this->from);
     }
 
     /**

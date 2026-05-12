@@ -5,9 +5,9 @@ namespace Zodream\Database\Model;
 use Zodream\Database\Contracts\SqlBuilder;
 use Zodream\Database\Relation;
 use Zodream\Database\Query\Builder;
-use Zodream\Helpers\Arr;
 use Zodream\Helpers\Str;
 use Closure;
+use Zodream\Database\Contracts\EntityCreator;
 
 class Query extends Builder {
 
@@ -18,20 +18,12 @@ class Query extends Builder {
      */
     protected array $eagerLoad = [];
 
-    protected string $modelName = '';
-
-    /**
-     * @var Model|null
-     */
-    protected Model|null $model = null;
-
     protected bool $isArray = false;
 
-    public function getModel() {
-        if (!$this->model instanceof Model) {
-            $this->model = new $this->modelName;
-        }
-        return $this->model;
+    public function __construct(
+        public readonly EntityCreator $creator
+    ) {
+        parent::__construct();
     }
 
     /**
@@ -117,7 +109,7 @@ class Query extends Builder {
      * @return Relation
      */
     protected function getRelationWithoutConstraints(string $relation) {
-        return $this->getModel()->{$relation}();
+        return $this->creator->binding($relation);
     }
 
     /**
@@ -212,22 +204,6 @@ class Query extends Builder {
         return $this;
     }
 
-    public function setModelName($model) {
-        if ($model instanceof Model) {
-            $this->model = $model;
-            $model = $model->className();
-        }
-        $this->modelName = $model;
-        return $this;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getModelName(): string {
-        return $this->modelName;
-    }
-
     public function asArray(): SqlBuilder {
         $this->isArray = true;
         return $this;
@@ -240,18 +216,12 @@ class Query extends Builder {
     public function all() {
         $data = parent::all();
         if (empty($data)
-            || $this->isArray
-            || !class_exists($this->modelName)) {
+            || $this->isArray) {
             return $data;
         }
         $args = [];
         foreach ($data as $item) {
-            $item = $this->getRealValues($item);
-            /** @var $model Model */
-            $model = new $this->modelName;
-            $model->setAttributeToOld($item)
-                ->setAttributeToSource($item);
-            $args[] = $model;
+            $args[] = $this->creator->parse($item);
         }
         return $this->eagerLoadRelations($args);
     }
@@ -259,28 +229,14 @@ class Query extends Builder {
     public function each(callable $cb, ...$fields): array
     {
         return parent::each(function (array $item) use ($cb) {
-            if ($this->isArray || !class_exists($this->modelName)) {
+            if ($this->isArray) {
                 return call_user_func($cb, $item);
             }
-            $item = $this->getRealValues($item);
-            /** @var $model Model */
-            $model = new $this->modelName;
-            $model->setAttributeToOld($item)
-                ->setAttributeToSource($item);
-            return call_user_func($cb, $model);
+            return call_user_func($cb, $this->creator->parse($item));
         }, ...$fields);
     }
 
-    /**
-     * 转换成真实的数据
-     * @param array $data
-     * @return array
-     * @throws \Exception
-     */
-    protected function getRealValues(array $data) {
-        $maps = Arr::getRealType($this->modelName);
-        return empty($maps) ? $data : Arr::toRealArr($data, $maps);
-    }
+    
 
 
     /**
@@ -303,9 +259,7 @@ class Query extends Builder {
         if (!empty($model)) {
             return $model;
         }
-        $model = new $this->modelName;
-        $model->set($attributes);
-        return $model;
+        return $this->creator->create($attributes);
     }
 
     /**
@@ -375,7 +329,7 @@ class Query extends Builder {
         // and error prone. We don't want constraints because we add eager ones.
         try {
             /** @var Relation $relation */
-            $relation = $this->getModel()->{$name}();
+            $relation = $this->creator->binding($name);
         } catch (\Exception $e) {
             throw $e;
         };
@@ -431,10 +385,9 @@ class Query extends Builder {
      * @param $arguments
      * @return $this
      */
-    public function __call($name, $arguments) {
-        $method = 'scope'.Str::studly($name);
+    public function __call(string $name, array $arguments) {
         array_unshift($arguments, $this);
-        call_user_func_array([$this->getModel(), $method], $arguments);
+        $this->creator->callScope($name, $arguments);
         return $this;
     }
 }
