@@ -3,6 +3,7 @@ declare(strict_types=1);
 namespace Zodream\Database\Model\Concerns;
 
 use Exception;
+use Zodream\Database\Contracts\EntityCreator;
 use Zodream\Database\Model\Query;
 
 /**
@@ -36,7 +37,7 @@ trait SaveModel {
      * 更新
      * @return bool|mixed
      */
-    public function update() {
+    public function update(EntityCreator|null $creator = null) {
         $this->isNewRecord = false;
         if ($this->usesTimestamps()) {
             $this->updateTimestamps();
@@ -45,7 +46,7 @@ trait SaveModel {
         if (!$this->validate()) {
             return false;
         }
-        $query = $this->getPrimaryKeyQuery();
+        $query = $this->getPrimaryKeyQuery($creator);
         if (empty($query)) {
             $this->setError('pk', 'ERROR PK!');
             return false;
@@ -69,7 +70,7 @@ trait SaveModel {
      * 插入
      * @return bool
      */
-    public function insert() {
+    public function insert(EntityCreator|null $creator = null) {
         $this->isNewRecord = true;
         if ($this->usesTimestamps()) {
             $this->updateTimestamps();
@@ -79,7 +80,8 @@ trait SaveModel {
             return false;
         }
         $data = $this->_getRealFields();
-        $row = static::query()
+        $query = empty($creator) ? static::query() : $creator->builder();
+        $row = $query
             ->insert($data);
         if (!empty($row)) {
             $pk = $this->primaryKey;
@@ -180,13 +182,14 @@ trait SaveModel {
      * 自动获取条件
      * @return Query|bool
      */
-    public function getPrimaryKeyQuery() {
-        if (!empty($this->primaryKey)
-            && $this->hasAttribute($this->primaryKey)) {
-            return static::query()->where($this->primaryKey,
-                $this->getAttributeSource($this->primaryKey));
+    public function getPrimaryKeyQuery(EntityCreator|null $creator = null) {
+        if (empty($this->primaryKey)
+            || !$this->hasAttribute($this->primaryKey)) {
+            return false;
         }
-        return false;
+        $query = empty($creator) ? static::query() : $creator->builder();
+        return $query->where($this->primaryKey,
+                $this->getAttributeSource($this->primaryKey));
     }
 
     /**

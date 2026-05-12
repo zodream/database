@@ -19,6 +19,10 @@ interface EntityCreator {
     public function parse(array $data): Model;
 
     /**
+     * 保存
+     */
+    public function save(Model|array $data, bool $isUpdated = false): Model;
+    /**
      * 获取关联关系
      */
     public function binding(string $name): Relation;

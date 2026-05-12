@@ -61,17 +61,15 @@ trait ExtendQuery {
 
     /**
      * 查找或新增
-     * @param $param
-     * @param string $field
-     * @param array $parameters
+     * @param integer|string $id
      * @return bool|Model|static
      * @throws Exception
      */
-    public static function findOrNew(string|int|array $param, string $field = '*', array $parameters = []) {
-        if (empty($param)) {
+    public static function findOrNew(int|string $id, string $key = 'id') {
+        if (empty($id)) {
             return new static();
         }
-        $model = static::find($param, $field, $parameters);
+        $model = static::query()->where($key, $id)->first();
         if (empty($model)) {
             return new static();
         }
@@ -80,13 +78,13 @@ trait ExtendQuery {
 
     /**
      * Set not found default data
-     * @param mixed $param
+     * @param integer|string $id
      * @param array $attributes
      * @return bool|Model|static
      * @throws Exception
      */
-    public static function findOrDefault(string|int|array $param, array $attributes) {
-        $model = self::findOrNew($param);
+    public static function findOrDefault(int|string $id, array $attributes) {
+        $model = self::findOrNew($id);
         if ($model->isNewRecord) {
             $model->set($attributes);
         }
@@ -95,26 +93,26 @@ trait ExtendQuery {
 
     /**
      * Set new attr
-     * @param mixed $param
+     * @param integer|string $id
      * @param array $attributes
      * @return bool|Model|static
      * @throws Exception
      */
-    public static function findWithReplace(string|int|array $param, array $attributes) {
-        $model = self::findOrNew($param);
+    public static function findWithReplace(int|string $id, array $attributes) {
+        $model = self::findOrNew($id);
         $model->set($attributes);
         return $model;
     }
 
     /**
      * 查找或报错
-     * @param mixed $param
+     * @param integer|string $id
      * @param string $message
      * @return Model|static
      * @throws Exception
      */
-    public static function findOrThrow(string|int|array $param, string $message = 'model find error') {
-        $model = static::find($param);
+    public static function findOrThrow(int|string $id, string $message = 'model find error') {
+        $model = static::query()->where('id', $id)->first();
         if (empty($model)) {
             throw new \InvalidArgumentException(
                 app()->isDebug() ? sprintf('[%s]%s', get_called_class(), $message) : $message

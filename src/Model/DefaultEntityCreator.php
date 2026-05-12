@@ -79,6 +79,16 @@ final class DefaultEntityCreator implements EntityCreator {
         return $model;
     }
 
+    public function save(Model|array $data, bool $isUpdated = false): Model {
+        $model = is_array($data) ? $this->create($data) : $data;
+        if ($isUpdated) {
+            $model->update($this);
+        } else {
+            $model->insert($this);
+        }
+        return $model;
+    }
+
     public function lock(string $lockType = ''): void {
         DB::lock($this->tableName(), $lockType);
     }
