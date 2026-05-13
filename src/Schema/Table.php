@@ -34,7 +34,7 @@ class Table implements TableInterface {
     /**
      * @var SchemaInterface
      */
-    protected SchemaInterface $schema;
+    protected SchemaInterface|null $schema = null;
 
     public function __construct(
         protected string $name,
