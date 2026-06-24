@@ -14,6 +14,10 @@ interface Information {
     public function tableCreateSql(Table|string $table): string;
     public function column(Table|string $table, Column|string $column): ?Column;
 
+    public function schemaExist(Schema|string $schema): bool;
+    public function tableExist(Table|string $table): bool;
+    public function columnExist(Table|string $table, Column|string $column): bool;
+
     /**
      * 通过对比修改表格
      * @param Table $table

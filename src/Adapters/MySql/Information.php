@@ -62,6 +62,16 @@ class Information implements InformationInterface {
         return $data;
     }
 
+    public function schemaExist(Schema|string $schema): bool {
+        return !empty(DB::db()->first(DB::schemaGrammar()->compileSchemaExist($schema)));
+    }
+    public function tableExist(TableInterface|string $table): bool {
+        return !empty(DB::db()->first(DB::schemaGrammar()->compileTableExist($table)));
+    }
+    public function columnExist(TableInterface|string $table, ColumnInterface|string $column): bool {
+        return !empty(DB::db()->first(DB::schemaGrammar()->compileColumnExist($table, $column)));
+    }
+
     public function columnList(string|TableInterface $table, bool $full = false): array
     {
         return DB::db()->fetch(DB::schemaGrammar()->compileColumnAll($table, $full));

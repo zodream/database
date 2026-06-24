@@ -12,12 +12,12 @@ class Column implements ColumnInterface {
     protected bool $typeIsUnsigned = false;
     protected bool $isNullable = false;
     protected string|int|float|null $default = null;
-    protected $typeOption;
+    protected mixed $typeOption = null;
 
     protected string $charset = 'utf8mb4';
     protected string $collation = 'utf8mb4_general_ci';
     protected string $oldName = '';
-    protected TableInterface $table;
+    protected TableInterface|null $table = null;
     protected string $previousName  = '';
 
     public function __construct(
