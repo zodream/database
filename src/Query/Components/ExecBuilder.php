@@ -2,8 +2,6 @@
 declare(strict_types = 1);
 namespace Zodream\Database\Query\Components;
 
-
-use Zodream\Database\Command;
 use Zodream\Database\DB;
 use Zodream\Database\Model\Model;
 use Zodream\Html\Page;
@@ -23,14 +21,14 @@ trait ExecBuilder {
         return empty($res) ? [] : $res;
     }
 
-    public function get(...$columns) {
+    public function get(mixed ...$columns) {
         if (func_num_args() > 0) {
             $this->select(...func_get_args());
         }
         return $this->all();
     }
 
-    public function each(callable $cb, ...$fields): array {
+    public function each(callable $cb, mixed ...$fields): array {
         if (func_num_args() > 1) {
             $this->select(...$fields);
         }
@@ -85,7 +83,7 @@ trait ExecBuilder {
         return current($result);
     }
 
-    public function first(...$columns) {
+    public function first(mixed ...$columns) {
         if (func_num_args() > 0) {
             $this->select(...func_get_args());
         }
@@ -105,7 +103,7 @@ trait ExecBuilder {
         return current($result);
     }
 
-    protected function wrapField($field) {
+    protected function wrapField(mixed $field) {
         return empty($field) ? $field : sprintf('`%s`', trim($field, '`'));
     }
 

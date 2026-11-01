@@ -19,7 +19,7 @@ trait JoinBuilder {
      * @param string $type
      * @return SqlBuilder
      */
-    public function join(string $table, $first, $operator = null, $second = null, string $type = 'inner'): SqlBuilder {
+    public function join(string $table, string $first, string|null $operator = null, string|null $second = null, string $type = 'inner'): SqlBuilder {
         $on = $first;
         if (!empty($operator)) {
             $on .= is_null($second) ? ' = '.$operator : sprintf(' %s %s', $operator, $second);
@@ -44,11 +44,11 @@ trait JoinBuilder {
      * @param  string  $second
      * @return Builder|static
      */
-    public function leftJoin(string $table, $first, $operator = null, $second = null): SqlBuilder {
+    public function leftJoin(string $table, string $first, string|null $operator = null, string|null $second = null): SqlBuilder {
         return $this->join($table, $first, $operator, $second, 'left');
     }
 
-    public function left($table, $first, $operator = null, $second = null) {
+    public function left(string $table, string $first, string|null $operator = null, string|null $second = null) {
         return $this->leftJoin($table, $first, $operator, $second);
     }
 
@@ -61,11 +61,11 @@ trait JoinBuilder {
      * @param  string  $second
      * @return Builder|static
      */
-    public function rightJoin(string $table, $first, $operator = null, $second = null): SqlBuilder {
+    public function rightJoin(string $table, string $first, string|null $operator = null, string|null $second = null): SqlBuilder {
         return $this->join($table, $first, $operator, $second, 'right');
     }
 
-    public function right($table, $first, $operator = null, $second = null) {
+    public function right(string $table, string $first, string|null $operator = null, string|null $second = null) {
         return $this->rightJoin($table, $first, $operator, $second);
     }
 
@@ -78,19 +78,19 @@ trait JoinBuilder {
      * @param  string  $second
      * @return Builder|static
      */
-    public function crossJoin(string $table, $first, $operator = null, $second = null): SqlBuilder {
+    public function crossJoin(string $table, string $first, string|null $operator = null, string|null $second = null): SqlBuilder {
         return $this->join($table, $first, $operator, $second, 'cross');
     }
 
-    public function cross($table, $first = null, $operator = null, $second = null) {
+    public function cross(string $table, string $first, string|null $operator = null, string|null $second = null) {
         return $this->crossJoin($table, $first, $operator, $second);
     }
 
-    public function inner($table, $first = null, $operator = null, $second = null) {
+    public function inner(string $table, string $first, string|null $operator = null, string|null $second = null) {
         return $this->innerJoin($table, $first, $operator, $second);
     }
 
-    public function innerJoin(string $table, $first, $operator = null, $second = null): SqlBuilder {
+    public function innerJoin(string $table, string $first, string|null $operator = null, string|null $second = null): SqlBuilder {
         return $this->join($table, $first, $operator, $second);
     }
 

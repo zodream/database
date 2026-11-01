@@ -11,22 +11,22 @@ interface SqlBuilder {
     public function getTable(): string;
 
     public function alias(string $key): SqlBuilder;
-    public function select(array|string $column = '*', ...$args): SqlBuilder;
-    public function selectRaw($expression, array $bindings = []): SqlBuilder;
+    public function select(array|string $column = '*', mixed ...$args): SqlBuilder;
+    public function selectRaw(string $expression, array $bindings = []): SqlBuilder;
 
     public function from(string|array $table, string $alias = ''): SqlBuilder;
 
     public function joinRaw(SqlBuilder $builder, string $alias, string $on, string $type = 'inner'): SqlBuilder;
-    public function join(string $table, $first, $operator = null, $second = null, string $type = 'inner'): SqlBuilder;
-    public function leftJoin(string $table, $first, $operator = null, $second = null): SqlBuilder;
-    public function rightJoin(string $table, $first, $operator = null, $second = null): SqlBuilder;
-    public function innerJoin(string $table, $first, $operator = null, $second = null): SqlBuilder;
-    public function crossJoin(string $table, $first, $operator = null, $second = null): SqlBuilder;
+    public function join(string $table, string $first, string|null $operator = null, string|null $second = null, string $type = 'inner'): SqlBuilder;
+    public function leftJoin(string $table, string $first, string|null $operator = null, string|null $second = null): SqlBuilder;
+    public function rightJoin(string $table, string $first, string|null $operator = null, string|null $second = null): SqlBuilder;
+    public function innerJoin(string $table, string $first, string|null $operator = null, string|null $second = null): SqlBuilder;
+    public function crossJoin(string $table, string $first, string|null $operator = null, string|null $second = null): SqlBuilder;
 
-    public function where($column, $operator = null, $value = null, string $boolean = 'and'): SqlBuilder;
-    public function orWhere($column, $operator = null, $value = null): SqlBuilder;
+    public function where(string|array $column, mixed $operator = null, mixed $value = null, string $boolean = 'and'): SqlBuilder;
+    public function orWhere(string|array $column, mixed $operator = null, mixed $value = null): SqlBuilder;
     public function whereRaw(SqlBuilder|string $sql, array $bindings = [], string $boolean = 'and'): SqlBuilder;
-    public function orWhereRaw(SqlBuilder|string$sql, array $bindings = []): SqlBuilder;
+    public function orWhereRaw(SqlBuilder|string $sql, array $bindings = []): SqlBuilder;
     public function whereIn(string $column, array $values, string $boolean = 'and', bool $not = false): SqlBuilder;
     public function orWhereIn(string $column, array $values): SqlBuilder;
     public function whereNotIn(string $column, array $values, string $boolean = 'and'): SqlBuilder;
@@ -39,12 +39,12 @@ interface SqlBuilder {
     public function whereNotNull(string $column, string $boolean = 'and'): SqlBuilder;
     public function orWhereNotNull(string $column): SqlBuilder;
 
-    public function having($column, $operator = null, $value = null, string $boolean = 'and'): SqlBuilder;
-    public function orHaving($column, $operator = null, $value = null): SqlBuilder;
+    public function having(string $column, mixed $operator = null, mixed $value = null, string $boolean = 'and'): SqlBuilder;
+    public function orHaving(string $column, mixed $operator = null, mixed $value = null): SqlBuilder;
 
 
-    public function orderBy(array|string $column, string $order = '', ...$args): SqlBuilder;
-    public function groupBy(string $column, ...$args): SqlBuilder;
+    public function orderBy(array|string $column, string $order = '', mixed ...$args): SqlBuilder;
+    public function groupBy(string $column, mixed ...$args): SqlBuilder;
     public function union(SqlBuilder|string $sql, bool $all = false): SqlBuilder;
     public function limit(string|int $offset, int $length = 0): SqlBuilder;
     public function offset(int $offset): SqlBuilder;
@@ -69,10 +69,10 @@ interface SqlBuilder {
     public function scalar();
     public function pluck(string|null $column = null, string|null $key = null): array;
     public function value(string $column);
-    public function first(...$columns);
-    public function get(...$columns);
+    public function first(mixed ...$columns);
+    public function get(mixed ...$columns);
     public function page(int $perPage = 20, string $pageKey = 'page', int $page = -1): Page;
-    public function each(callable $cb, ...$columns): array;
+    public function each(callable $cb, mixed ...$columns): array;
 
     public function insert(array|string $columns = '', array|string $values = ''): int|string;
     public function update(array $data): int;
@@ -84,7 +84,7 @@ interface SqlBuilder {
 
     public function getBindings(): array;
 
-    public function addBinding($value, string $type = 'where'): SqlBuilder;
+    public function addBinding(mixed $value, string $type = 'where'): SqlBuilder;
     public function getSQL(): string;
 
 }

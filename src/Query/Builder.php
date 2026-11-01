@@ -33,9 +33,9 @@ class Builder extends BaseSchema implements SqlBuilder {
 
     public array|string $from = [];
 
-    public $limit;
+    public mixed $limit;
 
-    public $offset;
+    public mixed $offset;
 
     public array $groups = [];
 
@@ -105,7 +105,7 @@ class Builder extends BaseSchema implements SqlBuilder {
      * @param $tag
      * @return static
      */
-    public function flush($tag) {
+    public function flush(string $tag) {
         $args = func_get_args();
         foreach ($args as $item) {
             if (in_array($item, $this->sequence)) {
@@ -129,7 +129,7 @@ class Builder extends BaseSchema implements SqlBuilder {
         return $this;
     }
 
-    public function groupBy(string $column, ...$args): SqlBuilder {
+    public function groupBy(string $column, mixed ...$args): SqlBuilder {
         foreach (func_get_args() as $group) {
             $this->groups = array_merge(
                 (array) $this->groups,
@@ -139,7 +139,7 @@ class Builder extends BaseSchema implements SqlBuilder {
         return $this;
     }
 
-    public function group($args) {
+    public function group(mixed $args) {
         return call_user_func_array([$this, 'groupBy'], func_get_args());
     }
 

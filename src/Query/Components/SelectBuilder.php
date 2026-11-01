@@ -15,7 +15,7 @@ trait SelectBuilder {
      * @param string|array $field
      * @return static
      */
-    public function select(array|string $field = '*', ...$args): SqlBuilder {
+    public function select(array|string $field = '*', mixed ...$args): SqlBuilder {
         if (func_num_args() < 1) {
             return $this->andSelect($field);
         }
@@ -25,14 +25,14 @@ trait SelectBuilder {
         return $this->andSelect($field);
     }
 
-    public function appendSelect($field) {
+    public function appendSelect(mixed $field) {
         if (empty($this->selects)) {
             $this->selects[] = '*';
         }
         return $this->andSelect(...func_get_args());
     }
 
-    public function andSelect($field = '*') {
+    public function andSelect(mixed $field = '*') {
         if (!is_array($field)) {
             $field = func_get_args();
         }
@@ -52,7 +52,7 @@ trait SelectBuilder {
         return $this;
     }
 
-    public function selectRaw($expression, array $bindings = []): SqlBuilder {
+    public function selectRaw(string $expression, array $bindings = []): SqlBuilder {
         $this->selects[] = $expression;
         if ($bindings) {
             $this->addBinding($bindings, 'select');

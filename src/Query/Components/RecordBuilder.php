@@ -44,7 +44,7 @@ trait RecordBuilder {
      * @return int
      * @throws \Exception
      */
-    public function updateBool($filed): int {
+    public function updateBool(string $filed): int {
         return $this->update([
             "{$filed} = CASE WHEN {$filed} = 1 THEN 0 ELSE 1 END"
         ]);
@@ -87,7 +87,7 @@ trait RecordBuilder {
      * @param string|int $num
      * @return string
      */
-    protected function formatIncrement($num): string {
+    protected function formatIncrement(mixed $num): string {
         if ($num >= 0) {
             $num = '+'.$num;
         }

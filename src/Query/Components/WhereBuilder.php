@@ -1,4 +1,5 @@
 <?php
+declare(strict_types = 1);
 namespace Zodream\Database\Query\Components;
 
 use Zodream\Database\Contracts\SqlBuilder;
@@ -10,9 +11,9 @@ use Zodream\Infrastructure\Contracts\ArrayAble;
 
 trait WhereBuilder {
 
-    public $wheres = [];
+    public array $wheres = [];
 
-    public function where($column, $operator = null, $value = null, string $boolean = 'and'): SqlBuilder {
+    public function where(string|array $column, mixed $operator = null, mixed $value = null, string $boolean = 'and'): SqlBuilder {
         if (is_array($column)) {
             return $this->addArrayOfWheres($column, $boolean);
         }
@@ -53,7 +54,7 @@ trait WhereBuilder {
         return $this;
     }
 
-    protected function whereSub($column, $operator, Closure $callback, $boolean) {
+    protected function whereSub(string $column, string $operator, Closure $callback, string $boolean) {
         if ($this->isEmpty) {
             return $this;
         }
@@ -73,7 +74,7 @@ trait WhereBuilder {
         return $this;
     }
 
-    protected function addArrayOfWheres($column, $boolean, $method = 'where') {
+    protected function addArrayOfWheres(array $column, string $boolean, string $method = 'where') {
         return $this->whereNested(function ($query) use ($column, $method) {
             foreach ($column as $key => $value) {
                 if (is_numeric($key) && is_array($value)) {
@@ -85,15 +86,15 @@ trait WhereBuilder {
         }, $boolean);
     }
 
-    protected function invalidOperator($operator) {
+    protected function invalidOperator(mixed $operator) {
         return !is_string($operator) || !in_array(strtolower($operator), Builder::OPERATORS, true);
     }
 
-    public function orWhere($column, $operator = null, $value = null): SqlBuilder {
+    public function orWhere(string|array $column, mixed $operator = null, mixed $value = null): SqlBuilder {
         return $this->where($column, $operator, $value, 'or');
     }
 
-    public function whereColumn($first, $operator = null, $second = null, $boolean = 'and') {
+    public function whereColumn(string|array $first, string|null $operator = null, string|null $second = null, string $boolean = 'and') {
         // If the column is an array, we will assume it is an array of key-value pairs
         // and can add them each as a where clause. We will maintain the boolean we
         // received when the method was called and pass it into the nested where.
@@ -128,7 +129,7 @@ trait WhereBuilder {
      * @param  string|null  $second
      * @return Builder|static
      */
-    public function orWhereColumn($first, $operator = null, $second = null) {
+    public function orWhereColumn(string|array $first, string|null $operator = null, string|null $second = null) {
         return $this->whereColumn($first, $operator, $second, 'or');
     }
 
@@ -155,7 +156,7 @@ trait WhereBuilder {
      * @param  array   $bindings
      * @return Builder|static
      */
-    public function orWhereRaw(SqlBuilder|string$sql, array $bindings = []): SqlBuilder {
+    public function orWhereRaw(SqlBuilder|string $sql, array $bindings = []): SqlBuilder {
         return $this->whereRaw($sql, $bindings, 'or');
     }
 
@@ -238,7 +239,7 @@ trait WhereBuilder {
      * @param  mixed   $values
      * @return Builder|static
      */
-    public function orWhereNotIn($column, $values) {
+    public function orWhereNotIn(string $column, array $values) {
         return $this->whereNotIn($column, $values, 'or');
     }
 
@@ -392,7 +393,7 @@ trait WhereBuilder {
      * @param  string   $boolean
      * @return Builder|static
      */
-    public function whereNested(Closure $callback, $boolean = 'and') {
+    public function whereNested(Closure $callback, string $boolean = 'and') {
         if ($this->isEmpty) {
             return $this;
         }
@@ -407,7 +408,7 @@ trait WhereBuilder {
      *
      * @return Builder
      */
-    public function forNestedWhere() {
+    public function forNestedWhere(): Builder {
         return (new Builder())->from($this->from);
     }
 
@@ -418,7 +419,7 @@ trait WhereBuilder {
      * @param  string  $boolean
      * @return $this
      */
-    public function addNestedWhereQuery($query, $boolean = 'and') {
+    public function addNestedWhereQuery(Builder $query, string $boolean = 'and') {
         if (count($query->wheres)) {
             $type = 'Nested';
 
@@ -430,7 +431,7 @@ trait WhereBuilder {
         return $this;
     }
 
-    public function having($column, $operator = null, $value = null, string $boolean = 'and'): SqlBuilder {
+    public function having(string $column, mixed $operator = null, mixed $value = null, string $boolean = 'and'): SqlBuilder {
         $type = 'Basic';
 
         // If the given operator is not found in the list of valid operators we will
@@ -457,7 +458,7 @@ trait WhereBuilder {
      * @param  string  $value
      * @return static
      */
-    public function orHaving($column, $operator = null, $value = null): SqlBuilder {
+    public function orHaving(string $column, mixed $operator = null, mixed $value = null): SqlBuilder {
         return $this->having($column, $operator, $value, 'or');
     }
 }
