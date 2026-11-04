@@ -13,7 +13,7 @@ trait WhereBuilder {
 
     public array $wheres = [];
 
-    public function where(string|array $column, mixed $operator = null, mixed $value = null, string $boolean = 'and'): SqlBuilder {
+    public function where(string|array|Closure $column, mixed $operator = null, mixed $value = null, string $boolean = 'and'): SqlBuilder {
         if (is_array($column)) {
             return $this->addArrayOfWheres($column, $boolean);
         }
@@ -90,7 +90,7 @@ trait WhereBuilder {
         return !is_string($operator) || !in_array(strtolower($operator), Builder::OPERATORS, true);
     }
 
-    public function orWhere(string|array $column, mixed $operator = null, mixed $value = null): SqlBuilder {
+    public function orWhere(string|array|Closure $column, mixed $operator = null, mixed $value = null): SqlBuilder {
         return $this->where($column, $operator, $value, 'or');
     }
 

@@ -2,6 +2,8 @@
 declare(strict_types=1);
 namespace Zodream\Database\Contracts;
 
+use Closure;
+
 interface Engine {
 
     public function config(string $name = '');
@@ -61,7 +63,7 @@ interface Engine {
     public function lastInsertId(): int|string;
     public function rowCount(): int;
 
-    public function transaction($cb): bool;
+    public function transaction(array|Closure $cb): bool;
     public function transactionBegin(): bool;
     public function transactionCommit(array $args = []): bool;
     public function transactionRollBack(): bool;

@@ -2,6 +2,8 @@
 declare(strict_types=1);
 namespace Zodream\Database\Engine;
 
+use Closure;
+
 abstract class BaseEngine {
 	
 	protected mixed $driver = null;
@@ -77,13 +79,13 @@ abstract class BaseEngine {
 
 	/**
 	 * 执行事务
-	 * @param array|callable $cb
+	 * @param array|Closure $cb
 	 * @return bool
 	 */
-	public function transaction($cb): bool {
+	public function transaction(array|Closure $cb): bool {
 		$this->transactionBegin();
 		try {
-		    if (is_callable($cb)) {
+		    if ($cb instanceof Closure) {
 		        call_user_func($cb, $this);
                 $cb = [];
             }
@@ -93,6 +95,7 @@ abstract class BaseEngine {
 			$this->transactionRollBack();
 			throw $ex;
 		}
+		return false;
 	}
 
     abstract public function transactionBegin(): bool;

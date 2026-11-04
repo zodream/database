@@ -23,8 +23,8 @@ interface SqlBuilder {
     public function innerJoin(string $table, string $first, string|null $operator = null, string|null $second = null): SqlBuilder;
     public function crossJoin(string $table, string $first, string|null $operator = null, string|null $second = null): SqlBuilder;
 
-    public function where(string|array $column, mixed $operator = null, mixed $value = null, string $boolean = 'and'): SqlBuilder;
-    public function orWhere(string|array $column, mixed $operator = null, mixed $value = null): SqlBuilder;
+    public function where(string|array|Closure $column, mixed $operator = null, mixed $value = null, string $boolean = 'and'): SqlBuilder;
+    public function orWhere(string|array|Closure $column, mixed $operator = null, mixed $value = null): SqlBuilder;
     public function whereRaw(SqlBuilder|string $sql, array $bindings = [], string $boolean = 'and'): SqlBuilder;
     public function orWhereRaw(SqlBuilder|string $sql, array $bindings = []): SqlBuilder;
     public function whereIn(string $column, array $values, string $boolean = 'and', bool $not = false): SqlBuilder;

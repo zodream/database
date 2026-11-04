@@ -162,11 +162,11 @@ class Command extends Manager implements Database {
 
     /**
      * 执行事务
-     * @param array|callable $args sql语句的数组
+     * @param array|Closure $args sql语句的数组
      * @return bool
      * @throws \Exception
      */
-    public function transaction($args) {
+    public function transaction(array|Closure $args): bool {
         return $this->engine()->transaction($args);
     }
 
