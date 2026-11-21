@@ -60,6 +60,10 @@ interface SqlBuilder {
      */
     public function asArray(): SqlBuilder;
 
+    /**
+     * 是否有数据
+     */
+    public function any(string $column = '*'): bool;
     public function count(string $column = '*'): int;
     public function max(string $column);
     public function min(string $column);

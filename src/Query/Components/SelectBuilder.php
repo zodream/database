@@ -114,6 +114,10 @@ trait SelectBuilder {
         return (int)$this->selectFuncName(__FUNCTION__, $column)->scalar();
     }
 
+    public function any(string $column = '*'): bool {
+        return $this->asArray()->count($column) > 0;
+    }
+
     /**
      * 最大值
      * @param $column
