@@ -120,7 +120,7 @@ class Builder extends BaseSchema implements SqlBuilder {
             return $this;
         }
         foreach ($args as $key => $item) {
-            $tag = strtolower(is_integer($key) ? array_shift($item) : $key);
+            $tag = strtolower(is_int($key) ? array_shift($item) : $key);
             if (!in_array($tag, $this->sequence) || empty($item)) {
                 continue;
             }
@@ -167,7 +167,7 @@ class Builder extends BaseSchema implements SqlBuilder {
         $args = !is_array($column) ? func_get_args() : $column;
         // 把关联数组变成 1，asc
         foreach ($args as $key => $item) {
-            if (!is_integer($key)) {
+            if (!is_int($key)) {
                 if (is_array($item)) {
                     //'asc' => ['a', 'b']
                     foreach ($item as $value) {

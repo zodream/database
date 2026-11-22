@@ -27,7 +27,7 @@ class BuilderGrammar implements GrammarInterface {
         }
         $result = array();
         foreach ((array)$selects as $key => $item) {
-            if (is_integer($key)) {
+            if (is_int($key)) {
                 $result[] = $item;
             } else {
                 $result[] = "{$item} AS {$key}";
@@ -42,7 +42,7 @@ class BuilderGrammar implements GrammarInterface {
         }
         $result = array();
         foreach ($query->from as $key => $item) {
-            if (is_integer($key)) {
+            if (is_int($key)) {
                 $result[] = $query->addPrefix($item);
                 continue;
             }
@@ -573,7 +573,7 @@ class BuilderGrammar implements GrammarInterface {
     protected function compileUpdateData(SqlBuilder $builder, array $data): string {
         $items = [];
         foreach ($data as $key => $value) {
-            if (is_integer($key)) {
+            if (is_int($key)) {
                 $items[] = $value;
                 continue;
             }

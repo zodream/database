@@ -95,7 +95,7 @@ class SchemaGrammar implements GrammarInterface {
             $lines[] = "PRIMARY KEY (`{$table->getPrimaryKey()}`)";
         }
         foreach ($table->getChecks() as $key => $item) {
-            $lines[] = (!is_integer($key) ? "CONSTRAINT `{$key}` " : null)." CHECK ({$item})";
+            $lines[] = (!is_int($key) ? "CONSTRAINT `{$key}` " : null)." CHECK ({$item})";
         }
         foreach ($table->getIndexes() as $key => $item) {
             $lines[] = (count($item) > 2 ? 'UNIQUE ': null). "INDEX `{$key}` (`{$item[0]}` {$item['1']})";
