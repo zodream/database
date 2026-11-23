@@ -85,11 +85,11 @@ class BuilderGrammar implements GrammarInterface {
         return ' WHERE '.$this->removeLeadingBoolean(implode(' ', $args));
     }
 
-    protected function compileWhereBasic($where): string {
+    protected function compileWhereBasic(array $where): string {
         return $where['column'].' '.$where['operator'].' ?';
     }
 
-    protected function compileWhereColumn($where): string {
+    protected function compileWhereColumn(array $where): string {
         return $where['first'].' '.$where['operator'].' '.$where['second'];
     }
 
@@ -99,7 +99,7 @@ class BuilderGrammar implements GrammarInterface {
      * @param  array  $where
      * @return string
      */
-    protected function compileWhereNull($where): string {
+    protected function compileWhereNull(array $where): string {
         return $where['column'].' is null';
     }
 
@@ -109,7 +109,7 @@ class BuilderGrammar implements GrammarInterface {
      * @param  array  $where
      * @return string
      */
-    protected function compileWhereIn($where): string {
+    protected function compileWhereIn(array $where): string {
         if (! empty($where['values'])) {
             return $where['column'].' in ('.$this->parameterize($where['values']).')';
         }
@@ -123,7 +123,7 @@ class BuilderGrammar implements GrammarInterface {
      * @param  array  $where
      * @return string
      */
-    protected function compileWhereNotIn($where): string {
+    protected function compileWhereNotIn(array $where): string {
         if (! empty($where['values'])) {
             return $where['column'].' not in ('.$this->parameterize($where['values']).')';
         }
@@ -138,7 +138,7 @@ class BuilderGrammar implements GrammarInterface {
      * @param  array  $where
      * @return string
      */
-    protected function compileWhereNotNull($where): string {
+    protected function compileWhereNotNull(array $where): string {
         return $where['column'].' is not null';
     }
 
@@ -148,7 +148,7 @@ class BuilderGrammar implements GrammarInterface {
      * @param  array  $where
      * @return string
      */
-    protected function compileWhereBetween($where): string {
+    protected function compileWhereBetween(array $where): string {
         $between = $where['not'] ? 'not between' : 'between';
 
         return $where['column'].' '.$between.' ? and ?';
@@ -160,7 +160,7 @@ class BuilderGrammar implements GrammarInterface {
      * @param  array  $where
      * @return string
      */
-    protected function compileWhereRaw($where): string {
+    protected function compileWhereRaw(array $where): string {
         return $where['sql'];
     }
 
@@ -170,7 +170,7 @@ class BuilderGrammar implements GrammarInterface {
      * @param  array  $where
      * @return string
      */
-    protected function compileWhereNested($where): string {
+    protected function compileWhereNested(array $where): string {
         // Here we will calculate what portion of the string we need to remove. If this
         // is a join clause query, we need to remove the "on" portion of the SQL and
         // if it is a normal query we need to take the leading "where" of queries.
@@ -179,7 +179,7 @@ class BuilderGrammar implements GrammarInterface {
         return '('.substr($this->compileWheres($where['query']), $offset).')';
     }
 
-    protected function whereSub($where) {
+    protected function whereSub(array $where) {
         $select = $this->compileSelects($where['query']);
         return $where['column'].' '.$where['operator']." ($select)";
     }

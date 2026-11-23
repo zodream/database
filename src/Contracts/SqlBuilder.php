@@ -43,11 +43,12 @@ interface SqlBuilder {
     public function orHaving(string $column, mixed $operator = null, mixed $value = null): SqlBuilder;
 
 
-    public function orderBy(array|string $column, string $order = '', mixed ...$args): SqlBuilder;
+    public function orderBy(array|string $column, string|int $order = '', mixed ...$args): SqlBuilder;
+    public function thenBy(string $column, int $direction = SORT_ASC): SqlBuilder;
     public function groupBy(string $column, mixed ...$args): SqlBuilder;
     public function union(SqlBuilder|string $sql, bool $all = false): SqlBuilder;
     public function limit(string|int $offset, int $length = 0): SqlBuilder;
-    public function offset(int $offset): SqlBuilder;
+    public function skip(int $offset): SqlBuilder;
     public function take(int $length): SqlBuilder;
 
     public function tap(Closure $cb): SqlBuilder;
@@ -70,11 +71,11 @@ interface SqlBuilder {
     public function avg(string $column): int|float;
     public function sum(string $column): int|float;
 
-    public function scalar();
+    public function scalar(): mixed;
     public function pluck(string|null $column = null, string|null $key = null): array;
-    public function value(string $column);
-    public function first(mixed ...$columns);
-    public function get(mixed ...$columns);
+    public function value(string $column): mixed;
+    public function first(mixed ...$columns): mixed;
+    public function get(mixed ...$columns): mixed;
     public function page(int $perPage = 20, string $pageKey = 'page', int $page = -1): Page;
     public function each(callable $cb, mixed ...$columns): array;
 

@@ -8,24 +8,15 @@ use Zodream\Html\Page;
 
 trait ExecBuilder {
 
-
-    /**
-     * @return array
-     * @throws \Exception
-     */
-    public function all() {
+    public function get(mixed ...$columns): mixed {
         if ($this->isEmpty) {
             return [];
         }
-        $res = DB::db()->fetch($this->getSQL(), $this->getBindings());
-        return empty($res) ? [] : $res;
-    }
-
-    public function get(mixed ...$columns) {
         if (func_num_args() > 0) {
             $this->select(...func_get_args());
         }
-        return $this->all();
+        $res = DB::db()->fetch($this->getSQL(), $this->getBindings());
+        return empty($res) ? [] : $this->wrapResult($res);
     }
 
     public function each(callable $cb, mixed ...$fields): array {
@@ -67,27 +58,15 @@ trait ExecBuilder {
         $countQuery->orders = [];
         $countQuery->limit = null;
         $page = new Page($countQuery, $perPage, $pageKey, $page);
-        return $page->setPage($this->limit($page->getLimit())->all());
+        return $page->setItems($this->skip($page->getItemsOffset())->take($page->getPerPage())->get());
     }
 
-    /**
-     * @return array|bool
-     * @throws \Exception
-     */
-    public function one() {
-        $this->limit(1);
-        $result = $this->all();
+    public function first(mixed ...$columns): mixed {
+        $result = $this->take(1)->get(...$columns);
         if (empty($result)) {
             return null;
         }
         return current($result);
-    }
-
-    public function first(mixed ...$columns) {
-        if (func_num_args() > 0) {
-            $this->select(...func_get_args());
-        }
-        return $this->one();
     }
 
     /**
@@ -95,12 +74,11 @@ trait ExecBuilder {
      * @return bool|string|int
      * @throws \Exception
      */
-    public function scalar() {
-        $result = $this->one();
-        if (empty($result)) {
-            return null;
+    public function scalar(): mixed {
+        if ($this->isEmpty) {
+            return [];
         }
-        return current($result);
+        return DB::db()->executeScalar($this->take(1)->getSQL(), $this->getBindings());
     }
 
     protected function wrapField(mixed $field) {
@@ -111,7 +89,7 @@ trait ExecBuilder {
         if (empty($this->selects) && !empty($column)) {
             $this->select($this->wrapField($column), $this->wrapField($key));
         }
-        $data = $this->all();
+        $data = $this->get();
         if (empty($data)) {
             return [];
         }
@@ -131,7 +109,14 @@ trait ExecBuilder {
      * @return bool|int|string
      * @throws \Exception
      */
-    public function value(string $column) {
+    public function value(string $column): mixed {
         return $this->select($column)->scalar();
+    }
+
+    /**
+     * 转换查询结果
+     */
+    protected function wrapResult(array $items): array {
+        return $items;
     }
 }

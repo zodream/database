@@ -163,7 +163,7 @@ class Builder extends BaseSchema implements SqlBuilder {
      * @param mixed ...$args
      * @return Builder
      */
-    public function orderBy(array|string $column, string $order = '', ...$args): SqlBuilder {
+    public function orderBy(array|string $column, string|int $order = '', mixed ...$args): SqlBuilder {
         $args = !is_array($column) ? func_get_args() : $column;
         // 把关联数组变成 1，asc
         foreach ($args as $key => $item) {
@@ -184,11 +184,26 @@ class Builder extends BaseSchema implements SqlBuilder {
             if (is_array($item)) {
                 // ['a', 'asc']
                 $this->orders[] = $item[0];
-                $this->orders[] = $item[1];
+                $this->orders[] = is_int($item[1]) ? match ($item[1]) {
+                    SORT_ASC => 'ASC',
+                    SORT_DESC => 'DESC',
+                } : $item[1];
                 continue;
             }
-            $this->orders[] = $item;
+            $this->orders[] = is_int($item) && $key % 2 === 1 ? match ($item) {
+                SORT_ASC => 'ASC',
+                SORT_DESC => 'DESC',
+            } :  $item;
         }
+        return $this;
+    }
+
+    public function thenBy(string $column, int $direction = SORT_ASC): SqlBuilder {
+        $this->orders[] = $column;
+        $this->orders[] = match ($direction) {
+            SORT_ASC => 'ASC',
+            SORT_DESC => 'DESC',
+        };
         return $this;
     }
 
@@ -254,10 +269,10 @@ class Builder extends BaseSchema implements SqlBuilder {
             return $this;
         }
         $this->limit = $length;
-        return $this->offset((int)$offset);
+        return $this->skip((int)$offset);
     }
 
-    public function offset(int $offset): SqlBuilder {
+    public function skip(int $offset): SqlBuilder {
         $this->offset = $offset;
         return $this;
     }
@@ -320,7 +335,7 @@ class Builder extends BaseSchema implements SqlBuilder {
      * @throws \InvalidArgumentException
      * @throws \Exception
      */
-    public function addBinding($value, string $type = 'where'): SqlBuilder {
+    public function addBinding(mixed $value, string $type = 'where'): SqlBuilder {
         if (! array_key_exists($type, $this->bindings)) {
             throw new InvalidArgumentException(
                 __('Invalid binding type: ').$type

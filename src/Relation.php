@@ -443,7 +443,7 @@ class Relation {
             return $models;
         }
         if ($models instanceof Page) {
-            return $models->setPage(static::bindRelationArr($models->getPage(), $items, $key, $links, $type));
+            return $models->setItems(static::bindRelationArr($models->getItems(), $items, $key, $links, $type));
         }
         $is_one = !static::isSomeArr($models);
         if ($is_one) {

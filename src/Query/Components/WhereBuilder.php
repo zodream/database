@@ -142,10 +142,12 @@ trait WhereBuilder {
      * @return $this
      */
     public function whereRaw(SqlBuilder|string $sql, array $bindings = [], string $boolean = 'and'): SqlBuilder {
+        if ($sql instanceof SqlBuilder) {
+            $bindings = $sql->getBindings('where');
+            $sql = $sql->getSQL();
+        }
         $this->wheres[] = ['type' => 'raw', 'sql' => $sql, 'boolean' => $boolean];
-
         $this->addBinding((array) $bindings, 'where');
-
         return $this;
     }
 

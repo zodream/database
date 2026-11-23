@@ -115,7 +115,7 @@ trait SelectBuilder {
     }
 
     public function any(string $column = '*'): bool {
-        return $this->asArray()->count($column) > 0;
+        return $this->count($column) > 0;
     }
 
     /**

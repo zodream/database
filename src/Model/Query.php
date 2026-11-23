@@ -200,7 +200,6 @@ class Query extends Builder {
      */
     public function setEagerLoads(array $eagerLoad) {
         $this->eagerLoad = $eagerLoad;
-
         return $this;
     }
 
@@ -209,25 +208,7 @@ class Query extends Builder {
         return $this;
     }
 
-    /**
-     * @return array|object[]|Model[]
-     * @throws \Exception
-     */
-    public function all() {
-        $data = parent::all();
-        if (empty($data)
-            || $this->isArray) {
-            return $data;
-        }
-        $args = [];
-        foreach ($data as $item) {
-            $args[] = $this->creator->parse($item);
-        }
-        return $this->eagerLoadRelations($args);
-    }
-
-    public function each(callable $cb, ...$fields): array
-    {
+    public function each(callable $cb, mixed ...$fields): array {
         return parent::each(function (array $item) use ($cb) {
             if ($this->isArray) {
                 return call_user_func($cb, $item);
@@ -236,25 +217,12 @@ class Query extends Builder {
         }, ...$fields);
     }
 
-    
-
-
-    /**
-     * 取一个值
-     * @return bool|int|string
-     * @throws \Exception
-     */
-    public function scalar() {
-        $this->asArray();
-        return parent::scalar();
-    }
-
     /**
      * @param array $attributes
      * @return Model
      */
     public function firstOrNew(array $attributes = []): Model {
-        /** @var $model Model */
+        /** @var Model $model */
         $model = self::first();
         if (!empty($model)) {
             return $model;
@@ -266,12 +234,12 @@ class Query extends Builder {
      * @param array $attributes
      * @return Model|bool
      */
-    public function firstWithReplace(array $attributes = []): ?Model {
+    public function firstWithReplace(array $attributes = []): Model|null {
         $model = self::first();
         if (empty($model)) {
             return null;
         }
-        /** @var $model Model */
+        /** @var Model $model */
         $model->set($attributes);
         return $model;
     }
@@ -281,7 +249,14 @@ class Query extends Builder {
         return parent::pluck($column, $key);
     }
 
-
+    protected function wrapResult(array $items): array {
+        if ($this->isArray) {
+            return $items;
+        }
+        return $this->eagerLoadRelations(array_map(function($item) {
+            return $this->creator->parse($item);
+        }, $items));
+    }
 
     /**
      * Eager load the relationships for the models.
@@ -289,7 +264,7 @@ class Query extends Builder {
      * @param  array  $models
      * @return array
      */
-    public function eagerLoadRelations(array $models) {
+    public function eagerLoadRelations(array $models): array {
         foreach ($this->eagerLoad as $name => $constraints) {
             // For nested eager loads we'll skip loading them here and they will be set as an
             // eager load on the query to retrieve the relation so that they will be eager
@@ -301,6 +276,8 @@ class Query extends Builder {
 
         return $models;
     }
+
+
 
     /**
      * Eagerly load the relationship on a set of models.
