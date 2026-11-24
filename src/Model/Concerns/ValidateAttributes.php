@@ -61,7 +61,7 @@ trait ValidateAttributes {
             if (!$this->isNewRecord && !$this->hasAttribute($key)) {
                 continue;
             }
-            $item = $validator->converterRule($item);
+            $item = Validator::convertRule($item, $this);
             // 增加必须判断
             if (!$this->hasAttribute($key)
                     && !property_exists($this, $key)
@@ -73,13 +73,6 @@ trait ValidateAttributes {
             foreach ($item['rules'] as $rule => $args) {
                 if (is_callable($args)) {
                     if (false !== call_user_func($args, $value)) {
-                        continue;
-                    }
-                    $validator->messages()->add($key, $validator->getMessage($key, $rule, $item['message']));
-                    continue;
-                }
-                if (method_exists($this, $rule)) {
-                    if (false !== call_user_func([$this, $rule], $value)) {
                         continue;
                     }
                     $validator->messages()->add($key, $validator->getMessage($key, $rule, $item['message']));
