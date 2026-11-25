@@ -82,11 +82,11 @@ final class Utils {
      * @param $value
      * @return int|float
      */
-    public static function formatNumeric($value): int|float {
+    public static function formatNumeric(mixed $value): int|float {
         if (empty($value)) {
             return 0;
         }
-        if (is_int($value) || is_float($value) || is_double($value)) {
+        if (is_int($value) || is_float($value)) {
             return $value;
         }
         if (strpos($value, '.') > 0) {
