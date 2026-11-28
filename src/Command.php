@@ -13,12 +13,13 @@ use Zodream\Helpers\Time;
 use Zodream\Database\Contracts\Engine;
 use Closure;
 use Zodream\Infrastructure\Contracts\Database;
+use Zodream\Infrastructure\Pool\EnginePool;
 
 /**
  * Class Command
  * @package Zodream\Database
  */
-class Command extends Manager implements Database {
+class Command extends EnginePool implements Database {
 
     protected string $table = '';
 
@@ -48,14 +49,14 @@ class Command extends Manager implements Database {
         return $this->getEngine($name);
     }
 
-    protected function initEngineEvent($engine) {
+    protected function onEngineInitialized(mixed $engine) {
         timer('db init end');
     }
 
     /**
      * @param Engine $engine
      */
-    protected function changeEngineEvent($engine) {
+    protected function onEngineChanged(mixed $engine) {
         // 改变缓存状态
         $this->openCache($engine->config('cache_expire'));
     }
